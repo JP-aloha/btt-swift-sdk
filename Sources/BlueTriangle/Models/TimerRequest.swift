@@ -134,6 +134,7 @@ extension TimerRequest: Codable {
             try con.encode(performanceReport.minMemory, forKey: .minMemory)
             try con.encode(performanceReport.maxMemory, forKey: .maxMemory)
             try con.encode(performanceReport.avgMemory, forKey: .avgMemory)
+            try con.encode(performanceReport.maxMainThreadTask, forKey: .maxMainThreadTask)
         }
     }
 
@@ -245,7 +246,8 @@ extension TimerRequest: Codable {
                 avgCPU: try container.decode(Float.self, forKey: CodingKeys.avgCPU),
                 minMemory: try container.decode(UInt64.self, forKey: CodingKeys.minMemory),
                 maxMemory: try container.decode(UInt64.self, forKey: CodingKeys.maxMemory),
-                avgMemory: try container.decode(UInt64.self, forKey: CodingKeys.avgMemory))
+                avgMemory: try container.decode(UInt64.self, forKey: CodingKeys.avgMemory),
+            maxMainThreadTask: try container.decode(Double.self, forKey: CodingKeys.maxMainThreadTask))
         } else {
             self.performanceReport = nil
         }
@@ -340,5 +342,6 @@ extension TimerRequest: Codable {
         case minMemory
         case maxMemory
         case avgMemory
+        case maxMainThreadTask
     }
 }

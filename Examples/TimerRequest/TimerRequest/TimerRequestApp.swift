@@ -13,13 +13,15 @@ struct TimerRequestApp: App {
     init() {
         BlueTriangle.configure { config in
             config.siteID = Constants.siteID
+            config.enableDebugLogging = true
             // ...
         }
     }
 
     var body: some Scene {
         WindowGroup {
-            TimerView(viewModel: TimerViewModel())
+            TestsHomeView()
+            //TimerView(viewModel: TimerViewModel())
         }
     }
 }

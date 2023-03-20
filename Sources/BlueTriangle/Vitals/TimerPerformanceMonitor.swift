@@ -44,7 +44,7 @@ final class TimerPerformanceMonitor: PerformanceMonitoring {
         if state == .started {
             return
         }
-
+        MainThreadObserver.start()
         cancellable = Timer.publish(every: sampleInterval, on: runLoop, in: mode)
             .autoconnect()
             .sink { [weak self] _ in
@@ -67,6 +67,8 @@ final class TimerPerformanceMonitor: PerformanceMonitoring {
     // MARK: - Private
 
     private func sample() {
-        measurements.append(resourceUsage.measure())
+        let sample = resourceUsage.measure()
+        NSLog("Measurement Sample \(sample)")
+        measurements.append(sample)
     }
 }

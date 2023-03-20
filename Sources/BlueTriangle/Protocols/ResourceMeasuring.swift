@@ -14,6 +14,8 @@ protocol ResourceUsageMeasuring {
 
 extension ResourceUsageMeasuring {
     static func measure() -> ResourceUsageMeasurement {
-        .init(cpuUsage: cpu(), memoryUsage: memory())
+        .init(cpuUsage: cpu(),
+              memoryUsage: memory(),
+              mainThreadTaskUsage: MainThreadObserver.runningTaskDuration() ?? 0)
     }
 }
