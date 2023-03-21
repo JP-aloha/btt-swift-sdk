@@ -2,43 +2,66 @@
 //  MainThreadObserver.swift
 //  MainThreadWatchDog
 //
-//  Created by jaiprakash bokhare on 10/03/23.
+//  Created by JP on 10/03/23.
 //
 
 import Foundation
 
-private let __mainObserver = MainThreadObserver()
+public class ThreadTask {
+    let startTime   : Date
+    var endTime     : Date?
+    
+    init(startTime: Date) {
+        self.startTime = startTime
+        self.endTime = nil
+    }
+    
+    func duration() -> TimeInterval{
+        return  ((endTime ?? Date()).timeIntervalSince1970) - startTime.timeIntervalSince1970
+    }
+}
 
-class MainThreadObserver {
+public protocol ThreadTaskObserver{
+    func start()
+    func stop()
+    
+    var runningTask : ThreadTask? {get}
+}
+
+private let __sharedObserver = MainThreadObserver()
+
+public class MainThreadObserver : ThreadTaskObserver{
+    
+    public static func sharedMainThreadObserver() -> ThreadTaskObserver{
+        return __sharedObserver
+    }
     
     static func runningTaskDuration() -> TimeInterval?{
-        return __mainObserver.runningTask?.duration()
+        return __sharedObserver.runningTask?.duration()
     }
     
-    static func start(){
-        __mainObserver.start()
+    static func runningTask() -> ThreadTask?{
+        return __sharedObserver.runningTask
     }
     
-    struct Task {
-        let startTime   : Date
-        var endTime     : Date?
-        var callStack   : String?
-        
-        func duration() -> TimeInterval{
-            return  ((endTime ?? Date()).timeIntervalSince1970) - startTime.timeIntervalSince1970
-        }
+   public static func start(){
+        __sharedObserver.start()
     }
     
-    private(set) var runningTask : Task?
+    static func stop(){
+        __sharedObserver.stop()
+    }
+    
+    public private(set) var runningTask : ThreadTask?
     private let registrationService : RunloopRegistrationService
     private var observationToken : Observing?
-    private var longRunningTask : Task?{
+    private var longRunningTask : ThreadTask?{
         didSet{
             NSLog("MainThread Observer Long running task changed \(longRunningTask?.duration()) Sec.")
         }
     }
     
-    func getLongRunningTask() -> Task?{
+    func getLongRunningTask() -> ThreadTask?{
         return self.runningTask?.duration() ?? 0 > self.longRunningTask?.duration() ?? 0 ? self.runningTask : self.longRunningTask
     }
     
@@ -46,7 +69,7 @@ class MainThreadObserver {
         self.registrationService = registrationService
     }
 
-    func start(){
+   public func start(){
         NSLog("Starting MainThreadObserver...")
         //TODO:: Tasks Queue
         if observationToken == nil{
@@ -58,12 +81,12 @@ class MainThreadObserver {
                     switch event {
                     case .TaskStart:
                         if self?.runningTask == nil{
-                            self?.runningTask = Task(startTime: Date())
-                            //NSLog("MainThread Task Started")
+                            self?.runningTask = ThreadTask(startTime: Date())
+                            NSLog("MainThread Task Started")
                         }
                     case .TaskFinish:
                         self?.runningTask?.endTime = Date()
-                        //NSLog("MainThread Task Finished After \(self?.runningTask?.duration() ?? -1)")
+                        NSLog("MainThread Task Finished After \(self?.runningTask?.duration() ?? -1)")
                         
                         if self?.runningTask?.duration() ?? 0 > self?.longRunningTask?.duration() ?? 0{
                             self?.longRunningTask = self?.runningTask
@@ -80,7 +103,7 @@ class MainThreadObserver {
         }
     }
     
-    func stop(){
+   public func stop(){
         NSLog("Stoping MainThreadObserver...")
         //TODO:: Tasks Queue
         if let observing = self.observationToken{

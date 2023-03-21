@@ -46,14 +46,43 @@ struct TestsHomeView: View {
     }
     
     @State var timer : BTTimer?
+    @State var watchDog = ANRMeasurementWatchDog()
+    
     func startTimer(){
         let page = Page(pageName:"Main Thread Performance Test Page")
         self.timer = BlueTriangle.startTimer(page: page)
+        MainThreadObserver.start()
+        watchDog.start()
+        //startSampleTimer()
+        //startNormalSampleTimer()
     }
     
     func stopTimer(){
         if let t = timer{
             BlueTriangle.endTimer(t)
+            timer = nil
+        }
+    }
+    
+   @State var bgTimer : DispatchSourceTimer?
+    
+    func startSampleTimer(){
+        let queue = DispatchQueue(label: "com.domain.app.timer", attributes: .concurrent)
+        // timerObject?.cancel()        // cancel previous timer if any
+        bgTimer = DispatchSource.makeTimerSource(queue: queue)
+        bgTimer?.schedule(deadline: DispatchTime.now(),
+                          repeating: DispatchTimeInterval.seconds(1),
+                          leeway: DispatchTimeInterval.never)
+        bgTimer?.setEventHandler(handler: { () in
+            NSLog("Sample Timer BG Fire...")
+        })
+        //timerObject.setEventHandler(handler: closure)
+        bgTimer?.resume()
+    }
+    
+    func startNormalSampleTimer(){
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+            NSLog("Sample Timer FG Fire...")
         }
     }
     
@@ -79,8 +108,8 @@ struct TestsHomeView: View {
     }
     
     func sleepTest(){
-        Thread.sleep(forTimeInterval: 2)
-        Thread.sleep(forTimeInterval: 7)
+        Thread.sleep(forTimeInterval: 30)
+        //Thread.sleep(forTimeInterval: 7)
     }
 }
 
