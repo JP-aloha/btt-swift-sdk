@@ -25,7 +25,11 @@
 		C953399B28971121003A3602 /* TimerRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C953399A28971121003A3602 /* TimerRequestView.swift */; };
 		C953399D2897113F003A3602 /* TimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C953399C2897113F003A3602 /* TimerView.swift */; };
 		C953399F28971174003A3602 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C953399E28971174003A3602 /* PreviewData.swift */; };
+		CF461C2E29F012A400072C7A /* backtress_extracter.c in Sources */ = {isa = PBXBuildFile; fileRef = CF461C2D29F012A400072C7A /* backtress_extracter.c */; };
+		CF8D27B929D4796C00036873 /* ANRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF8D27B829D4796C00036873 /* ANRTests.swift */; };
 		CFCA3AEF29C447BE00C25336 /* TestsHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCA3AEE29C447BE00C25336 /* TestsHomeView.swift */; };
+		CFE733D929F409BB00A86EC8 /* MainThreadStackTraceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFE733D829F409BB00A86EC8 /* MainThreadStackTraceProvider.swift */; };
+		CFE733DB29F44BE100A86EC8 /* ANRWatchDog.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFE733DA29F44BE100A86EC8 /* ANRWatchDog.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,8 +70,14 @@
 		C953399A28971121003A3602 /* TimerRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerRequestView.swift; sourceTree = "<group>"; };
 		C953399C2897113F003A3602 /* TimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerView.swift; sourceTree = "<group>"; };
 		C953399E28971174003A3602 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
+		CF461C2B29F012A400072C7A /* TimerRequest-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TimerRequest-Bridging-Header.h"; sourceTree = "<group>"; };
+		CF461C2C29F012A400072C7A /* backtress_extracter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = backtress_extracter.h; sourceTree = "<group>"; };
+		CF461C2D29F012A400072C7A /* backtress_extracter.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = backtress_extracter.c; sourceTree = "<group>"; };
+		CF8D27B829D4796C00036873 /* ANRTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ANRTests.swift; sourceTree = "<group>"; };
 		CFC60F1F29C1CF4A00FB12F0 /* btt-swift-sdk */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "btt-swift-sdk"; path = ../..; sourceTree = "<group>"; };
 		CFCA3AEE29C447BE00C25336 /* TestsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestsHomeView.swift; sourceTree = "<group>"; };
+		CFE733D829F409BB00A86EC8 /* MainThreadStackTraceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainThreadStackTraceProvider.swift; sourceTree = "<group>"; };
+		CFE733DA29F44BE100A86EC8 /* ANRWatchDog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ANRWatchDog.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +131,7 @@
 		C953395528970021003A3602 /* TimerRequest */ = {
 			isa = PBXGroup;
 			children = (
+				CF8D27B729D4788700036873 /* ANRTests */,
 				C953395628970021003A3602 /* TimerRequestApp.swift */,
 				C953399628970FF8003A3602 /* Constants.swift */,
 				C953398828970DD5003A3602 /* Extensions */,
@@ -220,6 +231,35 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
+		CF8D27B729D4788700036873 /* ANRTests */ = {
+			isa = PBXGroup;
+			children = (
+				CFE733DC29F508DE00A86EC8 /* ANR */,
+				CF8D27B829D4796C00036873 /* ANRTests.swift */,
+				CF461C2B29F012A400072C7A /* TimerRequest-Bridging-Header.h */,
+			);
+			path = ANRTests;
+			sourceTree = "<group>";
+		};
+		CFE733D729F408DA00A86EC8 /* ANRTrace */ = {
+			isa = PBXGroup;
+			children = (
+				CF461C2C29F012A400072C7A /* backtress_extracter.h */,
+				CF461C2D29F012A400072C7A /* backtress_extracter.c */,
+				CFE733D829F409BB00A86EC8 /* MainThreadStackTraceProvider.swift */,
+			);
+			path = ANRTrace;
+			sourceTree = "<group>";
+		};
+		CFE733DC29F508DE00A86EC8 /* ANR */ = {
+			isa = PBXGroup;
+			children = (
+				CFE733DA29F44BE100A86EC8 /* ANRWatchDog.swift */,
+				CFE733D729F408DA00A86EC8 /* ANRTrace */,
+			);
+			path = ANR;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -291,6 +331,7 @@
 				TargetAttributes = {
 					C953395228970021003A3602 = {
 						CreatedOnToolsVersion = 13.4;
+						LastSwiftMigration = 1430;
 					};
 					C953396228970022003A3602 = {
 						CreatedOnToolsVersion = 13.4;
@@ -356,6 +397,8 @@
 			files = (
 				C953399B28971121003A3602 /* TimerRequestView.swift in Sources */,
 				CFCA3AEF29C447BE00C25336 /* TestsHomeView.swift in Sources */,
+				CFE733D929F409BB00A86EC8 /* MainThreadStackTraceProvider.swift in Sources */,
+				CF8D27B929D4796C00036873 /* ANRTests.swift in Sources */,
 				C953399528970FD1003A3602 /* TimerViewModel.swift in Sources */,
 				C953398E28970E1D003A3602 /* Bool+Utils.swift in Sources */,
 				C953398A28970DE8003A3602 /* NumberFormatter+Ext.swift in Sources */,
@@ -364,7 +407,9 @@
 				C953399128970E6B003A3602 /* SettingsAccess.swift in Sources */,
 				C953399F28971174003A3602 /* PreviewData.swift in Sources */,
 				C953395728970021003A3602 /* TimerRequestApp.swift in Sources */,
+				CF461C2E29F012A400072C7A /* backtress_extracter.c in Sources */,
 				C953399728970FF8003A3602 /* Constants.swift in Sources */,
+				CFE733DB29F44BE100A86EC8 /* ANRWatchDog.swift in Sources */,
 				C953399928971100003A3602 /* LabeledView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -521,10 +566,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TimerRequest/Preview Content\"";
-				DEVELOPMENT_TEAM = UG892XBK75;
+				DEVELOPMENT_TEAM = 4UZ8DAVC89;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -541,6 +587,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bluetriangle.TimerRequest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "TimerRequest/ANRTests/TimerRequest-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -551,10 +599,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TimerRequest/Preview Content\"";
-				DEVELOPMENT_TEAM = UG892XBK75;
+				DEVELOPMENT_TEAM = 4UZ8DAVC89;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -571,6 +620,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bluetriangle.TimerRequest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "TimerRequest/ANRTests/TimerRequest-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

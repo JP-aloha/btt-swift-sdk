@@ -14,6 +14,8 @@ struct TimerRequestApp: App {
         BlueTriangle.configure { config in
             config.siteID = Constants.siteID
             config.enableDebugLogging = true
+            config.performanceMonitorSampleRate = 1
+            config.crashTracking  = .nsException
             // ...
         }
     }
