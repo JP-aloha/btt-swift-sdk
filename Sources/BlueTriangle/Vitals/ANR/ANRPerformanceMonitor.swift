@@ -7,19 +7,28 @@
 
 import Foundation
 
-protocol ANRMeasurement{
-    func start()
-    func stop()
+public class ANRPerformanceMonitor : PerformanceMonitoring{
+    var measurementCount: Int = 0
     
-    var longestRunningTaskInterval : TimeInterval {get}
-}
-
-public class ANRMeasurementWatchDog{
+    func end() {
+        stopTimer()
+    }
     
     public func start(){
         self.startSampleTimer()
     }
+
+    func makeReport() -> PerformanceReport {
+        PerformanceReport(minCPU: 0,
+                          maxCPU: 0,
+                          avgCPU: 0,
+                          minMemory: 0,
+                          maxMemory: 0,
+                          avgMemory: 0,
+        maxMainThreadTask: maxRunningTime)
+    }
     
+
     public init(observer : ThreadTaskObserver = MainThreadObserver.sharedMainThreadObserver()){
         self.mainThreadObserver = observer
     }
@@ -31,7 +40,6 @@ public class ANRMeasurementWatchDog{
     private let timerDispatchQueue = DispatchQueue(label: "com.BTT.ANRWatchDogTimer"/*, attributes: .concurrent*/)
     
     private func startSampleTimer(){
-        // let queue = DispatchQueue(label: "com.BTT.ANRWatchDogTimer", attributes: .concurrent)
         stopTimer()
         bgTimer = DispatchSource.makeTimerSource(queue: timerDispatchQueue)
         bgTimer?.schedule(deadline: DispatchTime.now(),
@@ -54,6 +62,7 @@ public class ANRMeasurementWatchDog{
             NSLog("Sample Main thread task : current task time : \(currentSampleTime)")
             if currentSampleTime > self.maxRunningTime{
                 self.maxRunningTime = currentSampleTime
+                self.measurementCount += 1
             }
         }else{
             NSLog("Sample Main thread task : idle")

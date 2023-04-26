@@ -16,7 +16,7 @@ public class ThreadTask {
         self.endTime = nil
     }
     
-    func duration() -> TimeInterval{
+public func duration() -> TimeInterval{
         return  ((endTime ?? Date()).timeIntervalSince1970) - startTime.timeIntervalSince1970
     }
 }
@@ -65,7 +65,7 @@ public class MainThreadObserver : ThreadTaskObserver{
         return self.runningTask?.duration() ?? 0 > self.longRunningTask?.duration() ?? 0 ? self.runningTask : self.longRunningTask
     }
     
-    init(registrationService: RunloopRegistrationService = CFRunloopRegistrationService()) {
+   public init(registrationService: RunloopRegistrationService = CFRunloopRegistrationService()) {
         self.registrationService = registrationService
     }
 

@@ -7,28 +7,28 @@
 
 import Foundation
 
-enum RunLoopEvent{
+public enum RunLoopEvent{
     case TaskStart
     case TaskFinish
 }
 
-struct Observing{
+public struct Observing{
     let observer : CFRunLoopObserver
     let runloop  : CFRunLoop
 }
 
-protocol RunloopRegistrationService{
+public protocol RunloopRegistrationService{
     func registerObserver(runloop : CFRunLoop, eventObserver : @escaping (RunLoopEvent)->Void) throws -> Observing
     func unregisterObserver(o : Observing)
 }
 
 
-class CFRunloopRegistrationService : RunloopRegistrationService{
+public class CFRunloopRegistrationService : RunloopRegistrationService{
     
     //private var createObserverHandler
     //private var addObserverHandler
-    
-    func registerObserver(runloop: CFRunLoop, eventObserver: @escaping (RunLoopEvent) -> Void) throws -> Observing {
+    public init(){}
+   public func registerObserver(runloop: CFRunLoop, eventObserver: @escaping (RunLoopEvent) -> Void) throws -> Observing {
         //make observer
         let CFObserver = CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault,
                                                             CFRunLoopActivity.allActivities.rawValue,
@@ -53,7 +53,7 @@ class CFRunloopRegistrationService : RunloopRegistrationService{
         throw NSError(domain: "BTT-MainThreadObserver", code: 1)
     }
     
-    func unregisterObserver(o: Observing) {
+   public func unregisterObserver(o: Observing) {
         CFRunLoopRemoveObserver(o.runloop,
                                 o.observer,
                                 CFRunLoopMode.commonModes)

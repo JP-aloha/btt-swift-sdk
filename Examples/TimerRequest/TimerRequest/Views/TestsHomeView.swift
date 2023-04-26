@@ -16,7 +16,7 @@ struct TestsHomeView: View {
                 
                 Text("Main Thread performance data Tests.")
                     .padding(.vertical)
-                
+                                
                 Button("Start Timer") {
                     startTimer()
                 }.disabled(self.timer != nil)
@@ -42,12 +42,16 @@ struct TestsHomeView: View {
                                destination: TimerView(viewModel: TimerViewModel()))
                 
             }
+            .onAppear {
+                anrWatchDog.start()
+                //MainThreadTraceProvider.shared.setup()
+            }
         }
     }
     
     @State var timer : BTTimer?
-    @State var watchDog = ANRMeasurementWatchDog()
-    
+    @State var watchDog = ANRPerformanceMonitor()
+    @State var anrWatchDog = ANRWatchDog(mainThreadObserver: MainThreadObserver())
     func startTimer(){
         let page = Page(pageName:"Main Thread Performance Test Page")
         self.timer = BlueTriangle.startTimer(page: page)
@@ -97,6 +101,7 @@ struct TestsHomeView: View {
     
     func longRunningLoopTest(){
         NSLog("TestCase Task Started.")
+        scheduleMainThreadTrace(time: 5)
         //Aprox 25 Sec
         var count : Int = 0
         repeat{
@@ -108,8 +113,25 @@ struct TestsHomeView: View {
     }
     
     func sleepTest(){
+        NSLog("TestCase Task Started.")
+        scheduleMainThreadTrace(time: 5)
         Thread.sleep(forTimeInterval: 30)
         //Thread.sleep(forTimeInterval: 7)
+        NSLog("TestCase Task Finished.")
+    }
+    
+    func scheduleMainThreadTrace(time : TimeInterval){
+        return
+//        DispatchQueue(label: "MainThreadTraceQueue")
+//            .asyncAfter(deadline: DispatchTime.now() + time, execute: {
+//                do{
+//                    let trace = try MainThreadTraceProvider.shared.getTrace()
+//                    print("Trace... \n \(trace)")
+//                }catch{
+//                    print("Exception getting trace. ")
+//                }
+//                
+//            })
     }
 }
 
