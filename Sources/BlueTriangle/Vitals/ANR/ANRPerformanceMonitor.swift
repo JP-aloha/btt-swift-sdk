@@ -59,13 +59,13 @@ public class ANRPerformanceMonitor : PerformanceMonitoring{
     private func sampleTaskTime(){
     
         if let currentSampleTime = mainThreadObserver.runningTask?.duration(), currentSampleTime > 1{
-            NSLog("Sample Main thread task : current task time : \(currentSampleTime)")
+            //NSLog("Sample Main thread task : current task time : \(currentSampleTime)")
             if currentSampleTime > self.maxRunningTime{
                 self.maxRunningTime = currentSampleTime
                 self.measurementCount += 1
             }
         }else{
-            NSLog("Sample Main thread task : idle")
+            //NSLog("Sample Main thread task : idle")
         }
     }
 }

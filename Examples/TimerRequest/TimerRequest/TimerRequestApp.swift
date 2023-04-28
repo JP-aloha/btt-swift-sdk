@@ -22,7 +22,7 @@ struct TimerRequestApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TestsHomeView()
+            TestsHomeView(tests: ANRTestFactory().ANRTests())
             //TimerView(viewModel: TimerViewModel())
         }
     }

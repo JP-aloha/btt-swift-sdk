@@ -71,6 +71,7 @@
 		CF8D27B829D4796C00036873 /* ANRTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ANRTests.swift; sourceTree = "<group>"; };
 		CFC60F1F29C1CF4A00FB12F0 /* btt-swift-sdk */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "btt-swift-sdk"; path = ../..; sourceTree = "<group>"; };
 		CFCA3AEE29C447BE00C25336 /* TestsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestsHomeView.swift; sourceTree = "<group>"; };
+		CFE733DD29FBE80500A86EC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +125,7 @@
 		C953395528970021003A3602 /* TimerRequest */ = {
 			isa = PBXGroup;
 			children = (
+				CFE733DD29FBE80500A86EC8 /* Info.plist */,
 				CF8D27B729D4788700036873 /* ANRTests */,
 				C953395628970021003A3602 /* TimerRequestApp.swift */,
 				C953399628970FF8003A3602 /* Constants.swift */,
@@ -543,6 +545,7 @@
 				DEVELOPMENT_TEAM = 4UZ8DAVC89;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TimerRequest/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -576,6 +579,7 @@
 				DEVELOPMENT_TEAM = 4UZ8DAVC89;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TimerRequest/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

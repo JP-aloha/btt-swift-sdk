@@ -9,47 +9,122 @@ import SwiftUI
 import BlueTriangle
 
 struct TestsHomeView: View {
+    @State var tests : [any BTTTestCase]
+    @State var timer : BTTimer?
+    @State var currentTest : BTTTestCase?
+    
     var body: some View {
         
         NavigationView{
-            VStack{
-                
-                Text("Main Thread performance data Tests.")
-                    .padding(.vertical)
-                                
-                Button("Start Timer") {
-                    startTimer()
-                }.disabled(self.timer != nil)
-                
-                Button("Run Long loop on main thread") {
-                    longRunningLoopTest()
-                    //performTestWithTimer(testCase: longRunningLoopTest)
+            ZStack{
+                VStack{
+                    List{
+                        Section {
+                            HStack{
+                                Text("BTTimer : ")
+                                if self.timer != nil {
+                                    Text("Running ... ")
+                                        .padding(.horizontal)
+                                    Button("Stop") {
+                                        stopTimer()
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.blue)
+                                }else{
+                                    Spacer()
+                                    Button("Start") {
+                                        startTimer()
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.blue)
+                                    Spacer()
+                                }
+                                Spacer()
+                            }
+                        }
+                        Section {
+                            ForEach(tests, id: \.name) { test in
+                                VStack{
+                                    Text(test.name)
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
+                                    
+                                    Text(test.description)
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                }
+                                .onTapGesture {
+                                    currentTest = test
+                                }
+                            }
+                            
+                        } header: {
+                            VStack{
+                                Text("ANR Tests")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Text("Below are the ANR tests. If run while BTTimer, max main thread usage will be reported in BTTimer request.")
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                            }
+                        }.textCase(.none)
+                        
+                        Section{
+                            NavigationLink("Timer Request View",
+                                           destination: TimerView(viewModel: TimerViewModel()))
+                            
+                        }
+                    }
                 }
-                Button("Sleep Main Thread") {
-                    sleepTest()
-                    //performTestWithTimer(testCase: sleepTest)
+                .onAppear {
+                    anrWatchDog.start()
                 }
                 
-                Button("Stop Timer") {
-                    stopTimer()
-                }.disabled(self.timer == nil)
-                
-                Divider()
-                    .padding(.vertical)
-                Text("Timer Tests")
-                    .padding(.vertical)
-                NavigationLink("Timer View",
-                               destination: TimerView(viewModel: TimerViewModel()))
-                
-            }
-            .onAppear {
-                anrWatchDog.start()
-                //MainThreadTraceProvider.shared.setup()
+                if let test = currentTest{
+                    VStack(spacing: 0){
+                        VStack{
+                            Rectangle()
+                                .fill(.black)
+                        }
+                        .frame(maxHeight: .infinity)
+                        .opacity(0.3)
+                        VStack{
+                            HStack{
+                                Spacer()
+                                Button("Close") {
+                                    currentTest = nil
+                                }
+                            }
+                            .padding()
+                            Button("Run Now") {
+                                let startTime = Date()
+                                NSLog("Started Test \"\(test.name)\"")
+
+                                _ = test.run()
+
+                                NSLog("Finished Test \"\(test.name)\" in \(Date().timeIntervalSince(startTime)) Seconds")
+                            }
+                            .font(.headline)
+                            Text(test.name)
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                                .padding()
+                            Text(test.description)
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                                .padding(.bottom, 100)
+                        }
+                        .frame(maxWidth:.infinity)
+                        .background(.white)
+                    }
+                    .frame(maxWidth:.infinity)
+                    .ignoresSafeArea()
+                }
             }
         }
     }
     
-    @State var timer : BTTimer?
     @State var watchDog = ANRPerformanceMonitor()
     @State var anrWatchDog = ANRWatchDog(mainThreadObserver: MainThreadObserver())
     func startTimer(){
@@ -57,8 +132,6 @@ struct TestsHomeView: View {
         self.timer = BlueTriangle.startTimer(page: page)
         MainThreadObserver.start()
         watchDog.start()
-        //startSampleTimer()
-        //startNormalSampleTimer()
     }
     
     func stopTimer(){
@@ -67,76 +140,10 @@ struct TestsHomeView: View {
             timer = nil
         }
     }
-    
-   @State var bgTimer : DispatchSourceTimer?
-    
-    func startSampleTimer(){
-        let queue = DispatchQueue(label: "com.domain.app.timer", attributes: .concurrent)
-        // timerObject?.cancel()        // cancel previous timer if any
-        bgTimer = DispatchSource.makeTimerSource(queue: queue)
-        bgTimer?.schedule(deadline: DispatchTime.now(),
-                          repeating: DispatchTimeInterval.seconds(1),
-                          leeway: DispatchTimeInterval.never)
-        bgTimer?.setEventHandler(handler: { () in
-            NSLog("Sample Timer BG Fire...")
-        })
-        //timerObject.setEventHandler(handler: closure)
-        bgTimer?.resume()
-    }
-    
-    func startNormalSampleTimer(){
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
-            NSLog("Sample Timer FG Fire...")
-        }
-    }
-    
-    func performTestWithTimer(testCase : ()->Void){
-        let page = Page(pageName:"Main Thread Performance Test Page")
-        let timer = BlueTriangle.startTimer(page: page)
-        
-        testCase()
-        
-        BlueTriangle.endTimer(timer)
-    }
-    
-    func longRunningLoopTest(){
-        NSLog("TestCase Task Started.")
-        scheduleMainThreadTrace(time: 5)
-        //Aprox 25 Sec
-        var count : Int = 0
-        repeat{
-            count += 1
-            //NSLog("Count \(count)")
-        }while(count < Int32.max)
-        
-        NSLog("TestCase Task Finished.")
-    }
-    
-    func sleepTest(){
-        NSLog("TestCase Task Started.")
-        scheduleMainThreadTrace(time: 5)
-        Thread.sleep(forTimeInterval: 30)
-        //Thread.sleep(forTimeInterval: 7)
-        NSLog("TestCase Task Finished.")
-    }
-    
-    func scheduleMainThreadTrace(time : TimeInterval){
-        return
-//        DispatchQueue(label: "MainThreadTraceQueue")
-//            .asyncAfter(deadline: DispatchTime.now() + time, execute: {
-//                do{
-//                    let trace = try MainThreadTraceProvider.shared.getTrace()
-//                    print("Trace... \n \(trace)")
-//                }catch{
-//                    print("Exception getting trace. ")
-//                }
-//                
-//            })
-    }
 }
 
 struct TestsHomeView_Previews: PreviewProvider {
     static var previews: some View {
-        TestsHomeView()
+        TestsHomeView(tests: ANRTestFactory().ANRTests())
     }
 }

@@ -55,11 +55,7 @@ public class MainThreadObserver : ThreadTaskObserver{
     public private(set) var runningTask : ThreadTask?
     private let registrationService : RunloopRegistrationService
     private var observationToken : Observing?
-    private var longRunningTask : ThreadTask?{
-        didSet{
-            NSLog("MainThread Observer Long running task changed \(longRunningTask?.duration()) Sec.")
-        }
-    }
+    private var longRunningTask : ThreadTask?
     
     func getLongRunningTask() -> ThreadTask?{
         return self.runningTask?.duration() ?? 0 > self.longRunningTask?.duration() ?? 0 ? self.runningTask : self.longRunningTask
@@ -70,23 +66,23 @@ public class MainThreadObserver : ThreadTaskObserver{
     }
 
    public func start(){
-        NSLog("Starting MainThreadObserver...")
+        
         //TODO:: Tasks Queue
         if observationToken == nil{
             do{
                 self.observationToken = try self.registrationService.registerObserver(runloop: CFRunLoopGetMain(),
-                                                                                       eventObserver: { [weak self] event in
+                                                                                      eventObserver: { [weak self] event in
                     //TODO:: Event Handler Queue
                     //NSLog("Event : \(event)")
                     switch event {
                     case .TaskStart:
                         if self?.runningTask == nil{
                             self?.runningTask = ThreadTask(startTime: Date())
-                            NSLog("MainThread Task Started")
+                            //NSLog("MainThread Task Started")
                         }
                     case .TaskFinish:
                         self?.runningTask?.endTime = Date()
-                        NSLog("MainThread Task Finished After \(self?.runningTask?.duration() ?? -1)")
+                        //NSLog("MainThread Task Finished After \(self?.runningTask?.duration() ?? -1)")
                         
                         if self?.runningTask?.duration() ?? 0 > self?.longRunningTask?.duration() ?? 0{
                             self?.longRunningTask = self?.runningTask
@@ -95,11 +91,11 @@ public class MainThreadObserver : ThreadTaskObserver{
                         self?.runningTask = nil
                     }
                 })
+
+                NSLog("StartedMainThreadObserver")
             }catch{
-                NSLog("Error registering observer \(error)")
+                NSLog("Error registering Main thread observer \(error)")
             }
-            
-            NSLog("StartedMainThreadObserver, Token: \(observationToken)")
         }
     }
     

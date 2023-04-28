@@ -37,14 +37,14 @@ public class ANRWatchDog{
                           leeway: DispatchTimeInterval.never)
         bgTimer?.setEventHandler(handler: checkRunningTaskDuration)
         bgTimer?.resume()
-        NSLog("\(#function)@\(#line)")
+        //NSLog("\(#function)@\(#line)")
     }
     
     private var lastRaisedTask : ThreadTask?
     private func checkRunningTaskDuration(){
-        NSLog("\(#function)@\(#line) : \(mainThreadObserver.runningTask?.duration() ?? -1)")
+        //NSLog("\(#function)@\(#line) : \(mainThreadObserver.runningTask?.duration() ?? -1)")
         if let task = mainThreadObserver.runningTask, task.duration() > errorTriggerInterval{
-            NSLog("\(#function)@\(#line)")
+            //NSLog("\(#function)@\(#line)")
             if lastRaisedTask === task{
                 return //raise error only once for a task
             }
@@ -63,8 +63,8 @@ public class ANRWatchDog{
     
     
     private func raiseANRError(){
-        NSLog("\(#function)@\(#line)")
-        print("------------ ANR Error -----------")
+        //NSLog("\(#function)@\(#line)")
+        print("------------ ANR Warning !! -----------")
         do{
             let trace = try MainThreadTraceProvider.shared.getTrace()
             print(trace)
