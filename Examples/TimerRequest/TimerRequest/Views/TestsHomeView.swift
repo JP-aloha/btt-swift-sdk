@@ -2,10 +2,12 @@
 //  TestsHomeView.swift
 //  TimerRequest
 //
-//  Created by jaiprakash bokhare on 17/03/23.
+//  Created by JP on 17/03/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
 
 import SwiftUI
+
 import BlueTriangle
 
 struct TestsHomeView: View {
@@ -76,9 +78,6 @@ struct TestsHomeView: View {
                         }
                     }
                 }
-                .onAppear {
-                    anrWatchDog.start()
-                }
                 
                 if let test = currentTest{
                     VStack(spacing: 0){
@@ -125,13 +124,9 @@ struct TestsHomeView: View {
         }
     }
     
-    @State var watchDog = ANRPerformanceMonitor()
-    @State var anrWatchDog = ANRWatchDog(mainThreadObserver: MainThreadObserver())
     func startTimer(){
         let page = Page(pageName:"Main Thread Performance Test Page")
         self.timer = BlueTriangle.startTimer(page: page)
-        MainThreadObserver.start()
-        watchDog.start()
     }
     
     func stopTimer(){

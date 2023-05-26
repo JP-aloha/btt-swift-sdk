@@ -1,9 +1,8 @@
 //
 //  backtress_extracter.c
 //  TimerRequest
-//
-//  Created by jaiprakash bokhare on 19/04/23.
-//
+//  Created by JP on 19/04/23.
+//  Copyright © 2022 Blue Triangle. All rights reserved.
 
 #include "backtress_extracter.h"
 #include <stdio.h>
@@ -61,6 +60,8 @@ void* get_backtrace(thread_t thread, int *trace_size){
         
         traceBuffer[index] = *(currentFramePointer + 1);
         currentFramePointer = previousFramePointer;
+        
+        if (currentFramePointer == NULL) break;
         ++index;
     }
     

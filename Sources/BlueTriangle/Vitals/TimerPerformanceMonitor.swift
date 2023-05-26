@@ -44,7 +44,6 @@ final class TimerPerformanceMonitor: PerformanceMonitoring {
         if state == .started {
             return
         }
-        MainThreadObserver.start()
         cancellable = Timer.publish(every: sampleInterval, on: runLoop, in: mode)
             .autoconnect()
             .sink { [weak self] _ in

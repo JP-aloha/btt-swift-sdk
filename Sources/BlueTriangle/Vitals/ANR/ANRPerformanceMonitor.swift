@@ -3,18 +3,29 @@
 //  
 //
 //  Created by JP on 21/03/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
 
 import Foundation
 
 public class ANRPerformanceMonitor : PerformanceMonitoring{
     var measurementCount: Int = 0
-    
+    let logger: Logging
+    private var maxRunningTime      : TimeInterval = 0
+    private let mainThreadObserver  : ThreadTaskObserver
+    private var bgTimer             : DispatchSourceTimer?
+    private let timerDispatchQueue  = DispatchQueue(label: "com.BTT.ANRWatchDogTimer")
+
+    init(observer: ThreadTaskObserver = MainThreadObserver.live, logger: Logging = BTLogger.live){
+        self.mainThreadObserver = observer
+        self.logger = logger
+    }
+
     func end() {
         stopTimer()
     }
     
-    public func start(){
+    func start(){
         self.startSampleTimer()
     }
 
@@ -28,17 +39,6 @@ public class ANRPerformanceMonitor : PerformanceMonitoring{
         maxMainThreadTask: maxRunningTime)
     }
     
-
-    public init(observer : ThreadTaskObserver = MainThreadObserver.sharedMainThreadObserver()){
-        self.mainThreadObserver = observer
-    }
-    
-    private var maxRunningTime : TimeInterval = 0
-    private let mainThreadObserver : ThreadTaskObserver
-    
-    private var bgTimer : DispatchSourceTimer?
-    private let timerDispatchQueue = DispatchQueue(label: "com.BTT.ANRWatchDogTimer"/*, attributes: .concurrent*/)
-    
     private func startSampleTimer(){
         stopTimer()
         bgTimer = DispatchSource.makeTimerSource(queue: timerDispatchQueue)
@@ -47,25 +47,27 @@ public class ANRPerformanceMonitor : PerformanceMonitoring{
                           leeway: DispatchTimeInterval.never)
         bgTimer?.setEventHandler(handler: sampleTaskTime)
         bgTimer?.resume()
+        
+        logger.debug("ANRPerformanceMonitor: Started.")
     }
     
     private func stopTimer(){
         if let timer = bgTimer{
             timer.cancel()
             bgTimer = nil
+            
+            logger.debug("ANRPerformanceMonitor: Stopped.")
         }
     }
     
     private func sampleTaskTime(){
     
         if let currentSampleTime = mainThreadObserver.runningTask?.duration(), currentSampleTime > 1{
-            //NSLog("Sample Main thread task : current task time : \(currentSampleTime)")
             if currentSampleTime > self.maxRunningTime{
                 self.maxRunningTime = currentSampleTime
                 self.measurementCount += 1
+                logger.debug("ANRPerformanceMonitor: a heavy main thread task detected running since \(currentSampleTime) Sec.")
             }
-        }else{
-            //NSLog("Sample Main thread task : idle")
         }
     }
 }

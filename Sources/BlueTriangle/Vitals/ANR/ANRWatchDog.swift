@@ -2,32 +2,66 @@
 //  ANRWatchDog.swift
 //  TimerRequest
 //
-//  Created by jaiprakash bokhare on 22/04/23.
+//  Created by JP on 22/04/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
 
 import Foundation
 
-public class ANRWatchDog{
-    private let mainThreadObserver : MainThreadObserver
-    let errorTriggerInterval : TimeInterval = 5
-    let sampleTimeInterval : TimeInterval = 2
+class ANRWatchDog{
+    static let DEFAULT_ERROR_INTERVAL_SEC: TimeInterval = 5
+    static let MIN_ERROR_INTERVAL_SEC: TimeInterval = 3
+    static let MAX_ERROR_INTERVAL_SEC: TimeInterval = 100
+    static let TIMER_PAGE_NAME = "ANRWarning"
     
-   public init(mainThreadObserver: MainThreadObserver = MainThreadObserver()) {
+    private var _errorTriggerInterval = ANRWatchDog.DEFAULT_ERROR_INTERVAL_SEC
+    var errorTriggerInterval: TimeInterval {
+        
+        get{
+            return _errorTriggerInterval
+        }
+        
+        set{
+            if newValue >= ANRWatchDog.MIN_ERROR_INTERVAL_SEC && newValue <= ANRWatchDog.MAX_ERROR_INTERVAL_SEC{
+                _errorTriggerInterval = errorTriggerInterval
+            }else{
+                logger.error("ANR Watch Dog: Skipping error interval value \(newValue). not in allowed range \(ANRWatchDog.MIN_ERROR_INTERVAL_SEC) to \(ANRWatchDog.MAX_ERROR_INTERVAL_SEC) Sec.")
+            }
+        }
+    }
+    
+    let sampleTimeInterval: TimeInterval    = 2
+    let mainThreadObserver: MainThreadObserver
+    let session: Session
+    let uploader: Uploading
+    let logger: Logging
+    
+    init(mainThreadObserver: MainThreadObserver,
+         session: Session,
+         uploader: Uploading,
+         logger: Logging ) {
+        
         self.mainThreadObserver = mainThreadObserver
+        self.logger     = logger
+        self.uploader   = uploader
+        self.session    = session
+        
         MainThreadTraceProvider.shared.setup()
     }
     
-   public func start(){
+    func start(){
         self.mainThreadObserver.start()
-       startObservationTimer()
+        startObservationTimer()
+        logger.info("ANR Watch Dog started. Main thread will be checked for every \(sampleTimeInterval) Sec. If a task is running longer then \(errorTriggerInterval) ANRWarning will be raised.")
     }
     
-   public func stop(){
+   func stop(){
         stopObservationTimer()
+       logger.info("ANR Watch Dog Stopped.")
     }
     
     private var bgTimer : DispatchSourceTimer?
-    private let timerDispatchQueue = DispatchQueue(label: "com.BTT.ANRWatchDogTimer"/*, attributes: .concurrent*/)
+    private let timerDispatchQueue = DispatchQueue(label: "com.BTT.ANRWatchDogTimer")
 
     private func startObservationTimer(){
         stopObservationTimer()
@@ -37,15 +71,14 @@ public class ANRWatchDog{
                           leeway: DispatchTimeInterval.never)
         bgTimer?.setEventHandler(handler: checkRunningTaskDuration)
         bgTimer?.resume()
-        //NSLog("\(#function)@\(#line)")
     }
     
     private var lastRaisedTask : ThreadTask?
     private func checkRunningTaskDuration(){
-        //NSLog("\(#function)@\(#line) : \(mainThreadObserver.runningTask?.duration() ?? -1)")
+        
         if let task = mainThreadObserver.runningTask, task.duration() > errorTriggerInterval{
-            //NSLog("\(#function)@\(#line)")
             if lastRaisedTask === task{
+                logger.debug("ANR Watch Dog Checking : Already raised task found skip ")
                 return //raise error only once for a task
             }
             
@@ -58,19 +91,73 @@ public class ANRWatchDog{
         if let timer = bgTimer{
             timer.cancel()
             bgTimer = nil
+            logger.debug("ANR Watch Dog Stopped timer... ")
         }
     }
     
-    
     private func raiseANRError(){
-        //TODO:: save as CrashReport in CrashReportPersistence
-        //NSLog("\(#function)@\(#line)")
-        print("------------ ANR Warning !! -----------")
+        logger.debug("ANR Watch Dog : Warning potential ANR detected...  ")
+        
         do{
             let trace = try MainThreadTraceProvider.shared.getTrace()
-            print(trace)
+            let message = """
+Potential ANR Detected
+An task blocking main thread since \(errorTriggerInterval) seconds
+
+Main Thread Trace
+\(trace)
+"""
+            let report = CrashReport(anrTrace: message)
+            uploadReports(session: session, report: report)
+            logger.debug(message)
         }catch{
-            print("Error reading main thread Trace...")
+            logger.error("Error uploading ANRWarning report: \(error)")
         }
+    }
+    
+    private func uploadReports(session: Session, report: CrashReport) {
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            do {
+                guard let strongSelf = self else {
+                    return
+                }
+                
+                /*let timerRequest = try strongSelf.makeTimerRequest(session: session,
+                 crashTime: crashReport.time)
+                 strongSelf.uploader.send(request: timerRequest)*/
+                
+                let reportRequest = try strongSelf.makeCrashReportRequest(session: session,
+                                                                          report: report)
+                strongSelf.uploader.send(request: reportRequest)
+            } catch {
+                self?.logger.error(error.localizedDescription)
+            }
+        }
+    }
+        
+    private func makeCrashReportRequest(session: Session, report: CrashReport) throws -> Request {
+        let params: [String: String] = [
+            "siteID": session.siteID,
+            "nStart": String(report.time),
+            "pageName": ANRWatchDog.TIMER_PAGE_NAME,
+            "txnName": session.trafficSegmentName,
+            "sessionID": String(session.sessionID),
+            "pgTm": "0",
+            "pageType": Device.name,
+            "AB": session.abTestID,
+            "DCTR": session.dataCenter,
+            "CmpN": session.campaignName,
+            "CmpM": session.campaignMedium,
+            "CmpS": session.campaignSource,
+            "os": Constants.os,
+            "browser": Constants.browser,
+            "browserVersion": Device.bvzn,
+            "device": Constants.device
+        ]
+
+        return try Request(method: .post,
+                           url: Constants.errorEndpoint,
+                           parameters: params,
+                           model: [report])
     }
 }

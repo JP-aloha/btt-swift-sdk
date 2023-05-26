@@ -30,8 +30,7 @@ final class DisplayLinkPerformanceMonitor: PerformanceMonitoring {
     private var lastSampleTimestamp: CFTimeInterval = .zero
     private(set) var measurements: [ResourceUsageMeasurement] = []
     private(set) var state: State = .initial
-    
-    private let mainThreadPerformanceMonitor: PerformanceMonitoring?
+    let mainThreadPerformanceMonitor: PerformanceMonitoring?
     
     var measurementCount: Int {
         measurements.count

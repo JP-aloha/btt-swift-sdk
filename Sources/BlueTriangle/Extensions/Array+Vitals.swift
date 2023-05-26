@@ -26,14 +26,13 @@ extension Array where Element == ResourceUsageMeasurement {
         
         let avgCPU = result.cpu.cumulative / Double(count)
         let avgMemory = result.memory.cumulative / UInt64(count)
-        let maxMainThreadUsage = map({$0.mainThreadTaskUsage}).max()
         return PerformanceReport(minCPU: Float(result.cpu.min),
                                  maxCPU: Float(result.cpu.max),
                                  avgCPU: Float(avgCPU),
                                  minMemory: result.memory.min,
                                  maxMemory: result.memory.max,
                                  avgMemory: avgMemory,
-                                 maxMainThreadTask: maxMainThreadUsage ?? 0)
+                                 maxMainThreadTask: 0)
     }
 }
 

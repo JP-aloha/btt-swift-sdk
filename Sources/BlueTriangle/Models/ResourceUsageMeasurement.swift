@@ -10,5 +10,4 @@ import Foundation
 struct ResourceUsageMeasurement {
     let cpuUsage: Double
     let memoryUsage: UInt64
-    let mainThreadTaskUsage: TimeInterval
 }

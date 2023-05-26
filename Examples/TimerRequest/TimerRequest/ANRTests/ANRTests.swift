@@ -2,7 +2,8 @@
 //  ANRTests.swift
 //  TimerRequest
 //
-//  Created by jaiprakash bokhare on 29/03/23.
+//  Created by JP on 29/03/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
 
 import Foundation
@@ -34,7 +35,8 @@ struct ANRTestFactory{
         SleepMainThreadTest(),
         HeavyLoop(),
         DownloadTest(),
-        DeadLockMainThreadTest()
+        DeadLockMainThreadTest(),
+        NSExceptionTest()
         ]
     }
 }
@@ -123,6 +125,19 @@ struct DeadLockMainThreadTest : BTTTestCase{
     var description: String {"This test calls Thread.sleep for \(interval) on main thread."}
     
     func run() -> String? {
+        return nil
+    }
+}
+
+struct NSExceptionTest : BTTTestCase{
+    
+    var interval : TimeInterval = 10
+    var name: String { "NSException Test" }
+    var description: String {"Throws an NSException."}
+    
+    func run() -> String? {
+        let arr = NSArray()
+        NSLog("Not found element \(arr[1])")
         return nil
     }
 }

@@ -2,7 +2,8 @@
 //  MainThreadStackTraceProvider.swift
 //  TimerRequest
 //
-//  Created by jaiprakash bokhare on 22/04/23.
+//  Created by JP on 22/04/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
 
 import Foundation
