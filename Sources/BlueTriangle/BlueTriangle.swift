@@ -48,7 +48,7 @@ final public class BlueTriangle: NSObject {
     public private(set) static var initialized = false
 
     private static var crashReportManager: CrashReportManaging?
-
+    
     private static var capturedRequestCollector: CapturedRequestCollecting? = {
         if shouldCaptureRequests {
             let collector = configuration.capturedRequestCollectorConfiguration.makeRequestCollector(
@@ -68,6 +68,15 @@ final public class BlueTriangle: NSObject {
 
     private static var appEventObserver: AppEventObserver?
 
+    //ANR components
+    private static let anrWatchDog : ANRWatchDog = {
+        ANRWatchDog(
+            mainThreadObserver: MainThreadObserver.live,
+            session: session,
+            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: nil),
+            logger: BlueTriangle.logger)
+    }()
+    
     /// Blue Triangle Technologies-assigned site ID.
     @objc public static var siteID: String {
         lock.sync { session.siteID }
@@ -186,6 +195,8 @@ extension BlueTriangle {
                 }
             }
             
+            configureANRTracking(with: configuration.ANRMonitoring,
+                                 interval: configuration.ANRWarningTimeInterval)
             configureScreenTracking(with: configuration.enableScreenTracking)
         }
     }
@@ -347,16 +358,17 @@ extension BlueTriangle {
     }
 }
 
-// MARK: - Screen Tracking
-
+//MARK: - ANR Tracking
 extension BlueTriangle{
-    static func configureScreenTracking(with enabled: Bool){
+    static func configureANRTracking(with enabled: Bool, interval: TimeInterval){
+        self.anrWatchDog.errorTriggerInterval = interval
+
         if enabled {
-            UIViewController.setUp()
+            MainThreadObserver.live.start()
+            self.anrWatchDog.start()
         }
     }
 }
-
 // MARK: - Test Support
 extension BlueTriangle {
     @objc

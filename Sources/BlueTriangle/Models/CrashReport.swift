@@ -20,7 +20,7 @@ struct CrashReport: Codable {
     enum CodingKeys: String, CodingKey {
         case message = "msg"
         case btV
-        case eTp
+        case eTp //Error Types
         case eCnt
         case appName = "url"
         case line
@@ -37,10 +37,30 @@ extension CrashReport {
         self.message = exception.bttCrashReportMessage
         self.eCnt = 1
         self.btV = Version.number
-        self.eTp = Constants.eTp
+        self.eTp = BT_ErrorType.NativeAppCrash.rawValue
         self.appName = Bundle.main.appName ?? "Unknown"
         self.line = 1
         self.column = 1
         self.time = intervalProvider().milliseconds
+    }
+}
+
+enum BT_ErrorType : String{
+    case NativeAppCrash
+    case ANRWarning
+}
+
+extension CrashReport {
+    init(
+        anrTrace : String
+    ) {
+        self.message = anrTrace
+        self.eCnt = 1
+        self.btV = Version.number
+        self.eTp = BT_ErrorType.ANRWarning.rawValue
+        self.appName = Bundle.main.appName ?? "Unknown"
+        self.line = 1
+        self.column = 1
+        self.time = Date().timeIntervalSince1970.milliseconds
     }
 }
