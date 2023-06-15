@@ -369,6 +369,17 @@ extension BlueTriangle{
         }
     }
 }
+
+// MARK: - Screen Tracking
+
+extension BlueTriangle{
+    static func configureScreenTracking(with enabled: Bool){
+        if enabled {
+            UIViewController.setUp()
+        }
+    }
+}
+
 // MARK: - Test Support
 extension BlueTriangle {
     @objc
