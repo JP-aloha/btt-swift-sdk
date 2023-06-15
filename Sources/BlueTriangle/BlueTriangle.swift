@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 /// The entry point for interacting with the Blue Triangle SDK.
 final public class BlueTriangle: NSObject {
@@ -184,6 +185,8 @@ extension BlueTriangle {
                     configureCrashTracking(with: crashConfig)
                 }
             }
+            
+            configureScreenTracking(with: configuration.enableScreenTracking)
         }
     }
 
@@ -341,6 +344,16 @@ extension BlueTriangle {
                                                 logger: logger,
                                                 uploader: uploader,
                                                 sessionProvider: { session })
+    }
+}
+
+// MARK: - Screen Tracking
+
+extension BlueTriangle{
+    static func configureScreenTracking(with enabled: Bool){
+        if enabled {
+            UIViewController.setUp()
+        }
     }
 }
 

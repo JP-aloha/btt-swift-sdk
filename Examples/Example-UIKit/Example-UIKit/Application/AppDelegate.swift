@@ -18,7 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         // Configure BlueTriangle
         BlueTriangle.configure { config in
-            config.siteID = "bluetriangledemo500z"
+            config.siteID = "bluetrianglesdk3280971z"
             config.abTestID = "MY_AB_TEST_ID"
             config.campaignMedium = "MY_CAMPAIGN_MEDIUM"
             config.campaignName = "MY_CAMPAIGN_NAME"
@@ -27,6 +27,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             config.trafficSegmentName = "MY_TRAFFIC_SEGMENT"
             config.networkSampleRate = 1.0
             config.crashTracking = .nsException
+            config.enableScreenTracking = true
+            config.enableDebugLogging = true
         }
 
         return true
