@@ -44,36 +44,42 @@ extension UIViewController{
     //----------------------------------------------------//
     
     @objc dynamic func viewDidLoad_Tracker() {
-        print( "viewDidLoad: \(type(of: self))")
-        BTTScreenLifecycleTracker.shared.loadStarted(String(describing: self), "\(type(of: self))")
+        if !self.isKind(of: UINavigationController.self){
+            print( "viewDidLoad: \(type(of: self))")
+            BTTScreenLifecycleTracker.shared.loadStarted(String(describing: self), "\(type(of: self))")
+        }
         viewDidLoad_Tracker()
     }
     
     @objc dynamic func viewWillAppear_Tracker(_ animated: Bool) {
-        print( "viewWillAppear: \(type(of: self))")
-        BTTScreenLifecycleTracker.shared.loadFinish(String(describing: self), "\(type(of: self))")
+        if !self.isKind(of: UINavigationController.self){
+            print( "viewWillAppear: \(type(of: self))")
+            BTTScreenLifecycleTracker.shared.loadFinish(String(describing: self), "\(type(of: self))")
+        }
         viewWillAppear_Tracker(animated)
     }
     
     @objc dynamic func viewWillDisappear_Tracker(_ animated: Bool) {
-        print( "viewWillDisappear: \(type(of: self))")
         viewWillDisappear_Tracker(animated)
     }
                                     
     @objc dynamic func viewDidAppear_Tracker(_ animated: Bool) {
-        print( "viewDidAppear: \(type(of: self))")
-        BTTScreenLifecycleTracker.shared.viewStart(String(describing: self), "\(type(of: self))")
+        if !self.isKind(of: UINavigationController.self){
+            print( "viewDidAppear: \(type(of: self))")
+            BTTScreenLifecycleTracker.shared.viewStart(String(describing: self), "\(type(of: self))")
+        }
         viewDidAppear_Tracker(animated)
     }
     
     @objc dynamic func viewDidDisappear_Tracker(_ animated: Bool) {
-        BTTScreenLifecycleTracker.shared.viewingEnd(String(describing: self), "\(type(of: self))")
-        print( "viewDidDisappear: \(type(of: self))")
+        if !self.isKind(of: UINavigationController.self){
+            print( "viewDidDisappear: \(type(of: self))")
+            BTTScreenLifecycleTracker.shared.viewingEnd(String(describing: self), "\(type(of: self))")
+        }
         viewDidDisappear_Tracker(animated)
     }
     
     @objc dynamic func loadView_Tracker() {
-        print( "loadView : \(type(of: self))")
         loadView_Tracker()
     }
 }

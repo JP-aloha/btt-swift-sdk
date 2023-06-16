@@ -51,13 +51,15 @@ final class CrashReportManager: CrashReportManaging {
                 guard let strongSelf = self else {
                     return
                 }
+                
+                let pageName = BlueTriangle.recentTimer()?.page.pageName
 
                 let timerRequest = try strongSelf.makeTimerRequest(session: session,
-                                                                   crashTime: crashReport.time)
+                                                                   crashTime: crashReport.time, pageName: pageName)
                 strongSelf.uploader.send(request: timerRequest)
 
                 let reportRequest = try strongSelf.makeCrashReportRequest(session: session,
-                                                                          crashReport: crashReport)
+                                                                          crashReport: crashReport, pageName: pageName)
                 strongSelf.uploader.send(request: reportRequest)
 
                 CrashReportPersistence.clear()
@@ -82,8 +84,8 @@ final class CrashReportManager: CrashReportManaging {
         }
     }
 
-    private func makeTimerRequest(session: Session, crashTime: Millisecond) throws -> Request {
-        let page = Page(pageName: Constants.crashID, pageType: Device.name)
+    private func makeTimerRequest(session: Session, crashTime: Millisecond, pageName : String?) throws -> Request {
+        let page = Page(pageName: pageName ?? Constants.crashID, pageType: Device.name)
         let timer = PageTimeInterval(startTime: crashTime, interactiveTime: 0, pageTime: 0)
         let model = TimerRequest(session: session,
                                  page: page,
@@ -97,11 +99,11 @@ final class CrashReportManager: CrashReportManaging {
                            model: model)
     }
 
-    private func makeCrashReportRequest(session: Session, crashReport: CrashReport) throws -> Request {
+    private func makeCrashReportRequest(session: Session, crashReport: CrashReport, pageName : String?) throws -> Request {
         let params: [String: String] = [
             "siteID": session.siteID,
             "nStart": String(crashReport.time),
-            "pageName": Constants.crashID,
+            "pageName": pageName ?? Constants.crashID,
             "txnName": session.trafficSegmentName,
             "sessionID": String(session.sessionID),
             "pgTm": "0",

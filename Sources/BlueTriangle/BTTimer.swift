@@ -109,6 +109,7 @@ final public class BTTimer: NSObject {
     /// If already started, will log an error.
     @objc
     public func start() {
+        BlueTriangle.addActiveTimer(self)
         handle(.start)
     }
 
@@ -125,6 +126,7 @@ final public class BTTimer: NSObject {
     /// End the timer.
     @objc
     public func end() {
+        BlueTriangle.removeActiveTimer(self)
         handle(.end)
     }
 

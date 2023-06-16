@@ -94,9 +94,11 @@ class TimerMapActivity {
     func submitTimer(){
         
         if let viewTime = viewTime, let loadTime = loadTime, let disapearTime = disapearTime{
+           
             timer.pageTimeBuilder = {
                 return viewTime.milliseconds - loadTime.milliseconds
             }
+            
             timer.nativeAppProperties = NativeAppProperties(
                 fullTime: disapearTime.milliseconds - loadTime.milliseconds,
                 loadTime: viewTime.milliseconds - loadTime.milliseconds,
