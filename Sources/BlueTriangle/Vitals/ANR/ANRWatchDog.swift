@@ -123,9 +123,10 @@ Main Thread Trace
                 }
                 
                 let pageName = BlueTriangle.recentTimer()?.page.pageName
-                /*let timerRequest = try strongSelf.makeTimerRequest(session: session,
-                 crashTime: crashReport.time)
-                 strongSelf.uploader.send(request: timerRequest)*/
+                let timerRequest = try strongSelf.makeTimerRequest(session: session,
+                                                                   crashTime: report.time,
+                                                                   pageName: pageName)
+                 strongSelf.uploader.send(request: timerRequest)
                 
                 let reportRequest = try strongSelf.makeCrashReportRequest(session: session,
                                                                           report: report, pageName: pageName)
@@ -134,6 +135,21 @@ Main Thread Trace
                 self?.logger.error(error.localizedDescription)
             }
         }
+    }
+    
+    private func makeTimerRequest(session: Session, crashTime: Millisecond, pageName : String?) throws -> Request {
+        let page = Page(pageName: pageName ?? ANRWatchDog.TIMER_PAGE_NAME, pageType: Device.name)
+        let timer = PageTimeInterval(startTime: crashTime, interactiveTime: 0, pageTime: 0)
+        let model = TimerRequest(session: session,
+                                 page: page,
+                                 timer: timer,
+                                 purchaseConfirmation: nil,
+                                 performanceReport: nil,
+                                 excluded: Constants.excludedValue)
+
+        return try Request(method: .post,
+                           url: Constants.timerEndpoint,
+                           model: model)
     }
         
     private func makeCrashReportRequest(session: Session, report: CrashReport, pageName : String?) throws -> Request {

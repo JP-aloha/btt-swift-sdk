@@ -14,6 +14,7 @@ struct TestsHomeView: View {
     @State var tests : [any BTTTestCase]
     @State var timer : BTTimer?
     @State var currentTest : BTTTestCase?
+    @State var scheduleTestEvent: TestScheduler.Event = .OnAppLaunch
     
     var body: some View {
         
@@ -104,6 +105,21 @@ struct TestsHomeView: View {
                                 NSLog("Finished Test \"\(test.name)\" in \(Date().timeIntervalSince(startTime)) Seconds")
                             }
                             .font(.headline)
+                            .padding()
+                            HStack(alignment: .center) {
+                                Text("Schedule Runner")
+                                    
+                                Picker("Schedule", selection: $scheduleTestEvent) {
+                                    ForEach(TestScheduler.Event.allCases, id: \.self) {
+                                        Text($0.rawValue)
+                                    }
+                                }
+                                
+                                Button( "Set") {
+                                    scheduleRunner()
+                                }
+                            }
+                            .padding()
                             Text(test.name)
                                 .font(.headline)
                                 .foregroundColor(.primary)
@@ -133,6 +149,12 @@ struct TestsHomeView: View {
         if let t = timer{
             BlueTriangle.endTimer(t)
             timer = nil
+        }
+    }
+    
+    func scheduleRunner() {
+        if let currentTest = currentTest {
+            TestScheduler.schedule(task: currentTest, event: scheduleTestEvent)
         }
     }
 }
