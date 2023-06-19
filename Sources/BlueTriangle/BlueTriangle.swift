@@ -6,12 +6,42 @@
 //
 
 import Foundation
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// The entry point for interacting with the Blue Triangle SDK.
 final public class BlueTriangle: NSObject {
-
+    
     private static let lock = NSLock()
     private static var configuration = BlueTriangleConfiguration()
+    private static var activeTimers = [BTTimer]()
+    
+    
+    internal static func addActiveTimer(_ timer : BTTimer){
+        activeTimers.append(timer)
+    }
+    
+    internal static func removeActiveTimer(_ timer : BTTimer){
+        
+        var index = 0
+        var isTimerAvailable = false
+        
+        for timerObj in activeTimers{
+            if timerObj == timer { isTimerAvailable = true
+                break }
+            index = index + 1
+        }
+        
+        if isTimerAvailable {
+            activeTimers.remove(at: index)
+        }
+    }
+    
+    internal static func recentTimer() -> BTTimer?{
+        let timer = activeTimers.last
+        return timer
+    }
 
     private static var session: Session = {
         configuration.makeSession()
@@ -196,6 +226,7 @@ extension BlueTriangle {
             
             configureANRTracking(with: configuration.ANRMonitoring,
                                  interval: configuration.ANRWarningTimeInterval)
+            configureScreenTracking(with: configuration.enableScreenTracking)
         }
     }
 
@@ -367,6 +398,19 @@ extension BlueTriangle{
         }
     }
 }
+
+// MARK: - Screen Tracking
+extension BlueTriangle{
+    static func configureScreenTracking(with enabled: Bool){
+        if enabled {
+#if canImport(UIKit)
+            UIViewController.setUp()
+#endif
+            
+        }
+    }
+}
+
 // MARK: - Test Support
 extension BlueTriangle {
     @objc

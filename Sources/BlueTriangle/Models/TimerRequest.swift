@@ -14,6 +14,7 @@ struct TimerRequest: Equatable {
     let purchaseConfirmation: PurchaseConfirmation?
     let performanceReport: PerformanceReport?
     let excluded: String?
+    let nativeAppProperties: NativeAppProperties?
 
     init(
         session: Session,
@@ -21,7 +22,8 @@ struct TimerRequest: Equatable {
         timer: PageTimeInterval,
         purchaseConfirmation: PurchaseConfirmation? = nil,
         performanceReport: PerformanceReport? = nil,
-        excluded: String? = nil
+        excluded: String? = nil,
+        nativeAppProperties : NativeAppProperties? = nil
     ) {
         self.session = session
         self.page = page
@@ -29,6 +31,7 @@ struct TimerRequest: Equatable {
         self.purchaseConfirmation = purchaseConfirmation
         self.performanceReport = performanceReport
         self.excluded = excluded
+        self.nativeAppProperties = nativeAppProperties
     }
 }
 
@@ -134,7 +137,10 @@ extension TimerRequest: Codable {
             try con.encode(performanceReport.minMemory, forKey: .minMemory)
             try con.encode(performanceReport.maxMemory, forKey: .maxMemory)
             try con.encode(performanceReport.avgMemory, forKey: .avgMemory)
-            try con.encode(performanceReport.maxMainThreadTask, forKey: .maxMainThreadTask)
+        }
+        
+        if let nativeAppProperties = nativeAppProperties {
+            try con.encode(nativeAppProperties, forKey: .nativeApp)
         }
     }
 
@@ -246,12 +252,13 @@ extension TimerRequest: Codable {
                 avgCPU: try container.decode(Float.self, forKey: CodingKeys.avgCPU),
                 minMemory: try container.decode(UInt64.self, forKey: CodingKeys.minMemory),
                 maxMemory: try container.decode(UInt64.self, forKey: CodingKeys.maxMemory),
-                avgMemory: try container.decode(UInt64.self, forKey: CodingKeys.avgMemory),
-            maxMainThreadTask: try container.decode(Double.self, forKey: CodingKeys.maxMainThreadTask))
+                avgMemory: try container.decode(UInt64.self, forKey: CodingKeys.avgMemory))
         } else {
             self.performanceReport = nil
         }
-
+        
+        //NativeApp
+        self.nativeAppProperties = try container.decodeIfPresent(NativeAppProperties.self, forKey: CodingKeys.nativeApp)
         self.excluded = try container.decodeIfPresent(String.self, forKey: .excluded)
     }
 
@@ -341,7 +348,8 @@ extension TimerRequest: Codable {
         case avgCPU
         case minMemory
         case maxMemory
-        case avgMemory
-        case maxMainThreadTask
+        case avgMemory        
+        //NativeApp
+        case nativeApp = "NATIVEAPP"
     }
 }

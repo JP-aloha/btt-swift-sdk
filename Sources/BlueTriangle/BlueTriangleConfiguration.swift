@@ -94,6 +94,9 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// Boolean indicating whether debug logging is enabled.
     @objc public var enableDebugLogging: Bool = false
+    
+    /// Boolean indicating whether screen tracking is enabled.
+    @objc public var enableScreenTracking: Bool = false
 
     var timerConfiguration: BTTimer.Configuration = .live
 

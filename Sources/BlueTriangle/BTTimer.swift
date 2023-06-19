@@ -61,7 +61,7 @@ final public class BTTimer: NSObject {
     ///
     /// The default value is `0.0`.
     @objc public private(set) var interactiveTime: TimeInterval = 0.0
-
+    
     /// The epoch time interval at which the timer was ended.
     ///
     /// The default value is `0.0`.
@@ -77,8 +77,14 @@ final public class BTTimer: NSObject {
         PageTimeInterval(
             startTime: startTime.milliseconds,
             interactiveTime: interactiveTime.milliseconds,
-            pageTime: endTime.milliseconds - startTime.milliseconds)
+            pageTime: pageTimeBuilder())
     }
+    
+    lazy var pageTimeBuilder: () -> Millisecond = {
+        self.endTime.milliseconds - self.startTime.milliseconds
+    }
+    
+    var nativeAppProperties: NativeAppProperties?
 
     var performanceReport: PerformanceReport? {
         performanceMonitor?.makeReport()
@@ -103,6 +109,7 @@ final public class BTTimer: NSObject {
     /// If already started, will log an error.
     @objc
     public func start() {
+        BlueTriangle.addActiveTimer(self)
         handle(.start)
     }
 
@@ -119,6 +126,7 @@ final public class BTTimer: NSObject {
     /// End the timer.
     @objc
     public func end() {
+        BlueTriangle.removeActiveTimer(self)
         handle(.end)
     }
 
