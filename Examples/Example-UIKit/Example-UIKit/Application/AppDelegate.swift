@@ -29,6 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             config.crashTracking = .nsException
             config.enableScreenTracking = true
             config.enableDebugLogging = true
+            config.ANRMonitoring = true
         }
 
         return true

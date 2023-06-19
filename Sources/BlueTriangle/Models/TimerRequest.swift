@@ -137,7 +137,7 @@ extension TimerRequest: Codable {
             try con.encode(performanceReport.minMemory, forKey: .minMemory)
             try con.encode(performanceReport.maxMemory, forKey: .maxMemory)
             try con.encode(performanceReport.avgMemory, forKey: .avgMemory)
-            try con.encode(performanceReport.maxMainThreadTask, forKey: .maxMainThreadTask)
+           // try con.encode(performanceReport.maxMainThreadTask, forKey: .maxMainThreadTask)
         }
         
         if let nativeAppProperties = nativeAppProperties {

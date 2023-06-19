@@ -15,7 +15,7 @@ enum ViewType : String, Encodable, Decodable {
 struct NativeAppProperties: Codable, Equatable {
     let fullTime: Millisecond
     let loadTime: Millisecond
-    let maxCPUUses: Float
+    let maxMainThreadUses: Millisecond
     let viewType: ViewType
 }
 
@@ -23,6 +23,6 @@ extension NativeAppProperties {
     static let empty: Self = .init(
         fullTime: 0,
         loadTime: 0,
-        maxCPUUses: 0.0,
+        maxMainThreadUses: 0,
         viewType: .UIKit)
 }

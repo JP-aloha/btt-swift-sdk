@@ -102,7 +102,7 @@ class TimerMapActivity {
             timer.nativeAppProperties = NativeAppProperties(
                 fullTime: disapearTime.milliseconds - loadTime.milliseconds,
                 loadTime: viewTime.milliseconds - loadTime.milliseconds,
-                maxCPUUses: 0.0,
+                maxMainThreadUses: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
                 viewType: .UIKit)
         }
         
