@@ -6,7 +6,9 @@
 //
 
 import Foundation
+#if canImport(UIKit)
 import UIKit
+#endif
 
 /// The entry point for interacting with the Blue Triangle SDK.
 final public class BlueTriangle: NSObject {
@@ -401,7 +403,10 @@ extension BlueTriangle{
 extension BlueTriangle{
     static func configureScreenTracking(with enabled: Bool){
         if enabled {
+#if canImport(UIKit)
             UIViewController.setUp()
+#endif
+            
         }
     }
 }

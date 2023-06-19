@@ -5,6 +5,7 @@
 //  Created by Ashok Singh on 13/06/23.
 //
 
+#if canImport(UIKit)
 import Foundation
 import UIKit
 
@@ -83,3 +84,5 @@ extension UIViewController{
         loadView_Tracker()
     }
 }
+
+#endif
