@@ -31,8 +31,18 @@ class RootViewController: UIViewController {
         return control
     }()
 
+    private lazy var ANRtestButton: UIButton = {
+        let action = UIAction(title: "ANR Tests") { [weak self] _ in
+            self?.showTestHomeVC()
+        }
+        let control = UIButton(configuration: .filled(), primaryAction: action)
+        control.tintColor = .black
+        control.translatesAutoresizingMaskIntoConstraints = false
+        return control
+    }()
+    
     private lazy var buttonStackView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [galleryButton, crashButton])
+        let view = UIStackView(arrangedSubviews: [galleryButton, crashButton, ANRtestButton])
         view.axis = .vertical
         view.alignment = .fill
         view.distribution = .fillEqually
@@ -76,5 +86,13 @@ class RootViewController: UIViewController {
         let array = NSArray()
         let crash = array.object(at: 99)
         print("CRASHED: \(crash)")
+    }
+    
+    private func showTestHomeVC() {
+        let storyboard = UIStoryboard(name: "ANRTests", bundle: nil)
+        if let vc = storyboard.instantiateViewController(withIdentifier: "TestsHomeViewController") as? TestsHomeViewController {
+            navigationController?.pushViewController(vc, animated: true)
+        }
+     
     }
 }

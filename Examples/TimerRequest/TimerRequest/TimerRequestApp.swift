@@ -10,20 +10,18 @@ import SwiftUI
 
 @main
 struct TimerRequestApp: App {
-    init() {
-        BlueTriangle.configure { config in
-            config.siteID = Constants.siteID
-            config.enableDebugLogging = true
-            config.performanceMonitorSampleRate = 1
-            config.crashTracking  = .nsException
-            config.ANRMonitoring = true
-            config.ANRWarningTimeInterval = 1
-        }
-    }
-
+    
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     var body: some Scene {
         WindowGroup {
             TestsHomeView(tests: ANRTestFactory().ANRTests())
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                    AppDelegate().runTest(onEvent: .OnBecomingActive)
+                }
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                    AppDelegate().runTest(onEvent: .OnResumeFromBackground)
+                }
         }
     }
 }
