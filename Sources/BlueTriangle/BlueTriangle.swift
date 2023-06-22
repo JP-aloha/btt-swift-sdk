@@ -402,6 +402,8 @@ extension BlueTriangle{
 // MARK: - Screen Tracking
 extension BlueTriangle{
     static func configureScreenTracking(with enabled: Bool){
+        BTTScreenLifecycleTracker.shared.setLifecycleTracker(enabled)
+        
         if enabled {
 #if canImport(UIKit)
             UIViewController.setUp()

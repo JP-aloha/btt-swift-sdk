@@ -34,8 +34,9 @@ public extension View {
     //To track screen, call "trackScreen(_ screenName: String)" on view which screen compose(which life cycle you want to track) like VStack().trackScreen("ContentView") or  ContentView().trackScreen("ContentView")
     //This method track screen when this view appears on screen
     
-    func trackScreen(_ screenName: String) -> some View {
+    func bttTrackScreen(_ screenName: String) -> some View {
         modifier(ViewLifecycleTrackerModifier(name: screenName))
     }
 }
 #endif
+

@@ -18,6 +18,11 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     
     static let shared = BTTScreenLifecycleTracker()
     private var btTimeActivityrMap = [String: TimerMapActivity]()
+    private var enableLifecycleTracker = false
+    
+    func setLifecycleTracker(_ enable : Bool){
+        self.enableLifecycleTracker = enable
+    }
     
     func loadStarted(_ id: String, _ name: String) {
         self.manageTimer(name, id: id, type: .load)
@@ -36,11 +41,13 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     }
     
     private func manageTimer(_ pageName : String, id : String, type : TimerMapType){
-        let timerActivity = getTimerActivity(pageName, id: id)
-        btTimeActivityrMap[id] = timerActivity
-        timerActivity.manageTimeFor(type: type)
-        if type == .disapear{
-            btTimeActivityrMap.removeValue(forKey: id)
+        if self.enableLifecycleTracker{
+            let timerActivity = getTimerActivity(pageName, id: id)
+            btTimeActivityrMap[id] = timerActivity
+            timerActivity.manageTimeFor(type: type)
+            if type == .disapear{
+                btTimeActivityrMap.removeValue(forKey: id)
+            }
         }
     }
     

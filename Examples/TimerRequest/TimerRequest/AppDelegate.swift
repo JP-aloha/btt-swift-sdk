@@ -30,6 +30,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             config.crashTracking  = .nsException
             config.ANRMonitoring = true
             config.ANRWarningTimeInterval = 1
+            config.enableScreenTracking = true
+            
             completion()
         }
     }

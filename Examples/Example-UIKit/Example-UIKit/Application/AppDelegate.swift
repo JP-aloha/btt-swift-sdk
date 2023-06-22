@@ -25,6 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             config.crashTracking  = .nsException
             config.ANRMonitoring = true
             config.ANRWarningTimeInterval = 1
+            config.enableScreenTracking = true
         }
         
         runTest(onEvent: .OnAppLaunch)
