@@ -48,6 +48,7 @@ public class ANRPerformanceMonitor : PerformanceMonitoring{
         bgTimer?.setEventHandler(handler: sampleTaskTime)
         bgTimer?.resume()
         
+        print("Timer : \(String(describing: bgTimer))")
         logger.debug("ANRPerformanceMonitor: Started.")
     }
     

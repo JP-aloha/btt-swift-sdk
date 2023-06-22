@@ -83,6 +83,9 @@ class TimerMapActivity {
             }
         }
         else if type == .view{
+            if loadTime == nil{
+                loadTime = timeInterval
+            }
             viewTime = timeInterval
         }
         else if type == .disapear{
