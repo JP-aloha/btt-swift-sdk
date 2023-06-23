@@ -137,21 +137,22 @@ URLSession.shared.btDataTask(with: URL(string: "https://example.com")!) { data, 
 
 All UIViewControllers view count can be tracked. Setting "enableScreenTracking"  configuration property to true will capture view counts of every UIViewController in your app. You can see each view controller name with there count on our dashboard.
 
+```swift
  BlueTriangle.configure { config in
-         config.siteID = Constants.siteID
+         ...
          config.enableScreenTracking = true
      }
-
-
+```
 
 SwiftUI views are not captured automatically. You need to call bttTrackScreen(<screen Name>) modifier on each view which you want to track. Below example show usage of "bttTrackScreen(_ screenName: String)" to track About Us screen.
 
+```swift
 struct ContentView: View {
     var body: some View {
         VStack{
             Text("Hello, world!")
         }
-        // Logging screen name.
         .bttTrackScreen("Screen Name")
     }
 }
+```
