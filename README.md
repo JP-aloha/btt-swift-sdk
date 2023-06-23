@@ -152,7 +152,7 @@ struct ContentView: View {
         VStack{
             Text("Hello, world!")
         }
-        .bttTrackScreen("Screen Name")
+        .bttTrackScreen("Demo_Screen")
     }
 }
 ```

@@ -22,12 +22,7 @@ fileprivate func swizzleMethod(_ `class`: AnyClass, _ original: Selector, _ swiz
 extension UIViewController{
    
     static func setUp(){
-        
-        // So that It applies to all UIViewController childs
-        if self != UIViewController.self {
-            return
-        }
-        
+    
         let _: () = {
          
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidLoad), #selector(UIViewController.viewDidLoad_Tracker))
