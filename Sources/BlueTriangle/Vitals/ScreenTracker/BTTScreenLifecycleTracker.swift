@@ -7,6 +7,16 @@
 
 import Foundation
 
+
+#if canImport(UIKit)
+import UIKit
+#endif
+
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
+
+
 protocol BTScreenLifecycleTracker{
     func loadStarted(_ id : String, _ name : String)
     func loadFinish(_ id : String, _ name : String)
@@ -19,7 +29,12 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     static let shared = BTTScreenLifecycleTracker()
     private var btTimeActivityrMap = [String: TimerMapActivity]()
     private var enableLifecycleTracker = false
+    private var startTimerPages = [String : String]()
     
+    private init() {
+        registerAppForegroundAndBackgroundNotification()
+    }
+
     func setLifecycleTracker(_ enable : Bool){
         self.enableLifecycleTracker = enable
     }
@@ -59,6 +74,42 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
             let timerActivity = TimerMapActivity(pageName: pageName)
             return timerActivity
         }
+    }
+    
+    private func registerAppForegroundAndBackgroundNotification() {
+        NotificationCenter.default.addObserver(self, selector: #selector(appMovedToBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appMovedToForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
+    }
+    
+    private func stopActiveTimersWhenAppWentToBackground(){
+        if self.enableLifecycleTracker{
+            for key in  btTimeActivityrMap.keys{
+                if let timerActivity = btTimeActivityrMap[key] {
+                    let page = timerActivity.getPageName()
+                    startTimerPages[key] = page
+                    viewingEnd(key, page)
+                }
+            }
+        }
+    }
+
+    private func startInactiveTimersWhenAppCameToForeground(){
+        if self.enableLifecycleTracker{
+            for key in  startTimerPages.keys{
+                if let page = startTimerPages[key] {
+                    viewStart(key, page)
+                }
+            }
+            startTimerPages.removeAll()
+        }
+    }
+    
+    @objc private func appMovedToBackground() {
+        BTTScreenLifecycleTracker.shared.stopActiveTimersWhenAppWentToBackground()
+    }
+    
+    @objc private func appMovedToForeground() {
+        BTTScreenLifecycleTracker.shared.startInactiveTimersWhenAppCameToForeground()
     }
 }
 
@@ -115,8 +166,11 @@ class TimerMapActivity {
                 maxMainThreadUses: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
                 viewType: .UIKit)
         }
-        
         BlueTriangle.endTimer(timer)
+    }
+    
+    func getPageName()->String{
+        return pageName
     }
     
     private var timeInterval : TimeInterval{
