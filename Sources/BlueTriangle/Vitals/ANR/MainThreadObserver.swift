@@ -10,15 +10,13 @@ import Foundation
 
 class ThreadTask {
     let startTime   : Date
-    var endTime     : Date?
     
     init(startTime: Date) {
-        self.startTime = startTime
-        self.endTime = nil
+        self.startTime  = startTime
     }
     
     func duration() -> TimeInterval{
-        return  ((endTime ?? Date()).timeIntervalSince1970) - startTime.timeIntervalSince1970
+        return  Date().timeIntervalSince1970 - startTime.timeIntervalSince1970
     }
 }
 
@@ -31,41 +29,61 @@ protocol ThreadTaskObserver{
 
 class MainThreadObserver : ThreadTaskObserver{
     
-    private(set) var runningTask : ThreadTask?
+    private var _runningTask : ThreadTask?
     private let registrationService : RunloopRegistrationService
     private var observationToken : Observing?
+    private let queue : DispatchQueue = DispatchQueue(label: "MainThreadObserver.currentTaskQueue")
+    var runningTask: ThreadTask? { get{ queue.sync { _runningTask} } }
     
     init(registrationService: RunloopRegistrationService = CFRunloopRegistrationService()) {
         self.registrationService = registrationService
     }
 
     func start(){
-        
-        if observationToken == nil{
-            do{
-                self.observationToken = try self.registrationService.registerObserver(runloop: CFRunLoopGetMain(),
-                                                                                      eventObserver: { [weak self] event in
-                    switch event {
-                    case .TaskStart:
-                        if self?.runningTask == nil{
-                            self?.runningTask = ThreadTask(startTime: Date())
-                        }
-                    case .TaskFinish:
-                        self?.runningTask?.endTime = Date()
-                        self?.runningTask = nil
-                    }
-                })
-            }catch{
-                NSLog("Error registering Main thread observer \(error)")
+        NSLog("Starting MainThreadObserver...")
+        queue.sync {
+            if observationToken == nil{
+                registerObserver()
+            }else{
+                NSLog("Skipping Start MainThreadObserver already running...")
             }
+        }
+    }
+    
+    private func registerObserver(){
+        do{
+            self.observationToken = try self.registrationService.registerObserver(runloop: CFRunLoopGetMain(),
+                                                                                  eventObserver: { [weak self] event in
+                switch event {
+                case .TaskStart:
+                    self?.queue.async {
+                        if self?._runningTask == nil{
+                            self?._runningTask = ThreadTask(startTime: Date())
+                        }
+                    }
+                case .TaskFinish:
+                    self?.queue.async {
+                        self?._runningTask = nil
+                    }
+                }
+            })
+            
+            NSLog("Started MainThreadObserver...")
+        }catch{
+            NSLog("Error registering MainThreadObserver \(error)")
         }
     }
     
     func stop(){
         NSLog("Stoping MainThreadObserver...")
-        if let observing = self.observationToken{
-            self.registrationService.unregisterObserver(o: observing)
-            self.observationToken = nil
+        queue.async {
+            if let observing = self.observationToken{
+                self.registrationService.unregisterObserver(o: observing)
+                self.observationToken = nil
+                NSLog("Stoped MainThreadObserver...")
+            }else{
+                NSLog("Stop MainThreadObserver skipped observer not started ...")
+            }
         }
     }
 }

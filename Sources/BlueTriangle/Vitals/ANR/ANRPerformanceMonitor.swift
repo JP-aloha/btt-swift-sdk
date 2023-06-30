@@ -63,11 +63,7 @@ public class ANRPerformanceMonitor : PerformanceMonitoring{
     private func sampleTaskTime(){
     
         if let currentSampleTime = mainThreadObserver.runningTask?.duration(), currentSampleTime > 1{
-            if currentSampleTime > self.maxRunningTime{
-                self.maxRunningTime = currentSampleTime
-                self.measurementCount += 1
-                logger.debug("ANRPerformanceMonitor: a heavy main thread task detected running since \(currentSampleTime) Sec.")
-            }
+            self.maxRunningTime = max(currentSampleTime, self.maxRunningTime)
         }
     }
 }
