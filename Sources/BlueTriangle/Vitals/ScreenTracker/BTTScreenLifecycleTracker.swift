@@ -77,8 +77,10 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     }
     
     private func registerAppForegroundAndBackgroundNotification() {
+#if os(iOS)
         NotificationCenter.default.addObserver(self, selector: #selector(appMovedToBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appMovedToForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
+#endif
     }
     
     private func stopActiveTimersWhenAppWentToBackground(){
