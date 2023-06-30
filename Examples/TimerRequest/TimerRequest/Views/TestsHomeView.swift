@@ -137,6 +137,7 @@ struct TestsHomeView: View {
                     .ignoresSafeArea()
                 }
             }
+            .bttTrackScreen("Tests Home View")
         }
     }
     

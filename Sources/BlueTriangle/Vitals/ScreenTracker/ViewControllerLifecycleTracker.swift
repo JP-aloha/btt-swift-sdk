@@ -23,8 +23,8 @@ extension UIViewController{
    
     static func setUp(){
     
-        let _: () = {
-         
+        let  _ : () = {
+            
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidLoad), #selector(UIViewController.viewDidLoad_Tracker))
             
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewWillAppear(_:)), #selector(UIViewController.viewWillAppear_Tracker(_:)))
@@ -37,9 +37,6 @@ extension UIViewController{
             
         }()
     }
-    
-    // background, forground, active, inactive,
-    //----------------------------------------------------//
     
     @objc dynamic func viewDidLoad_Tracker() {
         if !self.isKind(of: UINavigationController.self){

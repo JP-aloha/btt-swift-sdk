@@ -38,5 +38,6 @@ public extension View {
         modifier(ViewLifecycleTrackerModifier(name: screenName))
     }
 }
+
 #endif
 

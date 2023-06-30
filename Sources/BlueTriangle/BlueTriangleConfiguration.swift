@@ -87,7 +87,7 @@ final public class BlueTriangleConfiguration: NSObject {
     ///     1. Max Main thread Usage: Each BTTimer will get maximum main thread usage during this BTTimer. How many seconds the longest task on main thread took during every BTTimer.
     ///     2. ANR Warning : If any single task taking more then ``ANRWarningTimeInterval`` "ANRWarningTimeInterval" seconds a warning raised internally and this error reported to Blue Triangle portal.
     /// Default is true
-    @objc public var ANRMonitoring: Bool = true
+    @objc public var ANRMonitoring: Bool = false
     
     /// Time interval for ANR Warning see ``ANRMonitoring`` "ANRMonitoring", default to 5 seconds, minimum is 3 sec, if set less then minimum allowed set value is ignored and used minimum interval.
     @objc public var ANRWarningTimeInterval: TimeInterval = 5
