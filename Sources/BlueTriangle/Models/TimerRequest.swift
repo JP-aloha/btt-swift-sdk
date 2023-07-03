@@ -142,6 +142,9 @@ extension TimerRequest: Codable {
         if let nativeAppProperties = nativeAppProperties {
             try con.encode(nativeAppProperties, forKey: .nativeApp)
         }
+        
+        try con.encode(1, forKey: .naflg)
+        
     }
 
     init(from decoder: Decoder) throws {
@@ -350,6 +353,8 @@ extension TimerRequest: Codable {
         case maxMemory
         case avgMemory        
         //NativeApp
+        
+        case naflg = "NAflg"
         case nativeApp = "NATIVEAPP"
     }
 }

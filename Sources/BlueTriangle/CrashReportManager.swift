@@ -116,6 +116,8 @@ final class CrashReportManager: CrashReportManaging {
             "os": Constants.os,
             "browser": Constants.browser,
             "browserVersion": Device.bvzn,
+            "NAflg": "1",
+            "ERR": "1",
             "device": Constants.device
         ]
 
