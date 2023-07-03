@@ -29,6 +29,7 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     static let shared = BTTScreenLifecycleTracker()
     private var btTimeActivityrMap = [String: TimerMapActivity]()
     private var enableLifecycleTracker = false
+    private var viewType = ViewType.UIKit
     private var startTimerPages = [String : String]()
     
     private init() {
@@ -37,6 +38,10 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
 
     func setLifecycleTracker(_ enable : Bool){
         self.enableLifecycleTracker = enable
+    }
+    
+    func setUpViewType(_ type : ViewType){
+        self.viewType = type
     }
     
     func loadStarted(_ id: String, _ name: String) {
@@ -71,7 +76,7 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
         if let btTimerActivity = btTimeActivityrMap[id] {
             return btTimerActivity
         }else{
-            let timerActivity = TimerMapActivity(pageName: pageName)
+            let timerActivity = TimerMapActivity(pageName: pageName, viewType: self.viewType)
             return timerActivity
         }
     }
@@ -123,12 +128,14 @@ class TimerMapActivity {
     
     private let timer : BTTimer
     private let pageName : String
+    private let viewType : ViewType
     private var loadTime : TimeInterval?
     private var viewTime : TimeInterval?
     private var disapearTime : TimeInterval?
     
-    init(pageName: String) {
+    init(pageName: String, viewType : ViewType) {
         self.pageName = pageName
+        self.viewType = viewType
         self.timer = BlueTriangle.startTimer(page:Page(pageName: pageName))
     }
     
@@ -165,8 +172,7 @@ class TimerMapActivity {
             timer.nativeAppProperties = NativeAppProperties(
                 fullTime: disapearTime.milliseconds - loadTime.milliseconds,
                 loadTime: viewTime.milliseconds - loadTime.milliseconds,
-                maxMainThreadUses: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
-                viewType: .UIKit)
+                maxMainThreadUses: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,viewType: self.viewType)
         }
         BlueTriangle.endTimer(timer)
     }

@@ -35,7 +35,8 @@ public extension View {
     //This method track screen when this view appears on screen
     
     func bttTrackScreen(_ screenName: String) -> some View {
-        modifier(ViewLifecycleTrackerModifier(name: screenName))
+        BTTScreenLifecycleTracker.shared.setUpViewType(.SwiftUI)
+        return modifier(ViewLifecycleTrackerModifier(name: screenName))
     }
 }
 

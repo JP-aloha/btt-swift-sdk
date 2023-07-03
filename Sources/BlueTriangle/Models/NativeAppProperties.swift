@@ -17,6 +17,7 @@ struct NativeAppProperties: Codable, Equatable {
     let loadTime: Millisecond
     let maxMainThreadUses: Millisecond
     let viewType: ViewType
+    
 }
 
 extension NativeAppProperties {
