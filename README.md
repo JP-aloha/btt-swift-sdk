@@ -156,3 +156,17 @@ struct ContentView: View {
     }
 }
 ```
+
+### ANR Detection
+
+ANR(Application Not Responding) detects to main thread in which an app becomes unresponsive or stops responding to user input for an extended period of time. It can be enabled by setting "ANRMonitoring" configuration property to "true". And it can set Interval, to consider it an ANR situation by setting "ANRWarningTimeInterval" configuration property as shown below.
+
+
+```swift
+ BlueTriangle.configure { config in
+         ...
+         config.ANRMonitoring = true
+         config.ANRWarningTimeInterval = 3
+     }
+```
+By default, the ANR interval is set to 5 seconds.
