@@ -30,12 +30,17 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     private var btTimeActivityrMap = [String: TimerMapActivity]()
     private var enableLifecycleTracker = false
     private var viewType = ViewType.UIKit
+    private(set) var logger : Logging?
     private var startTimerPages = [String : String]()
     
     private init() {
         registerAppForegroundAndBackgroundNotification()
     }
-
+    
+    func setUpLogger(_ logger : Logging){
+        self.logger = logger
+    }
+    
     func setLifecycleTracker(_ enable : Bool){
         self.enableLifecycleTracker = enable
     }
@@ -57,6 +62,7 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     }
     
     func viewingEnd(_ id: String, _ name: String) {
+        self.logger?.info("View tracker timer submited for screen :\(name)")
         self.manageTimer(name, id: id, type: .disapear)
     }
     

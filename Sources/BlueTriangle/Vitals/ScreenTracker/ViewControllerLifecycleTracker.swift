@@ -15,7 +15,7 @@ fileprivate func swizzleMethod(_ `class`: AnyClass, _ original: Selector, _ swiz
         method_exchangeImplementations(original, swizzled)
     }
     else{
-        BTLogger.live.error("View Screen Tracker: failed to swizzle: \(`class`.self), '\(original)', '\(swizzled)'")
+        BTTScreenLifecycleTracker.shared.logger?.error("View Screen Tracker: failed to swizzle: \(`class`.self), '\(original)', '\(swizzled)'")
     }
 }
 
@@ -33,8 +33,7 @@ extension UIViewController{
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidAppear(_:)), #selector(UIViewController.viewDidAppear_Tracker(_:)))
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidDisappear(_:)), #selector(UIViewController.viewDidDisappear_Tracker(_:)))
             
-            BTLogger.live.debug("View Screen Tracker: setup completed.")
-            
+            BTTScreenLifecycleTracker.shared.logger?.debug("View Screen Tracker: setup completed.")
         }()
     }
     
