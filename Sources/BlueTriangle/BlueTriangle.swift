@@ -393,6 +393,7 @@ extension BlueTriangle{
         self.anrWatchDog.errorTriggerInterval = interval
 
         if enabled {
+            MainThreadObserver.live.setUpLogger(logger)
             MainThreadObserver.live.start()
             self.anrWatchDog.start()
         }
@@ -403,6 +404,7 @@ extension BlueTriangle{
 extension BlueTriangle{
     static func configureScreenTracking(with enabled: Bool){
         BTTScreenLifecycleTracker.shared.setLifecycleTracker(enabled)
+        BTTScreenLifecycleTracker.shared.setUpLogger(logger)
         
         if enabled {
 #if canImport(UIKit)

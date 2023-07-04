@@ -33,19 +33,24 @@ class MainThreadObserver : ThreadTaskObserver{
     private let registrationService : RunloopRegistrationService
     private var observationToken : Observing?
     private let queue : DispatchQueue = DispatchQueue(label: "MainThreadObserver.currentTaskQueue")
+    private var logger : Logging?
     var runningTask: ThreadTask? { get{ queue.sync { _runningTask} } }
     
     init(registrationService: RunloopRegistrationService = CFRunloopRegistrationService()) {
         self.registrationService = registrationService
     }
+    
+    func setUpLogger(_ logger : Logging){
+        self.logger = logger
+    }
 
     func start(){
-        NSLog("Starting MainThreadObserver...")
+        logger?.debug("Starting MainThreadObserver...")
         queue.sync {
             if observationToken == nil{
                 registerObserver()
             }else{
-                NSLog("Skipping Start MainThreadObserver already running...")
+                logger?.debug("Skipping Start MainThreadObserver already running...")
             }
         }
     }
@@ -68,21 +73,21 @@ class MainThreadObserver : ThreadTaskObserver{
                 }
             })
             
-            NSLog("Started MainThreadObserver...")
+            logger?.debug("Started MainThreadObserver...")
         }catch{
-            NSLog("Error registering MainThreadObserver \(error)")
+            logger?.error("Error registering MainThreadObserver \(error)")
         }
     }
     
     func stop(){
-        NSLog("Stoping MainThreadObserver...")
+        self.logger?.debug("Stoping MainThreadObserver...")
         queue.async {
             if let observing = self.observationToken{
                 self.registrationService.unregisterObserver(o: observing)
                 self.observationToken = nil
-                NSLog("Stoped MainThreadObserver...")
+                self.logger?.debug("Started MainThreadObserver...")
             }else{
-                NSLog("Stop MainThreadObserver skipped observer not started ...")
+                self.logger?.debug("Stop MainThreadObserver skipped observer not started ...")
             }
         }
     }
