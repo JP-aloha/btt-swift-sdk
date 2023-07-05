@@ -17,6 +17,9 @@ let package = Package(
     targets: [
         .target(
             name: "BlueTriangle",
+            dependencies: ["Backtrace"]),
+        .target(
+            name: "Backtrace",
             dependencies: []),
         .testTarget(
             name: "BlueTriangleTests",

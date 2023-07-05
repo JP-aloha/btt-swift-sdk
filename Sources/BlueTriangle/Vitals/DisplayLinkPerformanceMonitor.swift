@@ -28,10 +28,10 @@ final class DisplayLinkPerformanceMonitor: PerformanceMonitoring {
     private let resourceUsage: ResourceUsageMeasuring.Type
     private var displayLink: CADisplayLink!
     private var lastSampleTimestamp: CFTimeInterval = .zero
-
     private(set) var measurements: [ResourceUsageMeasurement] = []
     private(set) var state: State = .initial
-
+    let mainThreadPerformanceMonitor: PerformanceMonitoring?
+    
     var measurementCount: Int {
         measurements.count
     }
@@ -44,6 +44,7 @@ final class DisplayLinkPerformanceMonitor: PerformanceMonitoring {
     ) {
         self.minimumSampleInterval = minimumSampleInterval
         self.resourceUsage = resourceUsage
+        self.mainThreadPerformanceMonitor = ANRPerformanceMonitor()
         let displayLink = CADisplayLink(target: self, selector: #selector(step(displayLink:)))
         displayLink.isPaused = true
         displayLink.add(to: runLoop, forMode: mode)
@@ -58,14 +59,18 @@ final class DisplayLinkPerformanceMonitor: PerformanceMonitoring {
 
     func start() {
         handle(.start)
+        mainThreadPerformanceMonitor?.start()
     }
 
     func end() {
         handle(.end)
+        mainThreadPerformanceMonitor?.end()
     }
 
     func makeReport() -> PerformanceReport {
-        measurements.makeReport() ?? .empty
+        var report = measurements.makeReport() ?? .empty
+        report.maxMainThreadTask = mainThreadPerformanceMonitor?.makeReport().maxMainThreadTask ?? 0
+        return report
     }
 
     private func handle(_ action: Action) {

@@ -6,12 +6,42 @@
 //
 
 import Foundation
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// The entry point for interacting with the Blue Triangle SDK.
 final public class BlueTriangle: NSObject {
-
+    
     private static let lock = NSLock()
     private static var configuration = BlueTriangleConfiguration()
+    private static var activeTimers = [BTTimer]()
+    
+    
+    internal static func addActiveTimer(_ timer : BTTimer){
+        activeTimers.append(timer)
+    }
+    
+    internal static func removeActiveTimer(_ timer : BTTimer){
+        
+        var index = 0
+        var isTimerAvailable = false
+        
+        for timerObj in activeTimers{
+            if timerObj == timer { isTimerAvailable = true
+                break }
+            index = index + 1
+        }
+        
+        if isTimerAvailable {
+            activeTimers.remove(at: index)
+        }
+    }
+    
+    internal static func recentTimer() -> BTTimer?{
+        let timer = activeTimers.last
+        return timer
+    }
 
     private static var session: Session = {
         configuration.makeSession()
@@ -47,7 +77,7 @@ final public class BlueTriangle: NSObject {
     public private(set) static var initialized = false
 
     private static var crashReportManager: CrashReportManaging?
-
+    
     private static var capturedRequestCollector: CapturedRequestCollecting? = {
         if shouldCaptureRequests {
             let collector = configuration.capturedRequestCollectorConfiguration.makeRequestCollector(
@@ -67,6 +97,15 @@ final public class BlueTriangle: NSObject {
 
     private static var appEventObserver: AppEventObserver?
 
+    //ANR components
+    private static let anrWatchDog : ANRWatchDog = {
+        ANRWatchDog(
+            mainThreadObserver: MainThreadObserver.live,
+            session: session,
+            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: nil),
+            logger: BlueTriangle.logger)
+    }()
+    
     /// Blue Triangle Technologies-assigned site ID.
     @objc public static var siteID: String {
         lock.sync { session.siteID }
@@ -184,6 +223,10 @@ extension BlueTriangle {
                     configureCrashTracking(with: crashConfig)
                 }
             }
+            
+            configureANRTracking(with: configuration.ANRMonitoring,
+                                 interval: configuration.ANRWarningTimeInterval)
+            configureScreenTracking(with: configuration.enableScreenTracking)
         }
     }
 
@@ -368,6 +411,34 @@ extension BlueTriangle {
     public static func storeException(exception: NSException) {
         let crashReport = CrashReport(sessionID: sessionID, exception: exception)
         CrashReportPersistence.save(crashReport)
+    }
+}
+
+//MARK: - ANR Tracking
+extension BlueTriangle{
+    static func configureANRTracking(with enabled: Bool, interval: TimeInterval){
+        self.anrWatchDog.errorTriggerInterval = interval
+
+        if enabled {
+            MainThreadObserver.live.setUpLogger(logger)
+            MainThreadObserver.live.start()
+            self.anrWatchDog.start()
+        }
+    }
+}
+
+// MARK: - Screen Tracking
+extension BlueTriangle{
+    static func configureScreenTracking(with enabled: Bool){
+        BTTScreenLifecycleTracker.shared.setLifecycleTracker(enabled)
+        BTTScreenLifecycleTracker.shared.setUpLogger(logger)
+        
+        if enabled {
+#if canImport(UIKit)
+            UIViewController.setUp()
+#endif
+            
+        }
     }
 }
 

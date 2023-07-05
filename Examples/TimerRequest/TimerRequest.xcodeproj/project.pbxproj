@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8405FEC82A40A80D00CC13B5 /* ANRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FEC72A40A80D00CC13B5 /* ANRTests.swift */; };
+		84BE4B072A40A5E2004EF3D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BE4B062A40A5E2004EF3D9 /* AppDelegate.swift */; };
 		C953395728970021003A3602 /* TimerRequestApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C953395628970021003A3602 /* TimerRequestApp.swift */; };
 		C953395B28970022003A3602 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C953395A28970022003A3602 /* Assets.xcassets */; };
 		C953395E28970022003A3602 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C953395D28970022003A3602 /* Preview Assets.xcassets */; };
@@ -25,6 +27,7 @@
 		C953399B28971121003A3602 /* TimerRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C953399A28971121003A3602 /* TimerRequestView.swift */; };
 		C953399D2897113F003A3602 /* TimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C953399C2897113F003A3602 /* TimerView.swift */; };
 		C953399F28971174003A3602 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C953399E28971174003A3602 /* PreviewData.swift */; };
+		CFCA3AEF29C447BE00C25336 /* TestsHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCA3AEE29C447BE00C25336 /* TestsHomeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +48,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8405FEC72A40A80D00CC13B5 /* ANRTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ANRTests.swift; path = ../../TestFactory/ANRTests/ANRTests.swift; sourceTree = "<group>"; };
+		84BE4B062A40A5E2004EF3D9 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C953395328970021003A3602 /* TimerRequest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimerRequest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C953395628970021003A3602 /* TimerRequestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerRequestApp.swift; sourceTree = "<group>"; };
 		C953395A28970022003A3602 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -54,7 +59,6 @@
 		C953396D28970022003A3602 /* TimerRequestUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimerRequestUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C953397128970022003A3602 /* TimerRequestUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerRequestUITests.swift; sourceTree = "<group>"; };
 		C953397328970022003A3602 /* TimerRequestUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerRequestUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		C953398328970C4E003A3602 /* btt-swift-sdk */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "btt-swift-sdk"; path = ../..; sourceTree = "<group>"; };
 		C953398928970DE8003A3602 /* NumberFormatter+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NumberFormatter+Ext.swift"; sourceTree = "<group>"; };
 		C953398B28970DFF003A3602 /* Dictionary+RequestRepresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dictionary+RequestRepresentation.swift"; sourceTree = "<group>"; };
 		C953398D28970E1D003A3602 /* Bool+Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bool+Utils.swift"; sourceTree = "<group>"; };
@@ -66,6 +70,9 @@
 		C953399A28971121003A3602 /* TimerRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerRequestView.swift; sourceTree = "<group>"; };
 		C953399C2897113F003A3602 /* TimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerView.swift; sourceTree = "<group>"; };
 		C953399E28971174003A3602 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
+		CFC60F1F29C1CF4A00FB12F0 /* btt-swift-sdk */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "btt-swift-sdk"; path = ../..; sourceTree = "<group>"; };
+		CFCA3AEE29C447BE00C25336 /* TestsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestsHomeView.swift; sourceTree = "<group>"; };
+		CFE733DD29FBE80500A86EC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -119,7 +126,10 @@
 		C953395528970021003A3602 /* TimerRequest */ = {
 			isa = PBXGroup;
 			children = (
+				CFE733DD29FBE80500A86EC8 /* Info.plist */,
 				C953395628970021003A3602 /* TimerRequestApp.swift */,
+				84BE4B062A40A5E2004EF3D9 /* AppDelegate.swift */,
+				8405FEC72A40A80D00CC13B5 /* ANRTests.swift */,
 				C953399628970FF8003A3602 /* Constants.swift */,
 				C953398828970DD5003A3602 /* Extensions */,
 				C953395C28970022003A3602 /* Preview Content */,
@@ -171,6 +181,7 @@
 				C953399828971100003A3602 /* LabeledView.swift */,
 				C953399A28971121003A3602 /* TimerRequestView.swift */,
 				C953399C2897113F003A3602 /* TimerView.swift */,
+				CFCA3AEE29C447BE00C25336 /* TestsHomeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -178,7 +189,7 @@
 		C953398228970C4E003A3602 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				C953398328970C4E003A3602 /* btt-swift-sdk */,
+				CFC60F1F29C1CF4A00FB12F0 /* btt-swift-sdk */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -288,6 +299,7 @@
 				TargetAttributes = {
 					C953395228970021003A3602 = {
 						CreatedOnToolsVersion = 13.4;
+						LastSwiftMigration = 1430;
 					};
 					C953396228970022003A3602 = {
 						CreatedOnToolsVersion = 13.4;
@@ -352,12 +364,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				C953399B28971121003A3602 /* TimerRequestView.swift in Sources */,
+				CFCA3AEF29C447BE00C25336 /* TestsHomeView.swift in Sources */,
 				C953399528970FD1003A3602 /* TimerViewModel.swift in Sources */,
+				84BE4B072A40A5E2004EF3D9 /* AppDelegate.swift in Sources */,
 				C953398E28970E1D003A3602 /* Bool+Utils.swift in Sources */,
 				C953398A28970DE8003A3602 /* NumberFormatter+Ext.swift in Sources */,
 				C953398C28970DFF003A3602 /* Dictionary+RequestRepresentation.swift in Sources */,
 				C953399D2897113F003A3602 /* TimerView.swift in Sources */,
 				C953399128970E6B003A3602 /* SettingsAccess.swift in Sources */,
+				8405FEC82A40A80D00CC13B5 /* ANRTests.swift in Sources */,
 				C953399F28971174003A3602 /* PreviewData.swift in Sources */,
 				C953395728970021003A3602 /* TimerRequestApp.swift in Sources */,
 				C953399728970FF8003A3602 /* Constants.swift in Sources */,
@@ -517,12 +532,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TimerRequest/Preview Content\"";
-				DEVELOPMENT_TEAM = UG892XBK75;
+				DEVELOPMENT_TEAM = 4UZ8DAVC89;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TimerRequest/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -537,6 +554,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bluetriangle.TimerRequest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "TimerRequest/ANRTests/TimerRequest-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -547,12 +566,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TimerRequest/Preview Content\"";
-				DEVELOPMENT_TEAM = UG892XBK75;
+				DEVELOPMENT_TEAM = 4UZ8DAVC89;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TimerRequest/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -567,6 +588,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bluetriangle.TimerRequest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "TimerRequest/ANRTests/TimerRequest-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

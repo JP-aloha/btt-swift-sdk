@@ -12,27 +12,27 @@ extension Array where Element == ResourceUsageMeasurement {
         guard let initial = first else {
             return nil
         }
-
+        
         let result = reduce(into: (cpu: Stats<Double>(min: initial.cpuUsage,
-                                                              max: initial.cpuUsage,
-                                                              cumulative: 0),
-                                           memory: Stats<UInt64>(min: initial.memoryUsage,
-                                                                 max: initial.memoryUsage,
-                                                                 cumulative: 0))
+                                                      max: initial.cpuUsage,
+                                                      cumulative: 0),
+                                   memory: Stats<UInt64>(min: initial.memoryUsage,
+                                                         max: initial.memoryUsage,
+                                                         cumulative: 0))
         ) { result, element in
             result.cpu = update(stats: &result.cpu, with: element.cpuUsage)
             result.memory = update(stats: &result.memory, with: element.memoryUsage)
         }
-
+        
         let avgCPU = result.cpu.cumulative / Double(count)
         let avgMemory = result.memory.cumulative / UInt64(count)
-
         return PerformanceReport(minCPU: Float(result.cpu.min),
                                  maxCPU: Float(result.cpu.max),
                                  avgCPU: Float(avgCPU),
                                  minMemory: result.memory.min,
                                  maxMemory: result.memory.max,
-                                 avgMemory: avgMemory)
+                                 avgMemory: avgMemory,
+                                 maxMainThreadTask: 0)
     }
 }
 

@@ -14,6 +14,7 @@ struct PerformanceReport: Codable, Equatable {
     let minMemory: UInt64
     let maxMemory: UInt64
     let avgMemory: UInt64
+    var maxMainThreadTask: TimeInterval = 0
 }
 
 extension PerformanceReport {
@@ -23,5 +24,6 @@ extension PerformanceReport {
         avgCPU: 0.0,
         minMemory: 0,
         maxMemory: 0,
-        avgMemory: 0)
+        avgMemory: 0,
+    maxMainThreadTask: 0)
 }

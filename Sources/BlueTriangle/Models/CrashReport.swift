@@ -25,3 +25,23 @@ extension CrashReport {
                                   time: intervalProvider().milliseconds)
     }
 }
+
+enum BT_ErrorType : String{
+    case NativeAppCrash
+    case ANRWarning
+}
+
+extension CrashReport {
+    init(
+        anrTrace : String
+    ) {
+        self.message = anrTrace
+        self.eCnt = 1
+        self.btV = Version.number
+        self.eTp = BT_ErrorType.ANRWarning.rawValue
+        self.appName = Bundle.main.appName ?? "Unknown"
+        self.line = 1
+        self.column = 1
+        self.time = Date().timeIntervalSince1970.milliseconds
+    }
+}

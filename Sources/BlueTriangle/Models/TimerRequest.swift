@@ -14,6 +14,7 @@ struct TimerRequest: Equatable {
     let purchaseConfirmation: PurchaseConfirmation?
     let performanceReport: PerformanceReport?
     let excluded: String?
+    let nativeAppProperties: NativeAppProperties?
 
     init(
         session: Session,
@@ -21,7 +22,8 @@ struct TimerRequest: Equatable {
         timer: PageTimeInterval,
         purchaseConfirmation: PurchaseConfirmation? = nil,
         performanceReport: PerformanceReport? = nil,
-        excluded: String? = nil
+        excluded: String? = nil,
+        nativeAppProperties : NativeAppProperties? = nil
     ) {
         self.session = session
         self.page = page
@@ -29,6 +31,7 @@ struct TimerRequest: Equatable {
         self.purchaseConfirmation = purchaseConfirmation
         self.performanceReport = performanceReport
         self.excluded = excluded
+        self.nativeAppProperties = nativeAppProperties
     }
 }
 
@@ -135,6 +138,13 @@ extension TimerRequest: Codable {
             try con.encode(performanceReport.maxMemory, forKey: .maxMemory)
             try con.encode(performanceReport.avgMemory, forKey: .avgMemory)
         }
+        
+        if let nativeAppProperties = nativeAppProperties {
+            try con.encode(nativeAppProperties, forKey: .nativeApp)
+        }
+        
+        try con.encode(1, forKey: .naflg)
+        
     }
 
     init(from decoder: Decoder) throws {
@@ -249,7 +259,9 @@ extension TimerRequest: Codable {
         } else {
             self.performanceReport = nil
         }
-
+        
+        //NativeApp
+        self.nativeAppProperties = try container.decodeIfPresent(NativeAppProperties.self, forKey: CodingKeys.nativeApp)
         self.excluded = try container.decodeIfPresent(String.self, forKey: .excluded)
     }
 
@@ -339,6 +351,10 @@ extension TimerRequest: Codable {
         case avgCPU
         case minMemory
         case maxMemory
-        case avgMemory
+        case avgMemory        
+        //NativeApp
+        
+        case naflg = "NAflg"
+        case nativeApp = "NATIVEAPP"
     }
 }

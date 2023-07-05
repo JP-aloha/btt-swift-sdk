@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8405FECA2A40A97900CC13B5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FEC92A40A97900CC13B5 /* Constants.swift */; };
+		8405FECC2A40A98300CC13B5 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FECB2A40A98300CC13B5 /* Utils.swift */; };
+		8405FECE2A40A99900CC13B5 /* ANRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FECD2A40A99900CC13B5 /* ANRTests.swift */; };
+		8405FED02A40A9B600CC13B5 /* ANRTests.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8405FECF2A40A9B600CC13B5 /* ANRTests.storyboard */; };
+		8405FED32A40A9C600CC13B5 /* RunTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FED12A40A9C600CC13B5 /* RunTestViewController.swift */; };
+		8405FED42A40A9C600CC13B5 /* TestsHomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FED22A40A9C600CC13B5 /* TestsHomeViewController.swift */; };
+		8405FED62A40A9D100CC13B5 /* TestsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FED52A40A9D100CC13B5 /* TestsTableViewCell.swift */; };
 		C9015ABC2719CA60003BC6C2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9015ABB2719CA60003BC6C2 /* AppDelegate.swift */; };
 		C9015ABE2719CA60003BC6C2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9015ABD2719CA60003BC6C2 /* SceneDelegate.swift */; };
 		C9015AC02719CA60003BC6C2 /* RootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9015ABF2719CA60003BC6C2 /* RootViewController.swift */; };
@@ -48,6 +55,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8405FEC92A40A97900CC13B5 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		8405FECB2A40A98300CC13B5 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		8405FECD2A40A99900CC13B5 /* ANRTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ANRTests.swift; path = ../../TestFactory/ANRTests/ANRTests.swift; sourceTree = "<group>"; };
+		8405FECF2A40A9B600CC13B5 /* ANRTests.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = ANRTests.storyboard; sourceTree = "<group>"; };
+		8405FED12A40A9C600CC13B5 /* RunTestViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RunTestViewController.swift; sourceTree = "<group>"; };
+		8405FED22A40A9C600CC13B5 /* TestsHomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestsHomeViewController.swift; sourceTree = "<group>"; };
+		8405FED52A40A9D100CC13B5 /* TestsTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestsTableViewCell.swift; sourceTree = "<group>"; };
 		C9015AB82719CA60003BC6C2 /* Example-UIKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Example-UIKit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9015ABB2719CA60003BC6C2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C9015ABD2719CA60003BC6C2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -101,6 +115,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8405FED72A40A9F400CC13B5 /* New Group */ = {
+			isa = PBXGroup;
+			children = (
+				8405FECF2A40A9B600CC13B5 /* ANRTests.storyboard */,
+			);
+			path = "New Group";
+			sourceTree = "<group>";
+		};
 		C9015AAF2719CA60003BC6C2 = {
 			isa = PBXGroup;
 			children = (
@@ -126,6 +148,8 @@
 		C9015ABA2719CA60003BC6C2 /* Example-UIKit */ = {
 			isa = PBXGroup;
 			children = (
+				8405FECD2A40A99900CC13B5 /* ANRTests.swift */,
+				8405FED72A40A9F400CC13B5 /* New Group */,
 				C92144C32788B291007712FC /* Application */,
 				C9D79C9C28B192E7002FBB28 /* Protocols */,
 				C92144C72788B7B1007712FC /* Models */,
@@ -191,6 +215,8 @@
 		C92144C42788B2AF007712FC /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
+				8405FED12A40A9C600CC13B5 /* RunTestViewController.swift */,
+				8405FED22A40A9C600CC13B5 /* TestsHomeViewController.swift */,
 				C9015ABF2719CA60003BC6C2 /* RootViewController.swift */,
 				C9D79CB528B19F82002FBB28 /* PhotoCollectionViewController.swift */,
 				C96B79BB28C6F55800BD03CD /* PhotoDetailViewController.swift */,
@@ -213,6 +239,7 @@
 		C92144D22788B94D007712FC /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				8405FED52A40A9D100CC13B5 /* TestsTableViewCell.swift */,
 				C9D79CB128B19E36002FBB28 /* PhotoCell.swift */,
 			);
 			path = Views;
@@ -230,7 +257,9 @@
 		C9D79C9C28B192E7002FBB28 /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
+				8405FEC92A40A97900CC13B5 /* Constants.swift */,
 				C9D79C9D28B192F7002FBB28 /* PlaceholderServiceProtocol.swift */,
+				8405FECB2A40A98300CC13B5 /* Utils.swift */,
 				C96B79B928C6EEFD00BD03CD /* ImageLoading.swift */,
 			);
 			path = Protocols;
@@ -345,6 +374,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C9015AC82719CA61003BC6C2 /* LaunchScreen.storyboard in Resources */,
+				8405FED02A40A9B600CC13B5 /* ANRTests.storyboard in Resources */,
 				C9015AC52719CA61003BC6C2 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -373,12 +403,18 @@
 				C9015AC02719CA60003BC6C2 /* RootViewController.swift in Sources */,
 				C9D79CB828B1A2FA002FBB28 /* SingleSection.swift in Sources */,
 				C9A4146B292422DE001D2C46 /* AppError.swift in Sources */,
+				8405FED42A40A9C600CC13B5 /* TestsHomeViewController.swift in Sources */,
 				C9D7E92028C425CC00FC1C27 /* ImageLoader.swift in Sources */,
 				C9D79CA028B193C9002FBB28 /* JSONPlaceholder.swift in Sources */,
 				C9015ABC2719CA60003BC6C2 /* AppDelegate.swift in Sources */,
+				8405FECA2A40A97900CC13B5 /* Constants.swift in Sources */,
 				C9015ABE2719CA60003BC6C2 /* SceneDelegate.swift in Sources */,
+				8405FECC2A40A98300CC13B5 /* Utils.swift in Sources */,
 				C9D79CB228B19E36002FBB28 /* PhotoCell.swift in Sources */,
 				C9D79CB628B19F82002FBB28 /* PhotoCollectionViewController.swift in Sources */,
+				8405FED32A40A9C600CC13B5 /* RunTestViewController.swift in Sources */,
+				8405FECE2A40A99900CC13B5 /* ANRTests.swift in Sources */,
+				8405FED62A40A9D100CC13B5 /* TestsTableViewCell.swift in Sources */,
 				C96B79BA28C6EEFD00BD03CD /* ImageLoading.swift in Sources */,
 				C9D79CB428B19F36002FBB28 /* ViewState.swift in Sources */,
 				C96B79BC28C6F55800BD03CD /* PhotoDetailViewController.swift in Sources */,

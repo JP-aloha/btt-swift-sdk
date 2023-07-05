@@ -27,6 +27,7 @@ struct TimerRequestView: View {
             }
             .navigationBarTitle("Request Body")
             .navigationBarTitleDisplayMode(.inline)
+            .bttTrackScreen("TimerRequestView")
         }
     }
 }

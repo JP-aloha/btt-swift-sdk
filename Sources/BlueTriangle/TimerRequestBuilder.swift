@@ -15,7 +15,8 @@ struct TimerRequestBuilder {
                                  page: timer.page,
                                  timer: timer.pageTimeInterval,
                                  purchaseConfirmation: purchase,
-                                 performanceReport: timer.performanceReport)
+                                 performanceReport: timer.performanceReport,
+                                 nativeAppProperties : timer.nativeAppProperties)
         return try Request(method: .post,
                            url: Constants.timerEndpoint,
                            headers: nil,
