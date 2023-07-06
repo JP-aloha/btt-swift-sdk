@@ -64,7 +64,7 @@ class MainThreadTraceProvider{
             throw NSError(domain: "MainThreadTraceProvider", code: 0)
         }
         
-        if self.anrStackTrace {
+        if !self.anrStackTrace {
             return ""
         }
         
