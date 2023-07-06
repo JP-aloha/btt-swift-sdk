@@ -44,6 +44,7 @@ public func _stdlib_demangleName(_ mangledName: String) -> String {
 
 class MainThreadTraceProvider{
     private var mainThreadRef : thread_t?
+    private var anrStackTrace: Bool = true
     
     static let shared = MainThreadTraceProvider()
     
@@ -53,10 +54,18 @@ class MainThreadTraceProvider{
         }
     }
     
+    func setUpStackTrace(_ trace : Bool){
+        self.anrStackTrace = trace
+    }
+    
     func getTrace() throws -> String{
         
         guard let mainThread = mainThreadRef else{
             throw NSError(domain: "MainThreadTraceProvider", code: 0)
+        }
+        
+        if self.anrStackTrace {
+            return ""
         }
         
         var count : Int = 0

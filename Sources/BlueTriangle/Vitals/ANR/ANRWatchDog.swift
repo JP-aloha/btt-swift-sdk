@@ -15,6 +15,7 @@ class ANRWatchDog{
     static let TIMER_PAGE_NAME = "ANRWarning"
     
     private var _errorTriggerInterval = ANRWatchDog.DEFAULT_ERROR_INTERVAL_SEC
+    
     var errorTriggerInterval: TimeInterval {
         
         get{
