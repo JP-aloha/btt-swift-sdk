@@ -53,7 +53,7 @@ final class CrashReportManager: CrashReportManaging {
         sessionCopy.sessionID = crashReport.sessionID
 
         do {
-            try upload(session: sessionCopy, report: crashReport.report)
+            try upload(session: sessionCopy, report: crashReport.report, pageName: crashReport.pageName)
 
             crashReportPersistence.clear()
         } catch {
@@ -68,9 +68,9 @@ final class CrashReportManager: CrashReportManaging {
         line: UInt
     ) {
         let report = ErrorReport(error: error, line: line, time: intervalProvider().milliseconds)
-
+        let pageName = BlueTriangle.recentTimer()?.page.pageName
         do {
-            try upload(session: sessionProvider(), report: report)
+            try upload(session:sessionProvider() , report: report, pageName: pageName)
         } catch {
             logger.error(error.localizedDescription)
         }
@@ -79,9 +79,9 @@ final class CrashReportManager: CrashReportManaging {
 
 // MARK: - Private
 private extension CrashReportManager {
-    func makeTimerRequest(session: Session, errorTime: Millisecond) throws -> Request {
-        let page = Page(pageName: Constants.crashID, pageType: Device.name)
-        let timer = PageTimeInterval(startTime: errorTime, interactiveTime: 0, pageTime: 0)
+    func makeTimerRequest(session: Session, report: ErrorReport, pageName : String?) throws -> Request {
+        let page = Page(pageName: pageName ?? Constants.crashID, pageType: Device.name)
+        let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: 0)
         let model = TimerRequest(session: session,
                                  page: page,
                                  timer: timer,
@@ -94,11 +94,11 @@ private extension CrashReportManager {
                            model: model)
     }
 
-    func makeErrorReportRequest(session: Session, report: ErrorReport) throws -> Request {
+    func makeErrorReportRequest(session: Session, report: ErrorReport, pageName : String?) throws -> Request {
         let params: [String: String] = [
             "siteID": session.siteID,
             "nStart": String(report.time),
-            "pageName": Constants.crashID,
+            "pageName": pageName ?? Constants.crashID,
             "txnName": session.trafficSegmentName,
             "sessionID": String(session.sessionID),
             "pgTm": "0",
@@ -122,13 +122,13 @@ private extension CrashReportManager {
                            model: [report])
     }
 
-    func upload(session: Session, report: ErrorReport) throws {
+    func upload(session: Session, report: ErrorReport, pageName : String?) throws {
         let timerRequest = try makeTimerRequest(session: session,
-                                                errorTime: report.time)
+                                                report: report, pageName: pageName)
         uploader.send(request: timerRequest)
 
         let reportRequest = try makeErrorReportRequest(session: session,
-                                                       report: report)
+                                                       report: report, pageName: pageName)
         uploader.send(request: reportRequest)
     }
 }

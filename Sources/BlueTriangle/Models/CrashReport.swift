@@ -9,6 +9,7 @@ import Foundation
 
 struct CrashReport: Codable {
     let sessionID: Identifier
+    let pageName: String?
     let report: ErrorReport
 }
 
@@ -19,6 +20,7 @@ extension CrashReport {
         intervalProvider: @escaping () -> TimeInterval = { Date().timeIntervalSince1970 }
     ) {
         self.sessionID = sessionID
+        self.pageName = BlueTriangle.recentTimer()?.page.pageName
         self.report = ErrorReport(message: exception.bttCrashReportMessage,
                                   line: 1,
                                   column: 1,
@@ -29,19 +31,4 @@ extension CrashReport {
 enum BT_ErrorType : String{
     case NativeAppCrash
     case ANRWarning
-}
-
-extension CrashReport {
-    init(
-        anrTrace : String
-    ) {
-        self.message = anrTrace
-        self.eCnt = 1
-        self.btV = Version.number
-        self.eTp = BT_ErrorType.ANRWarning.rawValue
-        self.appName = Bundle.main.appName ?? "Unknown"
-        self.line = 1
-        self.column = 1
-        self.time = Date().timeIntervalSince1970.milliseconds
-    }
 }

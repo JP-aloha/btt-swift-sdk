@@ -107,7 +107,9 @@ An task blocking main thread since \(errorTriggerInterval) seconds
 Main Thread Trace
 \(trace)
 """
-            let report = CrashReport(anrTrace: message)
+            let exp = NSException(name: NSExceptionName("ANR Detected"), reason: message)
+            let report = CrashReport(sessionID: BlueTriangle.sessionID,
+                         exception: exp)
             uploadReports(session: session, report: report)
             logger.debug(message)
         }catch{
@@ -122,14 +124,12 @@ Main Thread Trace
                     return
                 }
                 
-                let pageName = BlueTriangle.recentTimer()?.page.pageName
                 let timerRequest = try strongSelf.makeTimerRequest(session: session,
-                                                                   crashTime: report.time,
-                                                                   pageName: pageName)
+                                                                   report: report.report, pageName: report.pageName)
                  strongSelf.uploader.send(request: timerRequest)
                 
                 let reportRequest = try strongSelf.makeCrashReportRequest(session: session,
-                                                                          report: report, pageName: pageName)
+                                                                          report: report.report, pageName: report.pageName)
                 strongSelf.uploader.send(request: reportRequest)
             } catch {
                 self?.logger.error(error.localizedDescription)
@@ -137,9 +137,9 @@ Main Thread Trace
         }
     }
     
-    private func makeTimerRequest(session: Session, crashTime: Millisecond, pageName : String?) throws -> Request {
+    private func makeTimerRequest(session: Session, report: ErrorReport, pageName: String?) throws -> Request {
         let page = Page(pageName: pageName ?? ANRWatchDog.TIMER_PAGE_NAME, pageType: Device.name)
-        let timer = PageTimeInterval(startTime: crashTime, interactiveTime: 0, pageTime: 0)
+        let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: 0)
         let model = TimerRequest(session: session,
                                  page: page,
                                  timer: timer,
@@ -152,7 +152,7 @@ Main Thread Trace
                            model: model)
     }
         
-    private func makeCrashReportRequest(session: Session, report: CrashReport, pageName : String?) throws -> Request {
+    private func makeCrashReportRequest(session: Session, report: ErrorReport, pageName: String?) throws -> Request {
         let params: [String: String] = [
             "siteID": session.siteID,
             "nStart": String(report.time),
