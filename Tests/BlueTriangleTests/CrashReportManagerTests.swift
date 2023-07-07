@@ -16,7 +16,7 @@ final class CrashReportManagerTests: XCTestCase {
     let crashErrorReport = ErrorReport(message: "crash_message", line: 1, column: 2, time: 100)
 
     var crashReport: CrashReport {
-        .init(sessionID: 100_000_000_000_000_001, report: crashErrorReport)
+        .init(sessionID: 100_000_000_000_000_001, pageName: "CrashReportManagerTests", report: crashErrorReport)
     }
 
     override func tearDown() {

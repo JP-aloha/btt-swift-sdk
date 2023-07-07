@@ -59,14 +59,14 @@ extension UIViewController{
             }
         }
         
-        
         // Ignore spacific controllers to ignore Noise
         let excludedClasses: [String] = [
             "UIHostingController"
         ]
-        
+    
+        let selfClassName = "\(type(of: self))"
         for excludedClass in excludedClasses {
-            if NSStringFromClass(type(of: self)).contains(excludedClass) {
+            if selfClassName.contains(excludedClass) {
                 return false
             }
         }
@@ -77,7 +77,9 @@ extension UIViewController{
                             || self.isKind(of: UITabBarController.self)
                             || self.isKind(of: UISplitViewController.self)
                             || self.isKind(of: UIPageViewController.self)
-                            || self.isKind(of: UIInputViewController.self))
+                            || self.isKind(of: UIInputViewController.self)
+                            || self.isKind(of: UIAlertController.self))
+        
     }
     
     @objc dynamic func viewDidLoad_Tracker() {
