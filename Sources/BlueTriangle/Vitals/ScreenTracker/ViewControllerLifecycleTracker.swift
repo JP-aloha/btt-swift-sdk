@@ -63,7 +63,8 @@ extension UIViewController{
         let excludedClasses: [String] = [
             "UIHostingController",
             "NavigationStackHostingController",
-            "UIPredictionViewController"
+            "UIPredictionViewController",
+            "UIPlaceholderPredictiveViewController"
         ]
     
         let selfClassName = "\(type(of: self))"
