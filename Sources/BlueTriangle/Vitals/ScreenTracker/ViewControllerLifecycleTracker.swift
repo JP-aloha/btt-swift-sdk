@@ -61,11 +61,14 @@ extension UIViewController{
         
         
         // Ignore spacific controllers to ignore Noise
-        let excludedClassNames: [String] = [
+        let excludedClasses: [String] = [
             "UIHostingController"
         ]
-        if excludedClassNames.contains(NSStringFromClass(type(of: self))){
-            return false
+        
+        for excludedClass in excludedClasses {
+            if NSStringFromClass(type(of: self)).contains(excludedClass) {
+                return false
+            }
         }
         
         // We are not capturing screen traces for any container or input view controllers.
