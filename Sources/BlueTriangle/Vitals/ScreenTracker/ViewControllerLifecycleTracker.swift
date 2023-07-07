@@ -9,6 +9,10 @@
 import Foundation
 import UIKit
 
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
+
 fileprivate func swizzleMethod(_ `class`: AnyClass, _ original: Selector, _ swizzled: Selector) {
     
     if let original = class_getInstanceMethod(`class`, original), let swizzled = class_getInstanceMethod(`class`, swizzled) {
@@ -26,10 +30,7 @@ extension UIViewController{
         let  _ : () = {
             
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidLoad), #selector(UIViewController.viewDidLoad_Tracker))
-            
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewWillAppear(_:)), #selector(UIViewController.viewWillAppear_Tracker(_:)))
-            swizzleMethod(UIViewController.self, #selector(UIViewController.viewWillDisappear(_:)), #selector(UIViewController.viewWillDisappear_Tracker(_:)))
-            
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidAppear(_:)), #selector(UIViewController.viewDidAppear_Tracker(_:)))
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidDisappear(_:)), #selector(UIViewController.viewDidDisappear_Tracker(_:)))
             
@@ -37,33 +38,68 @@ extension UIViewController{
         }()
     }
     
+    func shouldTrackScreen() -> Bool{
+        
+        // Ignore non-main bundle view controllers whose class or superclass is an internal iOS view controller
+        
+        let bundle = Bundle(for: type(of: self))
+                
+        if bundle != Bundle.main{
+            
+            let className = "\(type(of: self))"
+            
+            if className.hasPrefix("_") {
+                return false
+            }
+            
+            let superClassName = "\(type(of: self.superclass))"
+            
+            if superClassName.hasPrefix("_") {
+                return false
+            }
+        }
+        
+        
+        // Ignore spacific controllers to ignore Noise
+        let excludedClassNames: [String] = [
+            "UIHostingController"
+        ]
+        if !excludedClassNames.contains(NSStringFromClass(type(of: self))){
+            return false
+        }
+        
+        // We are not capturing screen traces for any container or input view controllers.
+        return !(self.isKind(of: UINavigationController.self)
+                            || self.isKind(of: UINavigationController.self)
+                            || self.isKind(of: UITabBarController.self)
+                            || self.isKind(of: UISplitViewController.self)
+                            || self.isKind(of: UIPageViewController.self)
+                            || self.isKind(of: UIInputViewController.self))
+    }
+    
     @objc dynamic func viewDidLoad_Tracker() {
-        if !self.isKind(of: UINavigationController.self){
+        if shouldTrackScreen(){
             BTTScreenLifecycleTracker.shared.loadStarted(String(describing: self), "\(type(of: self))")
         }
         viewDidLoad_Tracker()
     }
     
     @objc dynamic func viewWillAppear_Tracker(_ animated: Bool) {
-        if !self.isKind(of: UINavigationController.self){
+        if shouldTrackScreen(){
             BTTScreenLifecycleTracker.shared.loadFinish(String(describing: self), "\(type(of: self))")
         }
         viewWillAppear_Tracker(animated)
     }
-    
-    @objc dynamic func viewWillDisappear_Tracker(_ animated: Bool) {
-        viewWillDisappear_Tracker(animated)
-    }
-                                    
+                                
     @objc dynamic func viewDidAppear_Tracker(_ animated: Bool) {
-        if !self.isKind(of: UINavigationController.self){
+        if shouldTrackScreen(){
             BTTScreenLifecycleTracker.shared.viewStart(String(describing: self), "\(type(of: self))")
         }
         viewDidAppear_Tracker(animated)
     }
     
     @objc dynamic func viewDidDisappear_Tracker(_ animated: Bool) {
-        if !self.isKind(of: UINavigationController.self){
+        if shouldTrackScreen(){
             BTTScreenLifecycleTracker.shared.viewingEnd(String(describing: self), "\(type(of: self))")
         }
         viewDidDisappear_Tracker(animated)
