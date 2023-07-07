@@ -64,7 +64,7 @@ extension UIViewController{
         let excludedClassNames: [String] = [
             "UIHostingController"
         ]
-        if !excludedClassNames.contains(NSStringFromClass(type(of: self))){
+        if excludedClassNames.contains(NSStringFromClass(type(of: self))){
             return false
         }
         
