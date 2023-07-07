@@ -61,7 +61,9 @@ extension UIViewController{
         
         // Ignore spacific controllers to ignore Noise
         let excludedClasses: [String] = [
-            "UIHostingController"
+            "UIHostingController",
+            "NavigationStackHostingController",
+            "UIPredictionViewController"
         ]
     
         let selfClassName = "\(type(of: self))"
@@ -78,6 +80,7 @@ extension UIViewController{
                             || self.isKind(of: UISplitViewController.self)
                             || self.isKind(of: UIPageViewController.self)
                             || self.isKind(of: UIInputViewController.self)
+                            || self.isKind(of: UIAlertController.self)
                             || self.isKind(of: UIAlertController.self))
         
     }
