@@ -2,8 +2,10 @@
 //  ViewControllerLifecycleTracker.swift
 //  
 //
-//  Created by Ashok Singh on 13/06/23.
+//  Created by JP on 13/06/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
+
 
 #if canImport(UIKit)
 import Foundation

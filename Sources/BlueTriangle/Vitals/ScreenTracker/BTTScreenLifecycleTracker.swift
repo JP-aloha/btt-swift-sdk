@@ -2,8 +2,10 @@
 //  BTTScreenLifecycleTracker.swift
 //  
 //
-//  Created by Ashok Singh on 13/06/23.
+//  Created by JP on 13/06/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
+
 
 import Foundation
 
@@ -103,6 +105,8 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
                     viewingEnd(key, page)
                 }
             }
+            
+            self.logger?.info("Stop active timer when app went to background")
         }
     }
 
@@ -114,6 +118,8 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
                 }
             }
             startTimerPages.removeAll()
+            
+            self.logger?.info("Start active timer when app come to foreground")
         }
     }
     
@@ -178,7 +184,7 @@ class TimerMapActivity {
             timer.nativeAppProperties = NativeAppProperties(
                 fullTime: disapearTime.milliseconds - loadTime.milliseconds,
                 loadTime: viewTime.milliseconds - loadTime.milliseconds,
-                maxMainThreadUses: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,viewType: self.viewType)
+                maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,viewType: self.viewType)
         }
         BlueTriangle.endTimer(timer)
     }

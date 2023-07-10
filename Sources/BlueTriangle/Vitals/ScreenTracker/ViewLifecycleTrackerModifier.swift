@@ -2,7 +2,8 @@
 //  ViewLifecycleTrackerModifier.swift
 //
 //
-//  Created by Ashok Singh on 20/06/23.
+//  Created by JP on 20/06/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
 
 #if canImport(SwiftUI)
