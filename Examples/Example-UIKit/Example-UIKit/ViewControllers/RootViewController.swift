@@ -53,13 +53,24 @@ class RootViewController: UIViewController {
     }()
     
     private lazy var buttonStackView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [galleryButton, errorButton, crashButton])
+        let view = UIStackView(arrangedSubviews: [galleryButton, errorButton, crashButton, screenTrackingButton])
         view.axis = .vertical
         view.alignment = .fill
         view.distribution = .fillEqually
         view.spacing = 16.0
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
+    }()
+    
+    
+    private lazy var screenTrackingButton: UIButton = {
+        let action = UIAction(title: "Screen Tracking") { [weak self] _ in
+            self?.showScreenTrackingHomeVC()
+        }
+        let control = UIButton(configuration: .filled(), primaryAction: action)
+        control.tintColor = .gray
+        control.translatesAutoresizingMaskIntoConstraints = false
+        return control
     }()
 
     // MARK: - Lifecycle
@@ -109,6 +120,13 @@ class RootViewController: UIViewController {
         if let vc = storyboard.instantiateViewController(withIdentifier: "TestsHomeViewController") as? TestsHomeViewController {
             navigationController?.pushViewController(vc, animated: true)
         }
-     
+    }
+    
+    private func showScreenTrackingHomeVC() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let vc = storyboard.instantiateViewController(withIdentifier: "HomeVC") as? HomeViewController {
+            navigationController?.pushViewController(vc, animated: true)
+        }
+       
     }
 }
