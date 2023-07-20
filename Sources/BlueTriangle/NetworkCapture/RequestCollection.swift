@@ -10,24 +10,28 @@ import Foundation
 struct RequestCollection: Equatable {
     let page: Page
     let startTime: Millisecond
-    var requests: [CapturedRequest]
-
+    var requests: [CapturedRequest] = []
+    private(set) var firstRequestStartTime : Millisecond?
+    
     var isNotEmpty: Bool {
         !requests.isEmpty
     }
 
-    init(page: Page, startTime: Millisecond, requests: [CapturedRequest] = []) {
+    init(page: Page, startTime: Millisecond) {
         self.page = page
         self.startTime = startTime
-        self.requests = requests
     }
 
     mutating func insert(timer: InternalTimer, response: URLResponse?) {
-        requests.append(CapturedRequest(timer: timer, relativeTo: startTime, response: response))
+        let relativeTo = firstRequestStartTime ?? timer.startTime.milliseconds
+        self.appendRequest(r: [CapturedRequest(timer: timer, relativeTo: relativeTo, response: response)],
+                           startTime: relativeTo)
     }
 
     mutating func insert(metrics: URLSessionTaskMetrics) {
-        requests.append(CapturedRequest(metrics: metrics, relativeTo: startTime))
+        let relativeTo = firstRequestStartTime ?? metrics.taskInterval.start.timeIntervalSince1970.milliseconds
+        self.appendRequest(r: [CapturedRequest(metrics: metrics, relativeTo: relativeTo)],
+                           startTime: relativeTo)
     }
 
     mutating func batchRequests() -> [CapturedRequest]? {
@@ -36,6 +40,14 @@ struct RequestCollection: Equatable {
         }
         defer { requests = [] }
         return requests
+    }
+ 
+    private mutating func appendRequest(r : [CapturedRequest], startTime: Millisecond){
+        requests.append(contentsOf: r)
+        //The Start Time of the Network Capture data (wcdv02.rcv) should reset to zero for the first network call on the screen/view.
+        if firstRequestStartTime == nil{
+            firstRequestStartTime = startTime
+        }
     }
 }
 

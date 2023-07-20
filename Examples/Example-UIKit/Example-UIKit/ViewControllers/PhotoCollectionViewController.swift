@@ -114,6 +114,13 @@ final class PhotoCollectionViewController: UIViewController {
     private func fetchData() {
         loadingTask = Task {
             do {
+                //intentionally delayed first API call by 5 Sec to check network call relative start time
+                if #available(iOS 16.0, *) {
+                    try await Task.sleep(for: .seconds(5))
+                } else {
+                    try await Task.sleep(nanoseconds: 5 * 1_000_000_000)
+                }
+                
                 let albums = try await jsonPlaceholder.fetchAlbums()
                 guard let album = albums.first else {
                     return

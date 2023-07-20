@@ -24,8 +24,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             config.performanceMonitorSampleRate = 1
             config.crashTracking  = .nsException
             config.ANRMonitoring = true
-            config.ANRWarningTimeInterval = 1
             config.enableScreenTracking = true
+            config.networkSampleRate = 1.0
         }
         
         runTest(onEvent: .OnAppLaunch)
