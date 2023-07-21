@@ -224,7 +224,7 @@ extension BlueTriangle {
                 }
             }
             
-            configureANRTracking(with: configuration.ANRMonitoring, stackTrace: configuration.ANRStackTrace,
+            configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
                                  interval: configuration.ANRWarningTimeInterval)
             configureScreenTracking(with: configuration.enableScreenTracking)
         }
@@ -416,9 +416,9 @@ extension BlueTriangle {
 
 //MARK: - ANR Tracking
 extension BlueTriangle{
-    static func configureANRTracking(with enabled: Bool, stackTrace : Bool, interval: TimeInterval){
+    static func configureANRTracking(with enabled: Bool, enableStackTrace : Bool, interval: TimeInterval){
         self.anrWatchDog.errorTriggerInterval = interval
-        self.anrWatchDog.setUpStackTrace(stackTrace)
+        self.anrWatchDog.enableStackTrace = enableStackTrace
         if enabled {
             MainThreadObserver.live.setUpLogger(logger)
             MainThreadObserver.live.start()
