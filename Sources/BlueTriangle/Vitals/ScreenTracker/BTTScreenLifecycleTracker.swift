@@ -178,7 +178,7 @@ class TimerMapActivity {
         if let viewTime = viewTime, let loadTime = loadTime, let disapearTime = disapearTime{
            
             //When "pgtm" is zero then fallback mechanism triggered that calculate performence time as screen time automatically. So to avoiding "pgtm" zero value setting default value 10 milliseconds.
-            // Default "pgtm" should be min 0.01 sec (10 milliseconds). Because timer is not reflecting on dot chat bellow to that interval.
+            // Default "pgtm" should be minimum 0.01 sec (10 milliseconds). Because timer is not reflecting on dot chat bellow to that interval.
             let calculatedLoadTime = max((viewTime.milliseconds - loadTime.milliseconds), 10)
             
             timer.pageTimeBuilder = {
@@ -189,8 +189,9 @@ class TimerMapActivity {
                 fullTime: disapearTime.milliseconds - loadTime.milliseconds,
                 loadTime: calculatedLoadTime,
                 maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,viewType: self.viewType)
+            
+            BlueTriangle.endTimer(timer)
         }
-        BlueTriangle.endTimer(timer)
     }
     
     func getPageName()->String{
