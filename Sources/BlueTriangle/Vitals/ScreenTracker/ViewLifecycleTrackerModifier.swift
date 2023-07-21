@@ -13,8 +13,8 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
     @State var id : String?
     
     func body(content: Content) -> some View {
-        
-        if #available(iOS 15.0, *){
+            
+        if #available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15.0, *){
             content
                 .task({
                     if let id = self.id{
