@@ -40,7 +40,6 @@
 void* get_backtrace(thread_t thread, int *trace_size){
     
 #if TARGET_OS_IOS
-    thread_t mainThread = mach_thread_self();
 
     _STRUCT_MCONTEXT machineContext;
     mach_msg_type_number_t stateCount = THREAD_STATE_COUNT;
