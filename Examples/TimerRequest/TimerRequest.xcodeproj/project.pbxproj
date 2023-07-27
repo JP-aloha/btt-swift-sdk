@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		8405FEC82A40A80D00CC13B5 /* ANRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FEC72A40A80D00CC13B5 /* ANRTests.swift */; };
 		84BE4B072A40A5E2004EF3D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BE4B062A40A5E2004EF3D9 /* AppDelegate.swift */; };
+		B2A0C01A2A7178A000469E26 /* FatalErrorCrash.txt in Resources */ = {isa = PBXBuildFile; fileRef = B2A0C0192A7178A000469E26 /* FatalErrorCrash.txt */; };
 		C953395728970021003A3602 /* TimerRequestApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C953395628970021003A3602 /* TimerRequestApp.swift */; };
 		C953395B28970022003A3602 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C953395A28970022003A3602 /* Assets.xcassets */; };
 		C953395E28970022003A3602 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C953395D28970022003A3602 /* Preview Assets.xcassets */; };
@@ -50,6 +51,7 @@
 /* Begin PBXFileReference section */
 		8405FEC72A40A80D00CC13B5 /* ANRTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ANRTests.swift; path = ../../TestFactory/ANRTests/ANRTests.swift; sourceTree = "<group>"; };
 		84BE4B062A40A5E2004EF3D9 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		B2A0C0192A7178A000469E26 /* FatalErrorCrash.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = FatalErrorCrash.txt; path = "../../../../btt-swift-sdk-poc/Metric/DigTests/FatalErrorCrash.txt"; sourceTree = "<group>"; };
 		C953395328970021003A3602 /* TimerRequest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimerRequest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C953395628970021003A3602 /* TimerRequestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerRequestApp.swift; sourceTree = "<group>"; };
 		C953395A28970022003A3602 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 				CFE733DD29FBE80500A86EC8 /* Info.plist */,
 				C953395628970021003A3602 /* TimerRequestApp.swift */,
 				84BE4B062A40A5E2004EF3D9 /* AppDelegate.swift */,
+				B2A0C0192A7178A000469E26 /* FatalErrorCrash.txt */,
 				8405FEC72A40A80D00CC13B5 /* ANRTests.swift */,
 				C953399628970FF8003A3602 /* Constants.swift */,
 				C953398828970DD5003A3602 /* Extensions */,
@@ -336,6 +339,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B2A0C01A2A7178A000469E26 /* FatalErrorCrash.txt in Resources */,
 				C953395E28970022003A3602 /* Preview Assets.xcassets in Resources */,
 				C953399328970F18003A3602 /* Settings.bundle in Resources */,
 				C953395B28970022003A3602 /* Assets.xcassets in Resources */,
@@ -534,9 +538,9 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "\"TimerRequest/Preview Content\"";
-				DEVELOPMENT_TEAM = 4UZ8DAVC89;
+				DEVELOPMENT_TEAM = RFX6NF2RC6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TimerRequest/Info.plist;
@@ -551,7 +555,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bluetriangle.TimerRequest;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bluetriangle.TimerRequestDignose;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -572,9 +576,9 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "\"TimerRequest/Preview Content\"";
-				DEVELOPMENT_TEAM = 4UZ8DAVC89;
+				DEVELOPMENT_TEAM = RFX6NF2RC6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TimerRequest/Info.plist;
@@ -589,7 +593,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bluetriangle.TimerRequest;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bluetriangle.TimerRequestDignose;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
