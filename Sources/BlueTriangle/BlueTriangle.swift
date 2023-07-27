@@ -16,11 +16,14 @@ final public class BlueTriangle: NSObject {
     private static let lock = NSLock()
     private static var configuration = BlueTriangleConfiguration()
     private static var activeTimers = [BTTimer]()
-    private static let hangWatchDog = MetricKitWatchDog()
-    
+#if os(iOS)
+    private static let matricKitWatchDog = MetricKitWatchDog()
+#endif
     internal static func addActiveTimer(_ timer : BTTimer){
         activeTimers.append(timer)
-        hangWatchDog.saveCurrentTimerData(timer)
+#if os(iOS)
+        matricKitWatchDog.saveCurrentTimerData(timer)
+#endif
     }
     
     internal static func removeActiveTimer(_ timer : BTTimer){
@@ -222,7 +225,9 @@ extension BlueTriangle {
             if let crashConfig = configuration.crashTracking.configuration {
                 DispatchQueue.global(qos: .utility).async {
                     configureCrashTracking(with: crashConfig)
-                    hangWatchDog.start()
+#if os(iOS)
+                    matricKitWatchDog.start()
+#endif
                 }
             }
             

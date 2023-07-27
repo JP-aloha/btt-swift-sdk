@@ -5,6 +5,7 @@
 //  Created by jaiprakash bokhare on 28/06/23.
 //
 
+#if os(iOS)
 import Foundation
 import MetricKit
 import UIKit
@@ -27,6 +28,7 @@ class MetricKitWatchDog {
         if let currentTimerDetail = UserDefaultsUtility.getData(type: Data.self, forKey: .currentTimerDetail),
            let decoded = try? JSONDecoder().decode(SavedTimer.self, from: currentTimerDetail),
            BlueTriangle.sessionID != decoded.sessionId {
+           
             saveCrashedPageData(timerDetail: decoded)
         }
     }
@@ -36,11 +38,14 @@ class MetricKitWatchDog {
         if let savedTimersData = UserDefaultsUtility.getData(type: Data.self, forKey: .savedTimers),
            var savedTimers = try? JSONDecoder().decode([SavedTimer].self, from: savedTimersData),
            !savedTimers.isEmpty {
+           
             savedTimers.append(timerDetail)
+           
             if let encoded = try? JSONEncoder().encode(savedTimers) {
                 UserDefaultsUtility.setData(value: encoded, key: .savedTimers)
             }
-        } else if let encoded = try? JSONEncoder().encode([timerDetail]) {
+        }
+        else if let encoded = try? JSONEncoder().encode([timerDetail]) {
             UserDefaultsUtility.setData(value: encoded, key: .savedTimers)
         }
     }
@@ -63,9 +68,8 @@ class MetricKitWatchDog {
     }
     
     @objc private func applicationResignActive() {
-        
+       
         UserDefaultsUtility.removeData(key: .currentTimerDetail)
-        
     }
     
     func saveCurrentTimerData(_ timer: BTTimer) {
@@ -96,7 +100,6 @@ class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
     func didReceive(_ payloads: [MXDiagnosticPayload]){
         
         NSLog("#Received Diagnostic report \(payloads)")
-        
         setupDignoseDataInReporter(payloads: payloads)
     }
 }
@@ -120,7 +123,7 @@ extension MetricKitSubscriber {
     
 }
 
-// MARK: - Crate Crash Models
+// MARK: - Create Crash Models
 extension MetricKitSubscriber {
     
    private func createCrashReportModel(from data: Data,
@@ -158,7 +161,7 @@ extension MetricKitSubscriber {
     }
 }
 
-// MARK: Crate and Save formatted report to presistance
+// MARK: Create and Save formatted report to presistance
 extension MetricKitSubscriber {
     
     private  func saveRportToPresistence(report: MetricKitCrashReport,
@@ -328,3 +331,5 @@ extension MetricKitSubscriber {
         return string + spaceString
     }
 }
+
+#endif
