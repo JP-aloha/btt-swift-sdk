@@ -13,18 +13,47 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
     @State var id : String?
     
     func body(content: Content) -> some View {
-        content
-            .onAppear {
-                id = UUID().uuidString
-                if let id = self.id{
-                    BTTScreenLifecycleTracker.shared.viewStart(id, name)
+            
+        if #available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15.0, *){
+            content
+                .task({
+                    if let id = self.id{
+                        BTTScreenLifecycleTracker.shared.loadFinish(id, name)
+                        BTTScreenLifecycleTracker.shared.viewStart(id, name)
+                    }
+                })
+                .onAppear {
+                    id = UUID().uuidString
+                    if let id = self.id{
+                        BTTScreenLifecycleTracker.shared.loadStarted(id, name)
+                    }
                 }
-            }
-            .onDisappear{
-                if let id = self.id{
-                    BTTScreenLifecycleTracker.shared.viewingEnd(id, name)
+                .onDisappear{
+                    if let id = self.id{
+                        BTTScreenLifecycleTracker.shared.viewingEnd(id, name)
+                    }
                 }
-            }
+        }
+        else{
+            content
+                .onAppear {
+                    id = UUID().uuidString
+                    if let id = self.id{
+                        BTTScreenLifecycleTracker.shared.viewStart(id, name)
+                    }
+                    Task{
+                        if let id = self.id{
+                            BTTScreenLifecycleTracker.shared.loadFinish(id, name)
+                            BTTScreenLifecycleTracker.shared.viewStart(id, name)
+                        }
+                    }
+                }
+                .onDisappear{
+                    if let id = self.id{
+                        BTTScreenLifecycleTracker.shared.viewingEnd(id, name)
+                    }
+                }
+        }
     }
 }
 

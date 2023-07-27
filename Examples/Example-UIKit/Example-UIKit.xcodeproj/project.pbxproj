@@ -7,6 +7,41 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		51522EC32A6042D7002D126D /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E902A6042D7002D126D /* HomeViewModel.swift */; };
+		51522EC42A6042D7002D126D /* TestPresentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E932A6042D7002D126D /* TestPresentViewController.swift */; };
+		51522EC52A6042D7002D126D /* TestFullPresentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E942A6042D7002D126D /* TestFullPresentViewController.swift */; };
+		51522EC62A6042D7002D126D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 51522E952A6042D7002D126D /* Main.storyboard */; };
+		51522EC72A6042D7002D126D /* Tab2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E982A6042D7002D126D /* Tab2ViewController.swift */; };
+		51522EC82A6042D7002D126D /* Tab1ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E992A6042D7002D126D /* Tab1ViewController.swift */; };
+		51522EC92A6042D7002D126D /* TestTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E9A2A6042D7002D126D /* TestTabViewController.swift */; };
+		51522ECA2A6042D7002D126D /* FirstViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E9C2A6042D7002D126D /* FirstViewController.swift */; };
+		51522ECB2A6042D7002D126D /* TestContainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E9D2A6042D7002D126D /* TestContainerViewController.swift */; };
+		51522ECC2A6042D7002D126D /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E9E2A6042D7002D126D /* SecondViewController.swift */; };
+		51522ECD2A6042D7002D126D /* TestPushViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EA02A6042D7002D126D /* TestPushViewController.swift */; };
+		51522ECE2A6042D7002D126D /* TestSubviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EA22A6042D7002D126D /* TestSubviewViewController.swift */; };
+		51522ECF2A6042D7002D126D /* Subview1ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EA32A6042D7002D126D /* Subview1ViewController.swift */; };
+		51522ED02A6042D7002D126D /* Subview2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EA42A6042D7002D126D /* Subview2ViewController.swift */; };
+		51522ED12A6042D7002D126D /* PagerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EA62A6042D7002D126D /* PagerViewController.swift */; };
+		51522ED22A6042D7002D126D /* SlideViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EA72A6042D7002D126D /* SlideViewController.swift */; };
+		51522ED32A6042D7002D126D /* TestPadFormSheetPresentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EAA2A6042D7002D126D /* TestPadFormSheetPresentViewController.swift */; };
+		51522ED42A6042D7002D126D /* TestPadPresentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EAB2A6042D7002D126D /* TestPadPresentViewController.swift */; };
+		51522ED52A6042D7002D126D /* TestSplitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EAD2A6042D7002D126D /* TestSplitViewController.swift */; };
+		51522ED62A6042D7002D126D /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EAE2A6042D7002D126D /* DetailViewController.swift */; };
+		51522ED72A6042D7002D126D /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EAF2A6042D7002D126D /* MasterViewController.swift */; };
+		51522ED82A6042D7002D126D /* TestPadTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EB12A6042D7002D126D /* TestPadTabViewController.swift */; };
+		51522ED92A6042D7002D126D /* Tab2PadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EB22A6042D7002D126D /* Tab2PadViewController.swift */; };
+		51522EDA2A6042D7002D126D /* Tab1PadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EB32A6042D7002D126D /* Tab1PadViewController.swift */; };
+		51522EDB2A6042D7002D126D /* SecondPadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EB52A6042D7002D126D /* SecondPadViewController.swift */; };
+		51522EDC2A6042D7002D126D /* TestPadContainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EB62A6042D7002D126D /* TestPadContainerViewController.swift */; };
+		51522EDD2A6042D7002D126D /* FirstPadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EB72A6042D7002D126D /* FirstPadViewController.swift */; };
+		51522EDE2A6042D7002D126D /* TestPadPushViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EB92A6042D7002D126D /* TestPadPushViewController.swift */; };
+		51522EDF2A6042D7002D126D /* Main_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 51522EBA2A6042D7002D126D /* Main_iPad.storyboard */; };
+		51522EE02A6042D7002D126D /* Subview2PadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EBC2A6042D7002D126D /* Subview2PadViewController.swift */; };
+		51522EE12A6042D7002D126D /* Subview1PadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EBD2A6042D7002D126D /* Subview1PadViewController.swift */; };
+		51522EE22A6042D7002D126D /* TestPadSubviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EBE2A6042D7002D126D /* TestPadSubviewViewController.swift */; };
+		51522EE32A6042D7002D126D /* PagerPadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC02A6042D7002D126D /* PagerPadViewController.swift */; };
+		51522EE42A6042D7002D126D /* SlidePadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC12A6042D7002D126D /* SlidePadViewController.swift */; };
+		51522EE52A6042D7002D126D /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC22A6042D7002D126D /* HomeViewController.swift */; };
 		8405FECA2A40A97900CC13B5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FEC92A40A97900CC13B5 /* Constants.swift */; };
 		8405FECC2A40A98300CC13B5 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FECB2A40A98300CC13B5 /* Utils.swift */; };
 		8405FECE2A40A99900CC13B5 /* ANRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FECD2A40A99900CC13B5 /* ANRTests.swift */; };
@@ -55,6 +90,41 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		51522E902A6042D7002D126D /* HomeViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		51522E932A6042D7002D126D /* TestPresentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPresentViewController.swift; sourceTree = "<group>"; };
+		51522E942A6042D7002D126D /* TestFullPresentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestFullPresentViewController.swift; sourceTree = "<group>"; };
+		51522E962A6042D7002D126D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		51522E982A6042D7002D126D /* Tab2ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tab2ViewController.swift; sourceTree = "<group>"; };
+		51522E992A6042D7002D126D /* Tab1ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tab1ViewController.swift; sourceTree = "<group>"; };
+		51522E9A2A6042D7002D126D /* TestTabViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestTabViewController.swift; sourceTree = "<group>"; };
+		51522E9C2A6042D7002D126D /* FirstViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FirstViewController.swift; sourceTree = "<group>"; };
+		51522E9D2A6042D7002D126D /* TestContainerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestContainerViewController.swift; sourceTree = "<group>"; };
+		51522E9E2A6042D7002D126D /* SecondViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
+		51522EA02A6042D7002D126D /* TestPushViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPushViewController.swift; sourceTree = "<group>"; };
+		51522EA22A6042D7002D126D /* TestSubviewViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestSubviewViewController.swift; sourceTree = "<group>"; };
+		51522EA32A6042D7002D126D /* Subview1ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subview1ViewController.swift; sourceTree = "<group>"; };
+		51522EA42A6042D7002D126D /* Subview2ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subview2ViewController.swift; sourceTree = "<group>"; };
+		51522EA62A6042D7002D126D /* PagerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PagerViewController.swift; sourceTree = "<group>"; };
+		51522EA72A6042D7002D126D /* SlideViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SlideViewController.swift; sourceTree = "<group>"; };
+		51522EAA2A6042D7002D126D /* TestPadFormSheetPresentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPadFormSheetPresentViewController.swift; sourceTree = "<group>"; };
+		51522EAB2A6042D7002D126D /* TestPadPresentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPadPresentViewController.swift; sourceTree = "<group>"; };
+		51522EAD2A6042D7002D126D /* TestSplitViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestSplitViewController.swift; sourceTree = "<group>"; };
+		51522EAE2A6042D7002D126D /* DetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
+		51522EAF2A6042D7002D126D /* MasterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MasterViewController.swift; sourceTree = "<group>"; };
+		51522EB12A6042D7002D126D /* TestPadTabViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPadTabViewController.swift; sourceTree = "<group>"; };
+		51522EB22A6042D7002D126D /* Tab2PadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tab2PadViewController.swift; sourceTree = "<group>"; };
+		51522EB32A6042D7002D126D /* Tab1PadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tab1PadViewController.swift; sourceTree = "<group>"; };
+		51522EB52A6042D7002D126D /* SecondPadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecondPadViewController.swift; sourceTree = "<group>"; };
+		51522EB62A6042D7002D126D /* TestPadContainerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPadContainerViewController.swift; sourceTree = "<group>"; };
+		51522EB72A6042D7002D126D /* FirstPadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FirstPadViewController.swift; sourceTree = "<group>"; };
+		51522EB92A6042D7002D126D /* TestPadPushViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPadPushViewController.swift; sourceTree = "<group>"; };
+		51522EBA2A6042D7002D126D /* Main_iPad.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main_iPad.storyboard; sourceTree = "<group>"; };
+		51522EBC2A6042D7002D126D /* Subview2PadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subview2PadViewController.swift; sourceTree = "<group>"; };
+		51522EBD2A6042D7002D126D /* Subview1PadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subview1PadViewController.swift; sourceTree = "<group>"; };
+		51522EBE2A6042D7002D126D /* TestPadSubviewViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPadSubviewViewController.swift; sourceTree = "<group>"; };
+		51522EC02A6042D7002D126D /* PagerPadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PagerPadViewController.swift; sourceTree = "<group>"; };
+		51522EC12A6042D7002D126D /* SlidePadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SlidePadViewController.swift; sourceTree = "<group>"; };
+		51522EC22A6042D7002D126D /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		8405FEC92A40A97900CC13B5 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		8405FECB2A40A98300CC13B5 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		8405FECD2A40A99900CC13B5 /* ANRTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ANRTests.swift; path = ../../TestFactory/ANRTests/ANRTests.swift; sourceTree = "<group>"; };
@@ -115,6 +185,168 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		51522E8F2A6042D7002D126D /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				51522E902A6042D7002D126D /* HomeViewModel.swift */,
+				51522E912A6042D7002D126D /* TestPhoneVC */,
+				51522EA82A6042D7002D126D /* TestPadVC */,
+				51522EC22A6042D7002D126D /* HomeViewController.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		51522E912A6042D7002D126D /* TestPhoneVC */ = {
+			isa = PBXGroup;
+			children = (
+				51522E922A6042D7002D126D /* Present */,
+				51522E952A6042D7002D126D /* Main.storyboard */,
+				51522E972A6042D7002D126D /* TabView */,
+				51522E9B2A6042D7002D126D /* Container */,
+				51522E9F2A6042D7002D126D /* Push */,
+				51522EA12A6042D7002D126D /* SubView */,
+				51522EA52A6042D7002D126D /* Pager */,
+			);
+			path = TestPhoneVC;
+			sourceTree = "<group>";
+		};
+		51522E922A6042D7002D126D /* Present */ = {
+			isa = PBXGroup;
+			children = (
+				51522E932A6042D7002D126D /* TestPresentViewController.swift */,
+				51522E942A6042D7002D126D /* TestFullPresentViewController.swift */,
+			);
+			path = Present;
+			sourceTree = "<group>";
+		};
+		51522E972A6042D7002D126D /* TabView */ = {
+			isa = PBXGroup;
+			children = (
+				51522E982A6042D7002D126D /* Tab2ViewController.swift */,
+				51522E992A6042D7002D126D /* Tab1ViewController.swift */,
+				51522E9A2A6042D7002D126D /* TestTabViewController.swift */,
+			);
+			path = TabView;
+			sourceTree = "<group>";
+		};
+		51522E9B2A6042D7002D126D /* Container */ = {
+			isa = PBXGroup;
+			children = (
+				51522E9C2A6042D7002D126D /* FirstViewController.swift */,
+				51522E9D2A6042D7002D126D /* TestContainerViewController.swift */,
+				51522E9E2A6042D7002D126D /* SecondViewController.swift */,
+			);
+			path = Container;
+			sourceTree = "<group>";
+		};
+		51522E9F2A6042D7002D126D /* Push */ = {
+			isa = PBXGroup;
+			children = (
+				51522EA02A6042D7002D126D /* TestPushViewController.swift */,
+			);
+			path = Push;
+			sourceTree = "<group>";
+		};
+		51522EA12A6042D7002D126D /* SubView */ = {
+			isa = PBXGroup;
+			children = (
+				51522EA22A6042D7002D126D /* TestSubviewViewController.swift */,
+				51522EA32A6042D7002D126D /* Subview1ViewController.swift */,
+				51522EA42A6042D7002D126D /* Subview2ViewController.swift */,
+			);
+			path = SubView;
+			sourceTree = "<group>";
+		};
+		51522EA52A6042D7002D126D /* Pager */ = {
+			isa = PBXGroup;
+			children = (
+				51522EA62A6042D7002D126D /* PagerViewController.swift */,
+				51522EA72A6042D7002D126D /* SlideViewController.swift */,
+			);
+			path = Pager;
+			sourceTree = "<group>";
+		};
+		51522EA82A6042D7002D126D /* TestPadVC */ = {
+			isa = PBXGroup;
+			children = (
+				51522EA92A6042D7002D126D /* Present */,
+				51522EAC2A6042D7002D126D /* Split */,
+				51522EB02A6042D7002D126D /* TabView */,
+				51522EB42A6042D7002D126D /* Container */,
+				51522EB82A6042D7002D126D /* Push */,
+				51522EBA2A6042D7002D126D /* Main_iPad.storyboard */,
+				51522EBB2A6042D7002D126D /* SubView */,
+				51522EBF2A6042D7002D126D /* Pager */,
+			);
+			path = TestPadVC;
+			sourceTree = "<group>";
+		};
+		51522EA92A6042D7002D126D /* Present */ = {
+			isa = PBXGroup;
+			children = (
+				51522EAA2A6042D7002D126D /* TestPadFormSheetPresentViewController.swift */,
+				51522EAB2A6042D7002D126D /* TestPadPresentViewController.swift */,
+			);
+			path = Present;
+			sourceTree = "<group>";
+		};
+		51522EAC2A6042D7002D126D /* Split */ = {
+			isa = PBXGroup;
+			children = (
+				51522EAD2A6042D7002D126D /* TestSplitViewController.swift */,
+				51522EAE2A6042D7002D126D /* DetailViewController.swift */,
+				51522EAF2A6042D7002D126D /* MasterViewController.swift */,
+			);
+			path = Split;
+			sourceTree = "<group>";
+		};
+		51522EB02A6042D7002D126D /* TabView */ = {
+			isa = PBXGroup;
+			children = (
+				51522EB12A6042D7002D126D /* TestPadTabViewController.swift */,
+				51522EB22A6042D7002D126D /* Tab2PadViewController.swift */,
+				51522EB32A6042D7002D126D /* Tab1PadViewController.swift */,
+			);
+			path = TabView;
+			sourceTree = "<group>";
+		};
+		51522EB42A6042D7002D126D /* Container */ = {
+			isa = PBXGroup;
+			children = (
+				51522EB52A6042D7002D126D /* SecondPadViewController.swift */,
+				51522EB62A6042D7002D126D /* TestPadContainerViewController.swift */,
+				51522EB72A6042D7002D126D /* FirstPadViewController.swift */,
+			);
+			path = Container;
+			sourceTree = "<group>";
+		};
+		51522EB82A6042D7002D126D /* Push */ = {
+			isa = PBXGroup;
+			children = (
+				51522EB92A6042D7002D126D /* TestPadPushViewController.swift */,
+			);
+			path = Push;
+			sourceTree = "<group>";
+		};
+		51522EBB2A6042D7002D126D /* SubView */ = {
+			isa = PBXGroup;
+			children = (
+				51522EBC2A6042D7002D126D /* Subview2PadViewController.swift */,
+				51522EBD2A6042D7002D126D /* Subview1PadViewController.swift */,
+				51522EBE2A6042D7002D126D /* TestPadSubviewViewController.swift */,
+			);
+			path = SubView;
+			sourceTree = "<group>";
+		};
+		51522EBF2A6042D7002D126D /* Pager */ = {
+			isa = PBXGroup;
+			children = (
+				51522EC02A6042D7002D126D /* PagerPadViewController.swift */,
+				51522EC12A6042D7002D126D /* SlidePadViewController.swift */,
+			);
+			path = Pager;
+			sourceTree = "<group>";
+		};
 		8405FED72A40A9F400CC13B5 /* New Group */ = {
 			isa = PBXGroup;
 			children = (
@@ -149,6 +381,7 @@
 			isa = PBXGroup;
 			children = (
 				8405FECD2A40A99900CC13B5 /* ANRTests.swift */,
+				51522E8F2A6042D7002D126D /* Home */,
 				8405FED72A40A9F400CC13B5 /* New Group */,
 				C92144C32788B291007712FC /* Application */,
 				C9D79C9C28B192E7002FBB28 /* Protocols */,
@@ -373,9 +606,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				51522EDF2A6042D7002D126D /* Main_iPad.storyboard in Resources */,
 				C9015AC82719CA61003BC6C2 /* LaunchScreen.storyboard in Resources */,
 				8405FED02A40A9B600CC13B5 /* ANRTests.storyboard in Resources */,
 				C9015AC52719CA61003BC6C2 /* Assets.xcassets in Resources */,
+				51522EC62A6042D7002D126D /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -400,27 +635,60 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				51522EE12A6042D7002D126D /* Subview1PadViewController.swift in Sources */,
 				C9015AC02719CA60003BC6C2 /* RootViewController.swift in Sources */,
+				51522ECD2A6042D7002D126D /* TestPushViewController.swift in Sources */,
+				51522EC32A6042D7002D126D /* HomeViewModel.swift in Sources */,
 				C9D79CB828B1A2FA002FBB28 /* SingleSection.swift in Sources */,
 				C9A4146B292422DE001D2C46 /* AppError.swift in Sources */,
+				51522ED72A6042D7002D126D /* MasterViewController.swift in Sources */,
 				8405FED42A40A9C600CC13B5 /* TestsHomeViewController.swift in Sources */,
 				C9D7E92028C425CC00FC1C27 /* ImageLoader.swift in Sources */,
+				51522EDD2A6042D7002D126D /* FirstPadViewController.swift in Sources */,
+				51522ED62A6042D7002D126D /* DetailViewController.swift in Sources */,
 				C9D79CA028B193C9002FBB28 /* JSONPlaceholder.swift in Sources */,
+				51522EE42A6042D7002D126D /* SlidePadViewController.swift in Sources */,
 				C9015ABC2719CA60003BC6C2 /* AppDelegate.swift in Sources */,
+				51522EC72A6042D7002D126D /* Tab2ViewController.swift in Sources */,
 				8405FECA2A40A97900CC13B5 /* Constants.swift in Sources */,
+				51522EC52A6042D7002D126D /* TestFullPresentViewController.swift in Sources */,
+				51522ED52A6042D7002D126D /* TestSplitViewController.swift in Sources */,
+				51522EC42A6042D7002D126D /* TestPresentViewController.swift in Sources */,
 				C9015ABE2719CA60003BC6C2 /* SceneDelegate.swift in Sources */,
+				51522ED12A6042D7002D126D /* PagerViewController.swift in Sources */,
 				8405FECC2A40A98300CC13B5 /* Utils.swift in Sources */,
 				C9D79CB228B19E36002FBB28 /* PhotoCell.swift in Sources */,
 				C9D79CB628B19F82002FBB28 /* PhotoCollectionViewController.swift in Sources */,
+				51522EC82A6042D7002D126D /* Tab1ViewController.swift in Sources */,
 				8405FED32A40A9C600CC13B5 /* RunTestViewController.swift in Sources */,
+				51522ECC2A6042D7002D126D /* SecondViewController.swift in Sources */,
 				8405FECE2A40A99900CC13B5 /* ANRTests.swift in Sources */,
 				8405FED62A40A9D100CC13B5 /* TestsTableViewCell.swift in Sources */,
+				51522ECB2A6042D7002D126D /* TestContainerViewController.swift in Sources */,
 				C96B79BA28C6EEFD00BD03CD /* ImageLoading.swift in Sources */,
+				51522ECF2A6042D7002D126D /* Subview1ViewController.swift in Sources */,
+				51522EDE2A6042D7002D126D /* TestPadPushViewController.swift in Sources */,
+				51522EC92A6042D7002D126D /* TestTabViewController.swift in Sources */,
 				C9D79CB428B19F36002FBB28 /* ViewState.swift in Sources */,
 				C96B79BC28C6F55800BD03CD /* PhotoDetailViewController.swift in Sources */,
+				51522ED32A6042D7002D126D /* TestPadFormSheetPresentViewController.swift in Sources */,
 				C9D79C9E28B192F7002FBB28 /* PlaceholderServiceProtocol.swift in Sources */,
+				51522ED92A6042D7002D126D /* Tab2PadViewController.swift in Sources */,
+				51522ED02A6042D7002D126D /* Subview2ViewController.swift in Sources */,
 				C9D79C9928B1929A002FBB28 /* Album.swift in Sources */,
+				51522EE52A6042D7002D126D /* HomeViewController.swift in Sources */,
+				51522ED22A6042D7002D126D /* SlideViewController.swift in Sources */,
+				51522ED42A6042D7002D126D /* TestPadPresentViewController.swift in Sources */,
+				51522EE22A6042D7002D126D /* TestPadSubviewViewController.swift in Sources */,
 				C9D79C9B28B192B9002FBB28 /* Photo.swift in Sources */,
+				51522ECE2A6042D7002D126D /* TestSubviewViewController.swift in Sources */,
+				51522ED82A6042D7002D126D /* TestPadTabViewController.swift in Sources */,
+				51522EE32A6042D7002D126D /* PagerPadViewController.swift in Sources */,
+				51522EDA2A6042D7002D126D /* Tab1PadViewController.swift in Sources */,
+				51522ECA2A6042D7002D126D /* FirstViewController.swift in Sources */,
+				51522EDC2A6042D7002D126D /* TestPadContainerViewController.swift in Sources */,
+				51522EDB2A6042D7002D126D /* SecondPadViewController.swift in Sources */,
+				51522EE02A6042D7002D126D /* Subview2PadViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -457,6 +725,14 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		51522E952A6042D7002D126D /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				51522E962A6042D7002D126D /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
 		C9015AC62719CA61003BC6C2 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

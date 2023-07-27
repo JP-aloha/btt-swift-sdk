@@ -146,6 +146,7 @@ struct TimerView: View {
                     }
                 }
             }
+            .bttTrackScreen("Time View")
             .onSubmit {
                 switch focusedField {
                 case .sessionID:

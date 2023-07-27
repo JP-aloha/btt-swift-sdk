@@ -64,7 +64,6 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     }
     
     func viewingEnd(_ id: String, _ name: String) {
-        self.logger?.info("View tracker timer submited for screen :\(name)")
         self.manageTimer(name, id: id, type: .disapear)
     }
     
@@ -84,7 +83,7 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
         if let btTimerActivity = btTimeActivityrMap[id] {
             return btTimerActivity
         }else{
-            let timerActivity = TimerMapActivity(pageName: pageName, viewType: self.viewType)
+            let timerActivity = TimerMapActivity(pageName: pageName, viewType: self.viewType, logger: logger)
             return timerActivity
         }
     }
@@ -144,10 +143,12 @@ class TimerMapActivity {
     private var loadTime : TimeInterval?
     private var viewTime : TimeInterval?
     private var disapearTime : TimeInterval?
+    private(set) var logger : Logging?
     
-    init(pageName: String, viewType : ViewType) {
+    init(pageName: String, viewType : ViewType, logger : Logging?) {
         self.pageName = pageName
         self.viewType = viewType
+        self.logger = logger
         self.timer = BlueTriangle.startTimer(page:Page(pageName: pageName))
     }
     
@@ -177,16 +178,23 @@ class TimerMapActivity {
         
         if let viewTime = viewTime, let loadTime = loadTime, let disapearTime = disapearTime{
            
+            //When "pgtm" is zero then fallback mechanism triggered that calculate performence time as screen time automatically. So to avoiding "pgtm" zero value setting default value 10 milliseconds.
+            // Default "pgtm" should be minimum 0.01 sec (10 milliseconds). Because timer is not reflecting on dot chat bellow to that interval.
+            let calculatedLoadTime = max((viewTime.milliseconds - loadTime.milliseconds), 10)
+            
             timer.pageTimeBuilder = {
-                return viewTime.milliseconds - loadTime.milliseconds
+                return calculatedLoadTime
             }
             
             timer.nativeAppProperties = NativeAppProperties(
                 fullTime: disapearTime.milliseconds - loadTime.milliseconds,
-                loadTime: viewTime.milliseconds - loadTime.milliseconds,
+                loadTime: calculatedLoadTime,
                 maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,viewType: self.viewType)
+            
+            BlueTriangle.endTimer(timer)
+            
+            self.logger?.info("View tracker timer submited for screen :\(pageName)")
         }
-        BlueTriangle.endTimer(timer)
     }
     
     func getPageName()->String{

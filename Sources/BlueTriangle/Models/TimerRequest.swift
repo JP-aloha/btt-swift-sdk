@@ -146,7 +146,7 @@ extension TimerRequest: Codable {
             try con.encode(nativeAppProperties, forKey: .nativeApp)
         }
         
-        try con.encode(1, forKey: .naflg)
+        try con.encode(1, forKey: .NativeAppFlag)
         
         if isErrorTimer{
             try con.encode(1, forKey: .err)
@@ -361,10 +361,12 @@ extension TimerRequest: Codable {
         case minMemory
         case maxMemory
         case avgMemory        
-        //NativeApp
-        
+
+        //ERR flag indicates that this request is Error or ANR
         case err = "ERR"
-        case naflg = "NAflg"
+        //Naflg flag indicates that this request is coming from a Native APP
+        case NativeAppFlag = "NAflg"
+        
         case nativeApp = "NATIVEAPP"
     }
 }

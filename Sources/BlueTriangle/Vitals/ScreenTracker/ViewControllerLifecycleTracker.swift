@@ -60,6 +60,8 @@ extension UIViewController{
         // Ignore spacific controllers to ignore Noise
         let excludedClasses: [String] = [
             "UIHostingController",
+            "UIInputWindowController",
+            "UIEditingOverlayViewController",
             "NavigationStackHostingController",
             "UIPredictionViewController",
             "UIPlaceholderPredictiveViewController"
