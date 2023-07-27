@@ -61,4 +61,12 @@ struct CrashReportPersistence: CrashReportPersisting {
             logger.error("Error clearing data at \(path): \(error.localizedDescription)")
         }
     }
+    
+    static func saveCrash(crashReport: CrashReport) {
+        do {
+            try persistence?.save(crashReport)
+        } catch {
+            logger.error("Error saving \(crashReport) to \(path): \(error.localizedDescription)")
+        }
+    }
 }

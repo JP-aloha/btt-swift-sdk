@@ -28,6 +28,22 @@ extension CrashReport {
     }
 }
 
+extension CrashReport {
+    init(
+        sessionID: Identifier,
+        message: String,
+        pageName:String?,
+        intervalProvider: Double
+    ) {
+        self.sessionID = sessionID
+        self.pageName = pageName
+        self.report = ErrorReport(message: message,
+                                  line: 1,
+                                  column: 1,
+                                  time: intervalProvider.milliseconds)
+    }
+}
+
 enum BT_ErrorType : String{
     case NativeAppCrash
     case ANRWarning
