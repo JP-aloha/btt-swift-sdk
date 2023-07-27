@@ -16,7 +16,7 @@ final public class BlueTriangle: NSObject {
     private static let lock = NSLock()
     private static var configuration = BlueTriangleConfiguration()
     private static var activeTimers = [BTTimer]()
-    private static let hangWatchDog = HangWatchDog()
+    private static let hangWatchDog = MetricKitWatchDog()
     
     internal static func addActiveTimer(_ timer : BTTimer){
         activeTimers.append(timer)

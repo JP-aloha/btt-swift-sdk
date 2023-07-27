@@ -9,42 +9,41 @@ import Foundation
 import MetricKit
 import UIKit
 
-class ErrorReporter: ObservableObject {
-    
-    struct ErrorReport: Identifiable {
-        
-        enum ErrorType: String {
-            case Hang
-            case Crash
-            case Log
-        }
-        
-        let id = UUID()
-        let type: ErrorType
-        let title: String
-        let trace: String
-    }
-    
-    init() {
-        self.report(title: "#\(type(of: self)) \(#function) \(#line)", stack: "", errorType: .Log)
-    }
-    
-    deinit {
-        self.report(title: "#\(type(of: self)) \(#function) \(#line)", stack: "", errorType: .Log)
-    }
-    
-    @Published private(set) var reports: [ErrorReport] = []
-    
-    func report(title: String, stack: String, errorType: ErrorReport.ErrorType){
-        
-        reports.append(ErrorReport(type: errorType, title: title, trace: stack))
-        NSLog("#\(#function) \(title)\n  \(stack)")
-    }
+struct SavedTimer: Codable {
+    let pageName: String
+    let startTime: Double
+    let sessionId: Identifier
 }
 
-class HangWatchDog{
+class MetricKitWatchDog {
     
-    private(set) var subscription = HangErrorSubscription(reporter: ErrorReporter())
+    private(set) var subscription = MetricKitSubscriber()
+    
+    init() {
+        savePreviousPageData()
+    }
+    
+    private func savePreviousPageData() {
+        if let currentTimerDetail = UserDefaultsUtility.getData(type: Data.self, forKey: .currentTimerDetail),
+           let decoded = try? JSONDecoder().decode(SavedTimer.self, from: currentTimerDetail),
+           BlueTriangle.sessionID != decoded.sessionId {
+            saveCrashedPageData(timerDetail: decoded)
+        }
+    }
+    
+    private func saveCrashedPageData(timerDetail: SavedTimer) {
+        
+        if let savedTimersData = UserDefaultsUtility.getData(type: Data.self, forKey: .savedTimers),
+           var savedTimers = try? JSONDecoder().decode([SavedTimer].self, from: savedTimersData),
+           !savedTimers.isEmpty {
+            savedTimers.append(timerDetail)
+            if let encoded = try? JSONEncoder().encode(savedTimers) {
+                UserDefaultsUtility.setData(value: encoded, key: .savedTimers)
+            }
+        } else if let encoded = try? JSONEncoder().encode([timerDetail]) {
+            UserDefaultsUtility.setData(value: encoded, key: .savedTimers)
+        }
+    }
     
     func start(){
         
@@ -59,44 +58,33 @@ class HangWatchDog{
         addAppStateObservers()
     }
     
-    deinit {
-        subscription.reporter.report(title: "#\(type(of: self)) \(#function) \(#line)", stack: "", errorType: .Log)
-    }
-    
     private func addAppStateObservers() {
         NotificationCenter.default.addObserver(self, selector: #selector(applicationResignActive), name: UIApplication.willResignActiveNotification, object: nil)
     }
     
     @objc private func applicationResignActive() {
         
-        UserDefaultsUtility.removeData(key: .currentPage)
-        UserDefaultsUtility.removeData(key: .startTime)
-        UserDefaultsUtility.removeData(key: .sessionId)
+        UserDefaultsUtility.removeData(key: .currentTimerDetail)
         
     }
     
     func saveCurrentTimerData(_ timer: BTTimer) {
-        UserDefaultsUtility.setData(value: timer.page.pageName, key: .currentPage)
-        UserDefaultsUtility.setData(value: Date().timeIntervalSince1970, key: .startTime)
-        UserDefaultsUtility.setData(value: BlueTriangle.sessionID, key: .sessionId)
+        let timerDetail = SavedTimer(pageName: timer.page.pageName, startTime: Date().timeIntervalSince1970, sessionId: BlueTriangle.sessionID)
+        if let encoded = try? JSONEncoder().encode(timerDetail) {
+            UserDefaultsUtility.setData(value: encoded, key: .currentTimerDetail)
+            UserDefaults.standard.synchronize()
+        }
+    }
+    
+    deinit {
+        NSLog("#\(type(of: self)) \(#function) \(#line)")
     }
 }
 
-class HangErrorSubscription : NSObject, MXMetricManagerSubscriber {
+// MARK: - MXMetricManager Subscriber and Delegate
+class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
     
-    let reporter: ErrorReporter
     private var formattedCrashReportString = ""
-    
-    init(reporter: ErrorReporter) {
-        
-        self.reporter = reporter
-        NSLog("#\(#function)")
-    }
-    
-}
-
-// MARK: - MXMetricManagerSubscriber Delegates
-extension HangErrorSubscription {
     
     func didReceive(_ payloads: [MXMetricPayload]) {
         // Process metrics.l
@@ -110,38 +98,18 @@ extension HangErrorSubscription {
         NSLog("#Received Diagnostic report \(payloads)")
         
         setupDignoseDataInReporter(payloads: payloads)
-        
     }
 }
 
 // MARK: - Setup recieved payload
-extension HangErrorSubscription {
+extension MetricKitSubscriber {
     
     @available(iOS 14.0, *)
     func setupDignoseDataInReporter(payloads: [MXDiagnosticPayload]) {
         
-        reporter.report(title: "#\(type(of: self)) \(#function) \(#line)",
-                        stack: "",
-                        errorType: .Log)
-        
         for report in payloads {
             
-            for hangReport in report.hangDiagnostics ?? []{
-                
-                let title = "App Hand for \(hangReport.hangDuration.converted(to: .seconds)) Sec."
-                let trace = String(data: hangReport.callStackTree.jsonRepresentation(), encoding: .utf8)
-                
-                reporter.report(title: title, stack: trace ?? "Error converting trace to string.", errorType: .Hang)
-            }
-            
             for crashReport in report.crashDiagnostics ?? []{
-                
-                let title = "App crashed because of:-  \(crashReport.terminationReason ?? "" ) \\ \(crashReport.exceptionCode ?? -1) \\ \(crashReport.exceptionType ?? -1)"
-                let trace = String(data: crashReport.callStackTree.jsonRepresentation(), encoding: .utf8)
-                
-                reporter.report(title: title,
-                                stack: trace ?? "Error converting trace to string.",
-                                errorType: .Crash)
                 
                 createCrashReportModel(from: crashReport.jsonRepresentation(),
                                        terminationReason: crashReport.terminationReason ?? "Null",
@@ -153,7 +121,7 @@ extension HangErrorSubscription {
 }
 
 // MARK: - Crate Crash Models
-extension HangErrorSubscription {
+extension MetricKitSubscriber {
     
    private func createCrashReportModel(from data: Data,
                                 terminationReason: String,
@@ -161,30 +129,46 @@ extension HangErrorSubscription {
         NSLog(#function)
         if let crashDataModel = decodeJsonResponse(data: data,
                                                    responseType: MetricKitCrashReport.self) {
-            
+            let timerDetail =  getSavedPage()
             saveRportToPresistence(report: crashDataModel,
                                    terminationReason: terminationReason,
-                                   virtualMemoryRegionInfo: virtualMemoryRegionInfo)
+                                   virtualMemoryRegionInfo: virtualMemoryRegionInfo,
+                                   timerDetail: timerDetail)
             
             NSLog("#Save crash data in Presistence ")
             
         }
     }
+    
+    private func getSavedPage() -> SavedTimer {
+        
+        if let savedTimersData = UserDefaultsUtility.getData(type: Data.self, forKey: .savedTimers),
+           var savedTimers = try? JSONDecoder().decode([SavedTimer].self, from: savedTimersData),
+           !savedTimers.isEmpty,
+           let timer = savedTimers.first {
+            savedTimers.removeFirst()
+            if let encoded = try? JSONEncoder().encode(savedTimers) {
+                UserDefaultsUtility.setData(value: encoded, key: .currentTimerDetail)
+            }
+            return timer
+        }
+        else {
+            return SavedTimer(pageName: Constants.crashID, startTime: Date().timeIntervalSince1970, sessionId: BlueTriangle.sessionID)
+        }
+    }
 }
 
 // MARK: Crate and Save formatted report to presistance
-extension HangErrorSubscription {
+extension MetricKitSubscriber {
     
     private  func saveRportToPresistence(report: MetricKitCrashReport,
-                                terminationReason: String,
-                                virtualMemoryRegionInfo: String) {
+                                         terminationReason: String,
+                                         virtualMemoryRegionInfo: String,
+                                         timerDetail: SavedTimer) {
         
         var metaDataString = ""
-        
-        let pageName = UserDefaultsUtility.getData(type: String.self, forKey: .currentPage)
-        let sessionId = UserDefaultsUtility.getData(type: Identifier.self, forKey: .sessionId) ?? BlueTriangle.sessionID
-        let startTime = UserDefaultsUtility.getData(type: Double.self, forKey: .startTime) ?? 0.0
-        let crashTime = "\n CrashTime: \(getFormattedDateString(timeInterval: startTime))"
+       
+        let crashTime = "\n CrashTime: \(getFormattedDateString(timeInterval: timerDetail.startTime))"
         let reportTime = "\n ReportTime: \(getFormattedDateString(timeInterval: Date().timeIntervalSince1970))"
         
         metaDataString = metaDataString + crashTime + reportTime
@@ -198,11 +182,12 @@ extension HangErrorSubscription {
         
         print(formattedCrashReportString)
         
-        let crashReport  = CrashReport(sessionID: sessionId,
+        let crashReport  = CrashReport(sessionID: timerDetail.sessionId,
                                        message: formattedCrashReportString,
-                                       pageName: pageName, intervalProvider: startTime)
+                                       pageName: timerDetail.pageName,
+                                       intervalProvider: timerDetail.startTime)
         
-      //  CrashReportPersistence.saveCrash(crashReport: crashReport)
+       CrashReportPersistence.saveCrash(crashReport: crashReport)
     }
     
     private func getForamttedStringOfCallStacks(report: MetricKitCrashReport) {
@@ -226,9 +211,7 @@ extension HangErrorSubscription {
     private func setupDataFromSubframes(subFrames: CallStackRootFrame)  {
         
         if !(subFrames.subFrames?.isEmpty ?? true) {
-            
             for subFrame in subFrames.subFrames ?? [] {
-                
                 setupDataFromSubframes(subFrames: subFrame)
             }
         }
@@ -300,7 +283,7 @@ extension HangErrorSubscription {
 }
 
 // MARK: Helper Methods
-extension HangErrorSubscription {
+extension MetricKitSubscriber {
     
    private func decodeJsonResponse<T: Decodable>(data: Data, responseType: T.Type) -> T? {
         
@@ -344,6 +327,4 @@ extension HangErrorSubscription {
         let spaceString = String(repeating: " ", count: spaceCount)
         return string + spaceString
     }
-    
 }
-

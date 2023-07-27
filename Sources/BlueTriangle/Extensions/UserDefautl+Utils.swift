@@ -7,6 +7,7 @@ final class UserDefaultsUtility {
         
         let defaults = UserDefaults.standard
         defaults.set(value, forKey: key.rawValue)
+        UserDefaults.standard.synchronize()
         
     }
     
@@ -21,6 +22,7 @@ final class UserDefaultsUtility {
         
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: key.rawValue)
+        UserDefaults.standard.synchronize()
     }
     
     static func removeAll() {
@@ -30,9 +32,8 @@ final class UserDefaultsUtility {
     }
     
     enum UserDefaultKeys: String {
-        case currentPage
-        case startTime
-        case sessionId
         
+        case savedTimers
+        case currentTimerDetail
     }
 }
