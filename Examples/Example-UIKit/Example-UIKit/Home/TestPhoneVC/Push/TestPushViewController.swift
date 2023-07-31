@@ -23,11 +23,10 @@ class TestPushViewController: UIViewController {
         self.title = "Push"
         
         lblTitle.text = "\(type(of: self))"
-        lblId.text = "Id :"  + "\n" + String(describing: self)
+        lblId.text = "SleepTime : 2 Sec"  + "\n"
         lblDesc.text = "This screen is an UIViewController sub class. Pushed on UINavigationController using func pushViewController(_ viewController: UIViewController, animated: Bool)"
         
-        //Analytics.logEvent("TestPushViewController", parameters: [:])
-       // Array<Any>()[0]
+        Thread.sleep(forTimeInterval: 2)
     }
     
     override func viewWillAppear(_ animated: Bool) {

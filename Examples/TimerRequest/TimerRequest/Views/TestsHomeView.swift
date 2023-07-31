@@ -76,6 +76,13 @@ struct TestsHomeView: View {
                             NavigationLink("Timer Request View",
                                            destination: TimerView(viewModel: TimerViewModel()))
                             
+                            NavigationLink("Timer Test1 View",
+                                           destination: TimerTest1View())
+                            NavigationLink("Timer Test2 View",
+                                           destination: TimerTest2View())
+                            NavigationLink("Timer Test3 View",
+                                           destination: TimerTest3View())
+                            
                         }
                     }
                 }

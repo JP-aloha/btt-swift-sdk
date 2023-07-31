@@ -21,10 +21,10 @@ final class BlueTriangleTests: XCTestCase {
     static let timeIntervalProvider: () -> TimeInterval = {
         timeIntervals.popLast() ?? 0
     }
-
+    static let session = Mock.session
     static let logger = LoggerMock()
     static let performanceMonitor = PerformanceMonitorMock()
-
+  
     static var onMakeTimer: (Page, BTTimer.TimerType) -> Void = { _, _ in }
     static let timerFactory: (Page, BTTimer.TimerType) -> BTTimer = { page, timerType in
         onMakeTimer(page, timerType)
@@ -122,6 +122,7 @@ extension BlueTriangleTests {
         // Configure Blue Triangle
         BlueTriangle.reconfigure(
             configuration: configuration,
+            session: Self.session,
             logger: Self.logger,
             uploader: Self.uploader,
             timerFactory: Self.timerFactory,
@@ -136,7 +137,7 @@ extension BlueTriangleTests {
         timer.start()
         timer.markInteractive()
         BlueTriangle.endTimer(timer)
-
+        
         XCTAssertNotNil(finishedTimer)
         XCTAssertEqual(finishedTimer.startTime, expectedStartTime)
         XCTAssertEqual(finishedTimer.interactiveTime, expectedInteractiveTime)
@@ -203,6 +204,7 @@ extension BlueTriangleTests {
         // Configure Blue Triangle
         BlueTriangle.reconfigure(
             configuration: configuration,
+            session: Self.session,
             logger: Self.logger,
             uploader: Self.uploader,
             timerFactory: Self.timerFactory,

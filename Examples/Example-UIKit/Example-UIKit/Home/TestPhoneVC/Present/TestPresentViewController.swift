@@ -23,8 +23,10 @@ class TestPresentViewController: UIViewController {
         self.title = "Present Default"
         
         lblTitle.text = "\(type(of: self))"
-        lblId.text = "Id :" + "\n"  + String(describing: self)
+        lblId.text = "SleepTime : 5 sec" + "\n"
         lblDesc.text = "This screen is an UIViewController sub class. Presented on UIViewController using func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)? = nil) with  default modalPresentationStyle."
+        
+        Thread.sleep(forTimeInterval: 5)
     }
    
 }

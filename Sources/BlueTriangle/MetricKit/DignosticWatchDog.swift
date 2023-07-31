@@ -26,8 +26,7 @@ class MetricKitWatchDog {
     
     private func savePreviousPageData() {
         if let currentTimerDetail = UserDefaultsUtility.getData(type: Data.self, forKey: .currentTimerDetail),
-           let decoded = try? JSONDecoder().decode(SavedTimer.self, from: currentTimerDetail),
-           BlueTriangle.sessionID != decoded.sessionId {
+           let decoded = try? JSONDecoder().decode(SavedTimer.self, from: currentTimerDetail){
            
             saveCrashedPageData(timerDetail: decoded)
         }

@@ -29,7 +29,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             config.performanceMonitorSampleRate = 1
             config.crashTracking  = .nsException
             config.ANRMonitoring = true
-            config.ANRStackTrace = true
+            config.ANRStackTrace = false
             config.ANRWarningTimeInterval = 1
             config.enableScreenTracking = true
             

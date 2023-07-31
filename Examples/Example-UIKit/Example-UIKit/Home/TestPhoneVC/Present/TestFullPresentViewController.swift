@@ -23,8 +23,10 @@ class TestFullPresentViewController: UIViewController {
         self.title = "Present FullScreen"
         
         lblTitle.text = "\(type(of: self))"
-        lblId.text = "Id :" + "\n"  + String(describing: self)
+        lblId.text = "SleepTime : Heavy Run" + "\n"
         lblDesc.text = "This screen is an UIViewController sub class. Presented on UIViewController using func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)? = nil) with  fullScreen modalPresentationStyle."
+        
+        let _ = HeavyLoop().run()
     }
 
    
