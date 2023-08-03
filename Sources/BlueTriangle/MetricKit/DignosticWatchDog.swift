@@ -170,14 +170,14 @@ extension MetricKitSubscriber {
         
         var metaDataString = ""
        
-        let crashTime = "\n CrashTime: \(getFormattedDateString(timeInterval: timerDetail.startTime))"
-        let reportTime = "\n ReportTime: \(getFormattedDateString(timeInterval: Date().timeIntervalSince1970))"
+        let crashTime = "~~ CrashTime: \(getFormattedDateString(timeInterval: timerDetail.startTime))"
+        let reportTime = "~~ ReportTime: \(getFormattedDateString(timeInterval: Date().timeIntervalSince1970))"
         
         metaDataString = metaDataString + crashTime + reportTime
-        metaDataString = metaDataString + "\n " + getFormattedMetaData(metaData: report.diagnosticMetaData)
-        metaDataString = metaDataString + "\n " + "TerminationReason: \(terminationReason)"
-        metaDataString = metaDataString + "\n " + "VMReason: \(virtualMemoryRegionInfo)"
-        metaDataString = metaDataString + "\n \n Traces"
+        metaDataString = metaDataString + "~~ " + getFormattedMetaData(metaData: report.diagnosticMetaData)
+        metaDataString = metaDataString + "~~ " + "TerminationReason: \(terminationReason)"
+        metaDataString = metaDataString + "~~ " + "VMReason: \(virtualMemoryRegionInfo)"
+        metaDataString = metaDataString + "~~ ~~ Traces"
         
         formattedCrashReportString += metaDataString
         getForamttedStringOfCallStacks(report: report)
@@ -199,7 +199,7 @@ extension MetricKitSubscriber {
         for (callStack, threadNumber) in  zip(callStacks, 0..<callStacks.count) {
             
             let crashedText = callStack.threadAttributed ? "Crashed" : ""
-            let threadDetail = "\n \n Thread \(threadNumber) \(crashedText)"
+            let threadDetail = "~~ ~~ Thread \(threadNumber) \(crashedText)"
             
             formattedCrashReportString = formattedCrashReportString + threadDetail
             
@@ -222,7 +222,7 @@ extension MetricKitSubscriber {
         let binaryUUID = decorateWithPadding(string: subFrames.binaryUUID, columnSize: 40)
         let address = decorateWithPadding(string: "\(subFrames.address)", columnSize: 25)
         let offsetIntoBinaryTextSegment = decorateWithPadding(string: "+ \(subFrames.offsetIntoBinaryTextSegment)", columnSize: 20)
-        let string = "\n \(binaryName) \(binaryUUID) \(address) \(offsetIntoBinaryTextSegment)"
+        let string = "~~ \(binaryName) \(binaryUUID) \(address) \(offsetIntoBinaryTextSegment)"
         
         formattedCrashReportString += string
     }
@@ -235,7 +235,7 @@ extension MetricKitSubscriber {
         metaDataString = metaDataString + applicationBuildVersion
         
         let deviceType = "DeviceType: \(metaData.deviceType)"
-        metaDataString = metaDataString + "\n " + deviceType
+        metaDataString = metaDataString + "~~ " + deviceType
         
         var isTestFlightAppString = ""
         
@@ -247,7 +247,7 @@ extension MetricKitSubscriber {
             
             isTestFlightAppString = "isTestFlightApp: Null"
         }
-        metaDataString = metaDataString + "\n " + isTestFlightAppString
+        metaDataString = metaDataString + "~~ " + isTestFlightAppString
         
         var lowPowerModeEnabledString = ""
         
@@ -259,25 +259,25 @@ extension MetricKitSubscriber {
             lowPowerModeEnabledString = "lowPowerModeEnabled: Null"
         }
         
-        metaDataString = metaDataString + "\n " + lowPowerModeEnabledString
+        metaDataString = metaDataString + "~~ " + lowPowerModeEnabledString
         
         let osVersion = "osVersion: \(metaData.osVersion)"
-        metaDataString = metaDataString + "\n " + osVersion
+        metaDataString = metaDataString + "~~ " + osVersion
         
         let platformArchitecture = "platformArchitecture: \(metaData.platformArchitecture)"
-        metaDataString = metaDataString + "\n " + platformArchitecture
+        metaDataString = metaDataString + "~~ " + platformArchitecture
         
         let regionFormat = "regionFormat: \(metaData.regionFormat)"
-        metaDataString = metaDataString + "\n " + regionFormat
+        metaDataString = metaDataString + "~~ " + regionFormat
         
         let exceptionType = "ExceptionType: \(metaData.exceptionType)"
-        metaDataString = metaDataString + "\n " + exceptionType
+        metaDataString = metaDataString + "~~ " + exceptionType
         
         let exceptionCode = "ExceptionCode: \(metaData.exceptionCode)"
-        metaDataString = metaDataString + "\n " + exceptionCode
+        metaDataString = metaDataString + "~~ " + exceptionCode
         
         let signal = "Signal: \(CrashSignal.getSignalNumbeDetail(signal: metaData.signal))"
-        metaDataString = metaDataString + "\n " + signal
+        metaDataString = metaDataString + "~~ " + signal
         
         return metaDataString
     }
@@ -311,10 +311,11 @@ extension MetricKitSubscriber {
         return nil
     }
     
-   private func getFormattedDateString(timeInterval: TimeInterval, dateForamt: String = "dd MMM yyyy hh:mm a") -> String {
-        
+    func getFormattedDateString(timeInterval: TimeInterval, dateForamt: String = "dd MMM yyyy hh:mm a") -> String {
+      
         let date = Date(timeIntervalSince1970: timeInterval)
         let dateFormatter = DateFormatter()
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
         dateFormatter.dateFormat = dateForamt
         return dateFormatter.string(from: date)
     }
