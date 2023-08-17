@@ -53,7 +53,7 @@ class RootViewController: UIViewController {
     }()
     
     private lazy var buttonStackView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [galleryButton, errorButton, crashButton, screenTrackingButton])
+        let view = UIStackView(arrangedSubviews: [galleryButton, errorButton, crashButton, ANRtestButton, screenTrackingButton])
         view.axis = .vertical
         view.alignment = .fill
         view.distribution = .fillEqually
