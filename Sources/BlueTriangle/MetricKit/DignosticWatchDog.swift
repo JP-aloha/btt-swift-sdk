@@ -98,7 +98,8 @@ class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
     @available(iOS 14.0, *)
     func didReceive(_ payloads: [MXDiagnosticPayload]){
         
-        NSLog("#Received Diagnostic report \(payloads)")
+        let timerDetail =  getSavedTimer()
+        NSLog("Crash reported by metric kit for session : %@ , page : %@  and time : %@", timerDetail.sessionId, timerDetail.pageName, timerDetail.startTime)
         setupDignoseDataInReporter(payloads: payloads)
     }
 }
@@ -108,6 +109,8 @@ extension MetricKitSubscriber {
     
     @available(iOS 14.0, *)
     func setupDignoseDataInReporter(payloads: [MXDiagnosticPayload]) {
+        
+        NSLog("#Received Diagnostic report \(payloads)")
         
         for report in payloads {
             
@@ -131,7 +134,7 @@ extension MetricKitSubscriber {
         NSLog(#function)
         if let crashDataModel = decodeJsonResponse(data: data,
                                                    responseType: MetricKitCrashReport.self) {
-            let timerDetail =  getSavedPage()
+            let timerDetail =  getAndUpdateSavedTopTimerDetail()
             saveRportToPresistence(report: crashDataModel,
                                    terminationReason: terminationReason,
                                    virtualMemoryRegionInfo: virtualMemoryRegionInfo,
@@ -142,16 +145,29 @@ extension MetricKitSubscriber {
         }
     }
     
-    private func getSavedPage() -> SavedTimer {
+    
+    private func getSavedTimer() -> SavedTimer {
+        if let savedTimersData = UserDefaultsUtility.getData(type: Data.self, forKey: .savedTimers),
+           var savedTimers = try? JSONDecoder().decode([SavedTimer].self, from: savedTimersData),!savedTimers.isEmpty,let timer = savedTimers.first {
+            return timer
+        }
+        else {
+            return SavedTimer(pageName: Constants.crashID, startTime: Date().timeIntervalSince1970, sessionId: BlueTriangle.sessionID)
+        }
+    }
+    
+    private func getAndUpdateSavedTopTimerDetail() -> SavedTimer {
         
         if let savedTimersData = UserDefaultsUtility.getData(type: Data.self, forKey: .savedTimers),
            var savedTimers = try? JSONDecoder().decode([SavedTimer].self, from: savedTimersData),
            !savedTimers.isEmpty,
            let timer = savedTimers.first {
+           
             savedTimers.removeFirst()
             if let encoded = try? JSONEncoder().encode(savedTimers) {
                 UserDefaultsUtility.setData(value: encoded, key: .currentTimerDetail)
             }
+            
             return timer
         }
         else {
