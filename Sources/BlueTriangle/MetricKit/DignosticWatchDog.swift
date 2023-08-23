@@ -99,7 +99,7 @@ class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
     func didReceive(_ payloads: [MXDiagnosticPayload]){
         
         let timerDetail =  getSavedTimer()
-        NSLog("Crash reported by metric kit for session : %@ , page : %@  and time : %@", timerDetail.sessionId, timerDetail.pageName, timerDetail.startTime)
+        NSLog("Crash reported by metric kit for session : %d , page : %@", timerDetail.sessionId, timerDetail.pageName)
         setupDignoseDataInReporter(payloads: payloads)
     }
 }
@@ -148,7 +148,7 @@ extension MetricKitSubscriber {
     
     private func getSavedTimer() -> SavedTimer {
         if let savedTimersData = UserDefaultsUtility.getData(type: Data.self, forKey: .savedTimers),
-           var savedTimers = try? JSONDecoder().decode([SavedTimer].self, from: savedTimersData),!savedTimers.isEmpty,let timer = savedTimers.first {
+           let savedTimers = try? JSONDecoder().decode([SavedTimer].self, from: savedTimersData),!savedTimers.isEmpty,let timer = savedTimers.first {
             return timer
         }
         else {
