@@ -165,7 +165,7 @@ extension MetricKitSubscriber {
            
             savedTimers.removeFirst()
             if let encoded = try? JSONEncoder().encode(savedTimers) {
-                UserDefaultsUtility.setData(value: encoded, key: .currentTimerDetail)
+                UserDefaultsUtility.setData(value: encoded, key: .savedTimers)
             }
             
             return timer
