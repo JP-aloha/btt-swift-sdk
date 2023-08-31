@@ -109,9 +109,9 @@ An task blocking main thread since \(errorTriggerInterval) seconds
 Main Thread Trace
 \(trace)
 """
-            let exp = NSException(name: NSExceptionName("ANR Detected"), reason: message)
-            let report = CrashReport(sessionID: BlueTriangle.sessionID,
-                         exception: exp)
+            
+            let pageName = BlueTriangle.recentTimer()?.page.pageName
+            let report = CrashReport(sessionID: BlueTriangle.sessionID, ANRmessage: message, pageName: pageName)
             uploadReports(session: session, report: report)
             logger.debug(message)
         }catch{

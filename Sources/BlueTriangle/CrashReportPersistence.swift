@@ -32,7 +32,7 @@ struct CrashReportPersistence: CrashReportPersisting {
             NSSetUncaughtExceptionHandler { exception in
                 Self.save(
                     CrashReport(sessionID: BlueTriangle.sessionID,
-                                exception: exception))
+                                exception: exception, pageName: BlueTriangle.recentTimer()?.page.pageName))
             }
         }
     }

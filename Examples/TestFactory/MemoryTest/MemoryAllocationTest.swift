@@ -17,13 +17,13 @@ class MemoryAllocationTest {
         
         allocatedMemoryBlocks.append(memoryBlock)
         
-       /* let totalMB = allocatedMemoryBlocks.count * size
+        let totalMB = allocatedMemoryBlocks.count * size
         
         if totalMB <= 1024 {
             print("Total allocated memory : \(totalMB) MB")
         }else{
             print("Total allocated memory : \(totalMB / 1024) GB \(totalMB % 1024) MB")
-        }*/
+        }
     }
     
     private func deallocateMemory() {

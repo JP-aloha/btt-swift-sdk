@@ -425,7 +425,8 @@ extension BlueTriangle {
     ///
     /// - Parameter exception: The exception to upload.
     public static func storeException(exception: NSException) {
-        let crashReport = CrashReport(sessionID: sessionID, exception: exception)
+        let pageName = BlueTriangle.recentTimer()?.page.pageName
+        let crashReport = CrashReport(sessionID: sessionID, exception: exception, pageName: pageName)
         CrashReportPersistence.save(crashReport)
     }
 }

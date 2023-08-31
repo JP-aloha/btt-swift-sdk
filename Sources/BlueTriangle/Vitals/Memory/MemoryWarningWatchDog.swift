@@ -34,16 +34,16 @@ class MemoryWarningWatchDog {
         logger.debug("Memory Warning WatchDog :Memory Warning detected...  ")
         
         let message = formatedMemoryWarning()
-        
-        let exp = NSException(name: NSExceptionName("Memory Warning Detected"), reason: message)
+        let pageName = BlueTriangle.recentTimer()?.page.pageName
         let report = CrashReport(sessionID: BlueTriangle.sessionID,
-                                 exception: exp)
+                                 memoryWarningMessage: message, pageName: pageName)
         uploadReports(session: session, report: report)
         logger.debug(message)
     }
     
     private func formatedMemoryWarning() -> String{
-        let message = "Potential Memory Warning Detected"
+        let memory =  ResourceUsage.memory() / 1024 / 1024
+        let message = "Potential Memory Warning detected with memory consumption \(memory) MB."
         return message
     }
     
