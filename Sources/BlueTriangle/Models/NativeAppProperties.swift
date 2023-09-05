@@ -28,3 +28,24 @@ extension NativeAppProperties {
         maxMainThreadUsage: 0,
         viewType: .UIKit)
 }
+
+
+struct ECV: Codable, Equatable {
+    let minCPU: Float
+    let maxCPU: Float
+    let avgCPU: Float
+    let minMemory: UInt64
+    let maxMemory: UInt64
+    let avgMemory: UInt64
+}
+
+extension ECV {
+    static let empty: Self = .init(
+        minCPU: 0.0,
+        maxCPU: 0.0,
+        avgCPU: 0.0,
+        minMemory: 0,
+        maxMemory: 0,
+        avgMemory: 0)
+}
+

@@ -142,6 +142,16 @@ extension TimerRequest: Codable {
             try con.encode(performanceReport.avgMemory, forKey: .avgMemory)
         }
         
+        if let pR = performanceReport {
+            let ecv = ECV(minCPU: pR.minCPU,
+                          maxCPU: pR.maxCPU,
+                          avgCPU: pR.avgCPU,
+                          minMemory: pR.minMemory,
+                          maxMemory: pR.maxMemory,
+                          avgMemory: pR.avgMemory)
+            try con.encode(ecv, forKey: .ECV)
+        }
+        
         if let nativeAppProperties = nativeAppProperties {
             try con.encode(nativeAppProperties, forKey: .nativeApp)
         }
@@ -368,5 +378,6 @@ extension TimerRequest: Codable {
         case NativeAppFlag = "NAflg"
         
         case nativeApp = "NATIVEAPP"
+        case ECV = "ECV"
     }
 }
