@@ -43,7 +43,7 @@ class MemoryWarningWatchDog {
     
     private func formatedMemoryWarning() -> String{
         let memory =  ResourceUsage.memory() / 1024 / 1024
-        let message = "Potential Memory Warning detected with memory consumption \(memory) MB."
+        let message = "Critical memory usage detected. iOS raised memory warning. App using \(memory) MB."
         return message
     }
     
@@ -93,7 +93,7 @@ extension MemoryWarningWatchDog {
     
     private func makeTimerRequest(session: Session, report: ErrorReport, pageName: String?) throws -> Request {
         let page = Page(pageName: pageName ?? MemoryWarningWatchDog.TIMER_PAGE_NAME, pageType: Device.name)
-        let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: 0)
+        let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: 15)
         let model = TimerRequest(session: session,
                                  page: page,
                                  timer: timer,
