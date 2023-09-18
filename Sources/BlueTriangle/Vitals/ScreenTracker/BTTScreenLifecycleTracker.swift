@@ -186,10 +186,19 @@ class TimerMapActivity {
                 return calculatedLoadTime
             }
             
+            let pR = timer.performanceReport
+            
             timer.nativeAppProperties = NativeAppProperties(
-                fullTime: disapearTime.milliseconds - loadTime.milliseconds,
-                loadTime: calculatedLoadTime,
-                maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,viewType: self.viewType)
+                                                            fullTime: disapearTime.milliseconds - loadTime.milliseconds,
+                                                            loadTime: calculatedLoadTime,
+                                                            maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
+                                                            viewType: self.viewType,
+                                                            minCPU: pR?.minCPU ?? 0,
+                                                            maxCPU: pR?.maxCPU ?? 0,
+                                                            avgCPU: pR?.avgCPU ?? 0,
+                                                            minMemory: pR?.minMemory ?? 0,
+                                                            maxMemory: pR?.maxMemory ?? 0,
+                                                            avgMemory: pR?.avgMemory ?? 0)
             
             BlueTriangle.endTimer(timer)
             
