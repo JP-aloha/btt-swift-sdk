@@ -2,8 +2,8 @@
 //  DignosticWatchDog.swift
 //  Matric Dignostic
 //
-//  Created by jaiprakash bokhare on 28/06/23.
-//
+//  Created by JP on 28/06/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 
 #if os(iOS)
 import Foundation
