@@ -18,13 +18,6 @@ struct NativeAppProperties: Codable, Equatable {
     let loadTime: Millisecond
     let maxMainThreadUsage: Millisecond
     let viewType: ViewType
-    let minCPU: Float
-    let maxCPU: Float
-    let avgCPU: Float
-    let minMemory: UInt64
-    let maxMemory: UInt64
-    let avgMemory: UInt64
-    
 }
 
 extension NativeAppProperties {
@@ -32,12 +25,6 @@ extension NativeAppProperties {
         fullTime: 0,
         loadTime: 0,
         maxMainThreadUsage: 0,
-        viewType: .UIKit,
-        minCPU: 0.0,
-        maxCPU: 0.0,
-        avgCPU: 0.0,
-        minMemory: 0,
-        maxMemory: 0,
-        avgMemory: 0)
+        viewType: .UIKit)
 }
 
