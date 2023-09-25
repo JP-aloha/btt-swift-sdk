@@ -1,3 +1,10 @@
+//
+//  MemoryAllocationTest.swift
+//
+//  Created by JP on 30/08/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
+//
+
 import Foundation
 
 class MemoryAllocationTest {
@@ -16,13 +23,13 @@ class MemoryAllocationTest {
         memset(memoryBlock, 0, totalSize)
         
         allocatedMemoryBlocks.append(memoryBlock)
-        
-        let totalMB = allocatedMemoryBlocks.count * size
-        
-        if totalMB <= 1024 {
-            print("Total allocated memory : \(totalMB) MB")
-        }else{
-            print("Total allocated memory : \(totalMB / 1024) GB \(totalMB % 1024) MB")
+    }
+    
+    private func freeOneBlockMemory() {
+    
+       if let block = allocatedMemoryBlocks.first {
+            free(block)
+            allocatedMemoryBlocks.remove(at: 0)
         }
     }
     
@@ -47,7 +54,8 @@ extension MemoryAllocationTest{
         self.allocateMemory(100)
     }
     
-    func runLightMemoryTest() {
-        self.allocateMemory(1)
+    func freeAllMemoryTest() {
+        self.deallocateMemory()
     }
 }
+
