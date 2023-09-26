@@ -102,6 +102,9 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// Boolean indicating whether screen tracking is enabled.
     @objc public var enableScreenTracking: Bool = false
+    
+    /// Boolean indicating whether memory warning is enabled.
+    @objc public var enableMemoryWarning: Bool = false
 
     var timerConfiguration: BTTimer.Configuration = .live
 

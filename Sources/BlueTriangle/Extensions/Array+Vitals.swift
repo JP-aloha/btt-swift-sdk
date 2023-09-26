@@ -26,13 +26,18 @@ extension Array where Element == ResourceUsageMeasurement {
         
         let avgCPU = result.cpu.cumulative / Double(count)
         let avgMemory = result.memory.cumulative / UInt64(count)
-        return PerformanceReport(minCPU: Float(result.cpu.min),
-                                 maxCPU: Float(result.cpu.max),
-                                 avgCPU: Float(avgCPU),
+        return PerformanceReport(minCPU: Float(transportValue(result.cpu.min)),
+                                 maxCPU: Float(transportValue(result.cpu.max)),
+                                 avgCPU: Float(transportValue(avgCPU)),
                                  minMemory: result.memory.min,
                                  maxMemory: result.memory.max,
                                  avgMemory: avgMemory,
                                  maxMainThreadTask: 0)
+    }
+    
+    private func transportValue(_ value : Double) ->Double{
+        let activeProcessorCount = Double(ProcessInfo.processInfo.activeProcessorCount)
+        return value / activeProcessorCount
     }
 }
 

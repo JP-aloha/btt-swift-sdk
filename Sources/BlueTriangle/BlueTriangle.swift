@@ -110,6 +110,14 @@ final public class BlueTriangle: NSObject {
             logger: BlueTriangle.logger)
     }()
     
+    //ANR components
+    private static let memoryWarningWatchDog : MemoryWarningWatchDog = {
+        MemoryWarningWatchDog(
+            session: session,
+            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: nil),
+            logger: BlueTriangle.logger)
+    }()
+    
     /// Blue Triangle Technologies-assigned site ID.
     @objc public static var siteID: String {
         lock.sync { session.siteID }
@@ -231,6 +239,7 @@ extension BlueTriangle {
                 }
             }
             
+            configureMemoryWarning(with: configuration.enableMemoryWarning)
             configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
                                  interval: configuration.ANRWarningTimeInterval)
             configureScreenTracking(with: configuration.enableScreenTracking)
@@ -416,7 +425,8 @@ extension BlueTriangle {
     ///
     /// - Parameter exception: The exception to upload.
     public static func storeException(exception: NSException) {
-        let crashReport = CrashReport(sessionID: sessionID, exception: exception)
+        let pageName = BlueTriangle.recentTimer()?.page.pageName
+        let crashReport = CrashReport(sessionID: sessionID, exception: exception, pageName: pageName)
         CrashReportPersistence.save(crashReport)
     }
 }
@@ -443,6 +453,17 @@ extension BlueTriangle{
         if enabled {
 #if os(iOS)
             UIViewController.setUp()
+#endif
+        }
+    }
+}
+
+//MARK: - Memory Warning
+extension BlueTriangle{
+    static func configureMemoryWarning(with enabled: Bool){
+        if enabled {
+#if os(iOS)
+            self.memoryWarningWatchDog.start()
 #endif
         }
     }

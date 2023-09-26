@@ -187,9 +187,11 @@ class TimerMapActivity {
             }
             
             timer.nativeAppProperties = NativeAppProperties(
-                fullTime: disapearTime.milliseconds - loadTime.milliseconds,
-                loadTime: calculatedLoadTime,
-                maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,viewType: self.viewType)
+                                                            fullTime: disapearTime.milliseconds - loadTime.milliseconds,
+                                                            loadTime: calculatedLoadTime,
+                                                            maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
+                                                            viewType: self.viewType,
+                                                            numberOfCPUCores: Int32(ProcessInfo.processInfo.activeProcessorCount))
             
             BlueTriangle.endTimer(timer)
             

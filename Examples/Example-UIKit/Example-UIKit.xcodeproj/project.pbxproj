@@ -42,6 +42,8 @@
 		51522EE32A6042D7002D126D /* PagerPadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC02A6042D7002D126D /* PagerPadViewController.swift */; };
 		51522EE42A6042D7002D126D /* SlidePadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC12A6042D7002D126D /* SlidePadViewController.swift */; };
 		51522EE52A6042D7002D126D /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC22A6042D7002D126D /* HomeViewController.swift */; };
+		5184F30E2AC1C0AE00A34161 /* CPUUsesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5184F30D2AC1C0AE00A34161 /* CPUUsesTest.swift */; };
+		51F8578F2A8B6E8600B9F77F /* MemoryAllocationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51F8578E2A8B6E8600B9F77F /* MemoryAllocationTest.swift */; };
 		8405FECA2A40A97900CC13B5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FEC92A40A97900CC13B5 /* Constants.swift */; };
 		8405FECC2A40A98300CC13B5 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FECB2A40A98300CC13B5 /* Utils.swift */; };
 		8405FECE2A40A99900CC13B5 /* ANRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FECD2A40A99900CC13B5 /* ANRTests.swift */; };
@@ -125,6 +127,8 @@
 		51522EC02A6042D7002D126D /* PagerPadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PagerPadViewController.swift; sourceTree = "<group>"; };
 		51522EC12A6042D7002D126D /* SlidePadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SlidePadViewController.swift; sourceTree = "<group>"; };
 		51522EC22A6042D7002D126D /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
+		5184F30D2AC1C0AE00A34161 /* CPUUsesTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CPUUsesTest.swift; path = ../../TestFactory/CPUTests/CPUUsesTest.swift; sourceTree = "<group>"; };
+		51F8578E2A8B6E8600B9F77F /* MemoryAllocationTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MemoryAllocationTest.swift; path = ../../TestFactory/MemoryTest/MemoryAllocationTest.swift; sourceTree = "<group>"; };
 		8405FEC92A40A97900CC13B5 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		8405FECB2A40A98300CC13B5 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		8405FECD2A40A99900CC13B5 /* ANRTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ANRTests.swift; path = ../../TestFactory/ANRTests/ANRTests.swift; sourceTree = "<group>"; };
@@ -380,7 +384,9 @@
 		C9015ABA2719CA60003BC6C2 /* Example-UIKit */ = {
 			isa = PBXGroup;
 			children = (
+				5184F30D2AC1C0AE00A34161 /* CPUUsesTest.swift */,
 				8405FECD2A40A99900CC13B5 /* ANRTests.swift */,
+				51F8578E2A8B6E8600B9F77F /* MemoryAllocationTest.swift */,
 				51522E8F2A6042D7002D126D /* Home */,
 				8405FED72A40A9F400CC13B5 /* New Group */,
 				C92144C32788B291007712FC /* Application */,
@@ -675,6 +681,7 @@
 				C9D79C9E28B192F7002FBB28 /* PlaceholderServiceProtocol.swift in Sources */,
 				51522ED92A6042D7002D126D /* Tab2PadViewController.swift in Sources */,
 				51522ED02A6042D7002D126D /* Subview2ViewController.swift in Sources */,
+				51F8578F2A8B6E8600B9F77F /* MemoryAllocationTest.swift in Sources */,
 				C9D79C9928B1929A002FBB28 /* Album.swift in Sources */,
 				51522EE52A6042D7002D126D /* HomeViewController.swift in Sources */,
 				51522ED22A6042D7002D126D /* SlideViewController.swift in Sources */,
@@ -686,6 +693,7 @@
 				51522EE32A6042D7002D126D /* PagerPadViewController.swift in Sources */,
 				51522EDA2A6042D7002D126D /* Tab1PadViewController.swift in Sources */,
 				51522ECA2A6042D7002D126D /* FirstViewController.swift in Sources */,
+				5184F30E2AC1C0AE00A34161 /* CPUUsesTest.swift in Sources */,
 				51522EDC2A6042D7002D126D /* TestPadContainerViewController.swift in Sources */,
 				51522EDB2A6042D7002D126D /* SecondPadViewController.swift in Sources */,
 				51522EE02A6042D7002D126D /* Subview2PadViewController.swift in Sources */,
@@ -867,7 +875,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2PMX4WLK83;
+				DEVELOPMENT_TEAM = RFX6NF2RC6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Example-UIKit/Resources/Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -895,7 +903,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2PMX4WLK83;
+				DEVELOPMENT_TEAM = RFX6NF2RC6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Example-UIKit/Resources/Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
