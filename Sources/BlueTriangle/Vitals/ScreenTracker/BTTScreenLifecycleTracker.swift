@@ -180,7 +180,7 @@ class TimerMapActivity {
            
             //When "pgtm" is zero then fallback mechanism triggered that calculate performence time as screen time automatically. So to avoiding "pgtm" zero value setting default value 15 milliseconds.
             // Default "pgtm" should be minimum 0.01 sec (15 milliseconds). Because timer is not reflecting on dot chat bellow to that interval.
-            let calculatedLoadTime = max((viewTime.milliseconds - loadTime.milliseconds), 15)
+            let calculatedLoadTime = max((viewTime.milliseconds - loadTime.milliseconds), Constants.minPgTm)
             
             timer.pageTimeBuilder = {
                 return calculatedLoadTime

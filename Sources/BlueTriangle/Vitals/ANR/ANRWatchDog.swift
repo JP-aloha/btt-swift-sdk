@@ -141,7 +141,7 @@ Main Thread Trace
     
     private func makeTimerRequest(session: Session, report: ErrorReport, pageName: String?) throws -> Request {
         let page = Page(pageName: pageName ?? ANRWatchDog.TIMER_PAGE_NAME, pageType: Device.name)
-        let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: 15)
+        let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
         let model = TimerRequest(session: session,
                                  page: page,
                                  timer: timer,
