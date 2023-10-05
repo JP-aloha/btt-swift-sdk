@@ -9,6 +9,7 @@
 import Foundation
 
 class PerformanceMonitorMock: PerformanceMonitoring {
+    
     var report: PerformanceReport
     var onStart: () -> Void
     var onEnd: () -> Void
@@ -40,5 +41,11 @@ class PerformanceMonitorMock: PerformanceMonitoring {
         report = Mock.performanceReport
         onStart = { }
         onEnd = { }
+    }
+    
+    var debugDescription: String{
+        get{
+            return ""
+        }
     }
 }
