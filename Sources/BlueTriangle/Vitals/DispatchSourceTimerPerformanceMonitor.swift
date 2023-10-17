@@ -105,7 +105,6 @@ final class DispatchSourceTimerPerformanceMonitor: PerformanceMonitoring {
             var memory = [UInt64]()
             var cpu = [Double]()
             let activeProcessorCount = Double(ProcessInfo.processInfo.activeProcessorCount)
-            let page = BlueTriangle.recentTimer()?.page.pageName ?? ""
             for measurement in measurements {
                 memory.append(measurement.memoryUsage)
                 cpu.append(measurement.cpuUsage / activeProcessorCount)

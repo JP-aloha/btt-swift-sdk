@@ -26,7 +26,7 @@ protocol BTScreenLifecycleTracker{
     func viewingEnd(_ id : String, _ name : String)
 }
 
-class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
+public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     
     static let shared = BTTScreenLifecycleTracker()
     private var btTimeActivityrMap = [String: TimerMapActivity]()
@@ -51,19 +51,19 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
         self.viewType = type
     }
     
-    func loadStarted(_ id: String, _ name: String) {
+   public func loadStarted(_ id: String, _ name: String) {
         self.manageTimer(name, id: id, type: .load)
     }
     
-    func loadFinish(_ id: String, _ name: String) {
+    public func loadFinish(_ id: String, _ name: String) {
         self.manageTimer(name, id: id, type: .finish)
     }
     
-    func viewStart(_ id: String, _ name: String) {
+    public func viewStart(_ id: String, _ name: String) {
         self.manageTimer(name, id: id, type: .view)
     }
     
-    func viewingEnd(_ id: String, _ name: String) {
+    public func viewingEnd(_ id: String, _ name: String) {
         self.manageTimer(name, id: id, type: .disapear)
     }
     

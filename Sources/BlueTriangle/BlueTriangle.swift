@@ -127,6 +127,11 @@ final public class BlueTriangle: NSObject {
     @objc public static var globalUserID: Identifier {
         lock.sync { session.globalUserID }
     }
+    
+    /// ScreenTracker Object
+    public static var btScreenLifeCycleTracker: BTTScreenLifecycleTracker {
+        lock.sync { BTTScreenLifecycleTracker.shared }
+    }
 
     /// Session ID.
     @objc public static var sessionID: Identifier {
