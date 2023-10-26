@@ -82,6 +82,8 @@ final public class BlueTriangle: NSObject {
 
     private static var crashReportManager: CrashReportManaging?
     
+    static var monitorNetwork: NetworkStateMonitor?
+    
     private static var capturedRequestCollector: CapturedRequestCollecting? = {
         if shouldCaptureRequests {
             let collector = configuration.capturedRequestCollectorConfiguration.makeRequestCollector(
@@ -234,6 +236,7 @@ extension BlueTriangle {
             configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
                                  interval: configuration.ANRWarningTimeInterval)
             configureScreenTracking(with: configuration.enableScreenTracking)
+            configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
         }
     }
 
@@ -444,6 +447,15 @@ extension BlueTriangle{
 #if os(iOS)
             UIViewController.setUp()
 #endif
+        }
+    }
+}
+
+// MARK: - Screen Tracking
+extension BlueTriangle{
+    static func configureMonitoringNetworkState(with enabled: Bool){
+        if enabled {
+            monitorNetwork = NetworkStateMonitor.init(logger)
         }
     }
 }

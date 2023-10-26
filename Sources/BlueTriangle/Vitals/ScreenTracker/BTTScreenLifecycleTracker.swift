@@ -186,10 +186,18 @@ class TimerMapActivity {
                 return calculatedLoadTime
             }
             
+            let networkReport = timer.networkReport
+            
             timer.nativeAppProperties = NativeAppProperties(
-                fullTime: disapearTime.milliseconds - loadTime.milliseconds,
-                loadTime: calculatedLoadTime,
-                maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,viewType: self.viewType)
+                  fullTime: disapearTime.milliseconds - loadTime.milliseconds,
+                  loadTime: calculatedLoadTime,
+                  maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
+                  viewType: self.viewType,
+                  offline: networkReport.offline,
+                  wifi: networkReport.wifi,
+                  cellular: networkReport.cellular,
+                  ethernet: networkReport.ethernet,
+                  other: networkReport.other)
             
             BlueTriangle.endTimer(timer)
             

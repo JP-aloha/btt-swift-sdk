@@ -82,12 +82,14 @@ private extension CrashReportManager {
     func makeTimerRequest(session: Session, report: ErrorReport, pageName : String?) throws -> Request {
         let page = Page(pageName: pageName ?? Constants.crashID, pageType: Device.name)
         let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: 15)
+        let nativeProperty = BlueTriangle.recentTimer()?.nativeAppProperties ?? .empty
         let model = TimerRequest(session: session,
                                  page: page,
                                  timer: timer,
                                  purchaseConfirmation: nil,
                                  performanceReport: nil,
                                  excluded: Constants.excludedValue,
+                                 nativeAppProperties: nativeProperty,
                                  isErrorTimer: true)
 
         return try Request(method: .post,

@@ -102,6 +102,11 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// Boolean indicating whether screen tracking is enabled.
     @objc public var enableScreenTracking: Bool = false
+    
+    /// Track the network state during Timer Network State and Errors. State Includes wifi, cellular, ethernet and offline.
+    /// Default Value is false
+    @objc public var enableTrackingNetworkState: Bool = false
+    
 
     var timerConfiguration: BTTimer.Configuration = .live
 

@@ -26,6 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             config.ANRMonitoring = true
             config.ANRWarningTimeInterval = 1
             config.enableScreenTracking = true
+            config.enableTrackingNetworkState = true
+            config.networkSampleRate = 1
         }
         
         runTest(onEvent: .OnAppLaunch)
