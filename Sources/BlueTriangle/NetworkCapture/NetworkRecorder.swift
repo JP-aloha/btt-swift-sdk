@@ -16,12 +16,12 @@ class NetworkRecorder {
     let ethernet = NetworkStateRecorder(type: .Ethernet)
     let other = NetworkStateRecorder(type: .Other)
    
-    private var currentNetwork : Network?
+    private var currentNetwork : NetworkState?
     private var cancellable : AnyCancellable?
     
     func startNetworkObserver(){
         if let monitorNetwork = BlueTriangle.monitorNetwork {
-            self.cancellable = monitorNetwork.$network
+            self.cancellable = monitorNetwork.state
                 .receive(on: RunLoop.main)
                 .sink { _ in
                 }receiveValue: { value in
@@ -37,7 +37,7 @@ class NetworkRecorder {
         }
     }
     
-    private func updateNetworkRecording(_ type : Network?){
+    private func updateNetworkRecording(_ type : NetworkState?){
         
         // Save previous network type data
         if let previousType = currentNetwork{
@@ -80,11 +80,11 @@ class NetworkRecorder {
 
 class NetworkStateRecorder {
    
-    private let type : Network
+    private let type : NetworkState
     private(set) var start : Millisecond = 0
     private(set) var totalTime : Millisecond = 0
     
-    init(type: Network) {
+    init(type: NetworkState) {
         self.type = type
     }
     

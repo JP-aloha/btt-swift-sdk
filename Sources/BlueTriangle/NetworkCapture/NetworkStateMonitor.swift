@@ -7,8 +7,9 @@
 
 import Network
 import Foundation
+import Combine
 
-enum Network : CustomStringConvertible {
+enum NetworkState : CustomStringConvertible {
    case Wifi
    case Cellular
    case Ethernet
@@ -31,22 +32,22 @@ enum Network : CustomStringConvertible {
    }
 }
 
-protocol NetworkStateMonitorProtocol : ObservableObject{
-    var network : Network { get set}
+protocol NetworkStateMonitorProtocol{
+    var state : CurrentValueSubject<NetworkState, Error> { get set }
 }
 
 class NetworkStateMonitor : NetworkStateMonitorProtocol{
-    
+    var state: CurrentValueSubject<NetworkState, Error> = .init(.Offline)
+    private var network : NetworkState = .Offline
     private let monitor : NWPathMonitor
     private let logger : Logging
-    @Published  var network : Network
     
     init(_ logger : Logging) {
         
         self.logger = logger
-        self.network = .Offline
+        self.state.send(.Offline)
+       
         self.monitor = NWPathMonitor.init()
-        
         self.monitor.pathUpdateHandler = { path in
             self.setUpConnection(path: path)
         }
@@ -58,13 +59,14 @@ class NetworkStateMonitor : NetworkStateMonitorProtocol{
     
     private func setUpConnection(path: NWPath) {
         
-        var newNetwork : Network = .Offline
+        var newNetwork : NetworkState = .Offline
 
         guard path.status == .satisfied else {
             newNetwork = .Offline
             
             if self.network != newNetwork{
                 self.network = newNetwork
+                self.state.send(newNetwork)
                 self.logger.debug("Network state changed to \(network.description)")
             }
                         
@@ -83,6 +85,7 @@ class NetworkStateMonitor : NetworkStateMonitorProtocol{
         
         if self.network != newNetwork{
             self.network = newNetwork
+            self.state.send(newNetwork)
             self.logger.debug("Network state changed to \(network.description)")
         }
     }

@@ -82,7 +82,7 @@ final public class BlueTriangle: NSObject {
 
     private static var crashReportManager: CrashReportManaging?
     
-    static var monitorNetwork: NetworkStateMonitor?
+    static var monitorNetwork: NetworkStateMonitorProtocol?
     
     private static var capturedRequestCollector: CapturedRequestCollecting? = {
         if shouldCaptureRequests {

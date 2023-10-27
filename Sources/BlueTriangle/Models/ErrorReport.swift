@@ -11,7 +11,7 @@ struct ErrorReport: Codable {
     let eCnt: Int = 1
     let eTp: String = Constants.eTp
     let ver: String = Version.number
-    let nativeApp : NativeAppProperties = .nstEmpty
+    var nativeApp : NativeAppProperties = .nstEmpty
     let appName: String = Bundle.main.appName ?? "Unknown"
     let message: String
     let line: Int
