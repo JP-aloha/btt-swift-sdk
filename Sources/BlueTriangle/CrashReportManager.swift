@@ -67,7 +67,7 @@ final class CrashReportManager: CrashReportManaging {
         function: StaticString,
         line: UInt
     ) {
-        let report = ErrorReport(error: error, line: line, time: intervalProvider().milliseconds)
+        let report = ErrorReport(eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error, line: line, time: intervalProvider().milliseconds)
         let pageName = BlueTriangle.recentTimer()?.page.pageName
         do {
             try upload(session:sessionProvider() , report: report, pageName: pageName)
@@ -81,7 +81,7 @@ final class CrashReportManager: CrashReportManaging {
 private extension CrashReportManager {
     func makeTimerRequest(session: Session, report: ErrorReport, pageName : String?) throws -> Request {
         let page = Page(pageName: pageName ?? Constants.crashID, pageType: Device.name)
-        let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: 15)
+        let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
         let model = TimerRequest(session: session,
                                  page: page,
                                  timer: timer,

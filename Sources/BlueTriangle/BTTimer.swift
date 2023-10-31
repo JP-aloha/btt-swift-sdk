@@ -126,6 +126,13 @@ final public class BTTimer: NSObject {
     /// End the timer.
     @objc
     public func end() {
+        
+        if let pm = performanceMonitor{
+            let pageName = self.page.pageName
+            let page = pm.debugDescription.replacingOccurrences(of: "PAGE NAME", with: pageName)
+            logger.info(page)
+        }
+        
         BlueTriangle.removeActiveTimer(self)
         handle(.end)
     }

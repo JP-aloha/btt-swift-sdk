@@ -66,4 +66,10 @@ public class ANRPerformanceMonitor : PerformanceMonitoring{
             self.maxRunningTime = max(currentSampleTime, self.maxRunningTime)
         }
     }
+    
+    public var debugDescription: String{
+        get{
+            return ""
+        }
+    }
 }

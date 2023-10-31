@@ -18,7 +18,7 @@ struct NativeAppProperties: Codable, Equatable {
     let loadTime: Millisecond
     let maxMainThreadUsage: Millisecond
     let viewType: ViewType
-    
+    let numberOfCPUCores: Int32
 }
 
 extension NativeAppProperties {
@@ -26,5 +26,6 @@ extension NativeAppProperties {
         fullTime: 0,
         loadTime: 0,
         maxMainThreadUsage: 0,
-        viewType: .UIKit)
+        viewType: .UIKit,
+        numberOfCPUCores: 0)
 }

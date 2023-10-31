@@ -2,7 +2,8 @@
 //  CrashSignal.swift
 //  
 //
-//  Created by New user on 27/07/23.
+//  Created by JP on 27/07/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
 
 import Foundation

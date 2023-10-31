@@ -27,11 +27,11 @@ enum Constants {
 
     // Crash Tracking
     static let crashID = "iOS Crash"
-    static let eTp = "NativeAppCrash"
     static let crashReportFilename = "com.bluetriangle.crash"
     static let crashReportLineSeparator = "~~"
     static let excludedValue = "20"
     static let startupDelay: TimeInterval = 10
+    static let minPgTm : Millisecond = 15
 
     // Logging
     static let loggingSubsystem = "com.bluetriangle.sdk"
