@@ -54,6 +54,8 @@ struct CapturedRequest: Encodable, Equatable {
     var decodedBodySize: Int64
     /// Decompressed size of content.
     var encodedBodySize: Int64
+    // Native App Properties
+    var nativeAppProperty: NativeAppProperties = .nstEmpty
 }
 
 extension CapturedRequest.InitiatorType {
@@ -194,6 +196,7 @@ extension CapturedRequest {
 
 // MARK: - Supporting Types
 extension CapturedRequest {
+    
     enum CodingKeys: String, CodingKey {
         case entryType = "e"
         case domain = "dmn"
@@ -207,6 +210,26 @@ extension CapturedRequest {
         case initiatorType = "i"
         case decodedBodySize = "dz"
         case encodedBodySize = "ez"
+        case nativeAppProperty = "NATIVEAPP"
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var con = encoder.container(keyedBy: CodingKeys.self)
+        try con.encode(entryType, forKey: .entryType)
+        try con.encode(domain, forKey: .domain)
+        try con.encode(host, forKey: .host)
+        try con.encode(url, forKey: .url)
+        try con.encode(file, forKey: .file)
+        try con.encode(statusCode, forKey: .statusCode)
+        try con.encode(startTime, forKey: .startTime)
+        try con.encode(endTime, forKey: .endTime)
+        try con.encode(duration, forKey: .duration)
+        try con.encode(initiatorType, forKey: .initiatorType)
+        try con.encode(decodedBodySize, forKey: .decodedBodySize)
+        try con.encode(encodedBodySize, forKey: .encodedBodySize)
+        if nativeAppProperty.netState.count > 0{
+            try con.encode(nativeAppProperty, forKey: .nativeAppProperty)
+        }
     }
 }
 

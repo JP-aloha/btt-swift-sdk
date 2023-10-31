@@ -186,19 +186,25 @@ class TimerMapActivity {
                 return calculatedLoadTime
             }
             
+            let networkReport = timer.networkReport
+            
             timer.nativeAppProperties = NativeAppProperties(
-                                                            fullTime: disapearTime.milliseconds - loadTime.milliseconds,
-                                                            loadTime: calculatedLoadTime,
-                                                            maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
-                                                            viewType: self.viewType,
-                                                            numberOfCPUCores: Int32(ProcessInfo.processInfo.activeProcessorCount))
+                fullTime: disapearTime.milliseconds - loadTime.milliseconds,
+                loadTime: calculatedLoadTime,
+                maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
+                viewType: self.viewType,
+                offline: networkReport?.offline ?? 0,
+                wifi: networkReport?.wifi  ?? 0,
+                cellular: networkReport?.cellular  ?? 0,
+                ethernet: networkReport?.ethernet  ?? 0,
+                other: networkReport?.other  ?? 0)
             
             BlueTriangle.endTimer(timer)
             
             self.logger?.info("View tracker timer submited for screen :\(pageName)")
         }
     }
-    
+                
     func getPageName()->String{
         return pageName
     }

@@ -32,8 +32,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             config.ANRStackTrace = false
             config.ANRWarningTimeInterval = 1
             config.enableScreenTracking = true
-            config.isPerformanceMonitorEnabled = true
-            
+            config.enableTrackingNetworkState = true
+            config.isPerformanceMonitorEnabled = true            
             completion()
         }
     }
