@@ -27,6 +27,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             config.ANRWarningTimeInterval = 1
             config.enableScreenTracking = true
             config.enableTrackingNetworkState = true
+            config.enableMemoryWarning = true
             config.networkSampleRate = 1
             config.isPerformanceMonitorEnabled = true
         }

@@ -1,8 +1,8 @@
 //
 //  NetworkRecorder.swift
 //  
-//
-//  Created by Ashok Singh on 16/10/23.
+//  Created by Ashok Singh on 16/10/23
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
 
 import UIKit
@@ -40,7 +40,7 @@ class BTTimerNetStateAccumulator  : BTTimerNetStateAccumulatorProtocol{
     }
     
     func stop(){
-        self.updateStopWatch(nil)
+        self.updateStopWatch(monitor.state.value)
         self.cancellable = nil
     }
     
