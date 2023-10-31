@@ -106,6 +106,20 @@ final class DisplayLinkPerformanceMonitor: PerformanceMonitoring {
         lastSampleTimestamp = displayLink.timestamp
         measurements.append(resourceUsage.measure())
     }
+    
+    var debugDescription: String{
+        get{
+            var memory = [UInt64]()
+            var cpu = [Double]()
+            let activeProcessorCount = Double(ProcessInfo.processInfo.activeProcessorCount)
+            for measurement in measurements {
+                memory.append(measurement.memoryUsage)
+                cpu.append(measurement.cpuUsage / activeProcessorCount)
+            }
+            
+            return "Memory Sample : PAGE NAME : \(memory) \n CPU Sample : PAGE NAME : \(cpu)"
+        }
+    }
 }
 
 #endif

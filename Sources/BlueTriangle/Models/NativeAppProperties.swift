@@ -31,6 +31,7 @@ struct NativeAppProperties: Equatable {
     let fullTime: Millisecond
     let loadTime: Millisecond
     let maxMainThreadUsage: Millisecond
+    let numberOfCPUCores: Int32 = Int32(ProcessInfo.processInfo.activeProcessorCount)
     let viewType: ViewType?
     let offline: Millisecond
     let wifi: Millisecond
@@ -60,6 +61,10 @@ extension NativeAppProperties: Codable{
         
         if self.type != NativeAppType.NST.description{
             try con.encode(maxMainThreadUsage, forKey: .maxMainThreadUsage)
+        }
+        
+        if self.type != NativeAppType.NST.description{
+            try con.encode(numberOfCPUCores, forKey: .numberOfCPUCores)
         }
                 
         if viewType != nil{
@@ -116,6 +121,7 @@ extension NativeAppProperties: Codable{
         case fullTime
         case loadTime
         case maxMainThreadUsage
+        case numberOfCPUCores
         case viewType
         case offline
         case wifi

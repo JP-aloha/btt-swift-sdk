@@ -172,3 +172,14 @@ ANR(Application Not Responding) detects to main thread in which an app becomes u
 By default, the ANR interval is set to 5 seconds.
 
 
+### Memory Warning
+
+A "Memory Warning" is raise to a situation where an application is consuming a significant amount of memory, and the operating system is notifying your app that it should release any unnecessary resources to free up memory. It can be enabled by setting "enableMemoryWarning" configuration property to "true".
+
+
+```swift
+ BlueTriangle.configure { config in
+         ...
+         config.enableMemoryWarning = true
+     }
+```

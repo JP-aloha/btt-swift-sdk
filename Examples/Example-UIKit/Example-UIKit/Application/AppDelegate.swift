@@ -28,6 +28,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             config.enableScreenTracking = true
             config.enableTrackingNetworkState = true
             config.networkSampleRate = 1
+            config.isPerformanceMonitorEnabled = true
         }
         
         runTest(onEvent: .OnAppLaunch)
