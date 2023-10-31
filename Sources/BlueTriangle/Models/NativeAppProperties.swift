@@ -38,7 +38,7 @@ struct NativeAppProperties: Equatable {
     let ethernet: Millisecond
     let other: Millisecond
     var type : String = NativeAppType.Regular.description
-    var nSt: String = BlueTriangle.monitorNetwork?.state.value?.rawValue.lowercased() ?? ""
+    var netState: String = BlueTriangle.monitorNetwork?.state.value?.rawValue.lowercased() ?? ""
 }
 
 extension NativeAppProperties: Codable{
@@ -47,7 +47,7 @@ extension NativeAppProperties: Codable{
         var con = encoder.container(keyedBy: CodingKeys.self)
        
         var nstValue : Millisecond = 0
-        var nstString = nSt
+        var nstString = netState
         
         
         if fullTime > 0{
@@ -93,7 +93,7 @@ extension NativeAppProperties: Codable{
         }
     
         if nstString.count > 0{
-            try con.encode(nstString, forKey: .nSt)
+            try con.encode(nstString, forKey: .netState)
         }
     }
     
@@ -108,7 +108,7 @@ extension NativeAppProperties: Codable{
         self.cellular = try container.decodeIfPresent(Millisecond.self, forKey: .cellular)  ?? 0
         self.ethernet = try container.decodeIfPresent(Millisecond.self, forKey: .ethernet)  ?? 0
         self.other = try container.decodeIfPresent(Millisecond.self, forKey: .other) ?? 0
-        self.nSt = try container.decodeIfPresent(String.self, forKey: .nSt) ?? ""
+        self.netState = try container.decodeIfPresent(String.self, forKey: .netState) ?? ""
         self.type = try container.decodeIfPresent(String.self, forKey: .type) ?? NativeAppType.NST.description
     }
     
@@ -121,7 +121,7 @@ extension NativeAppProperties: Codable{
         case wifi
         case cellular
         case ethernet
-        case nSt
+        case netState
         case other
         case type
     }
@@ -164,6 +164,6 @@ extension NativeAppProperties {
             ethernet: self.ethernet,
             other: self.other,
             type: type.description,
-            nSt: self.nSt)
+            netState: self.netState)
     }
 }
