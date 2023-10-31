@@ -38,7 +38,7 @@ struct NativeAppProperties: Equatable {
     let ethernet: Millisecond
     let other: Millisecond
     var type : String = NativeAppType.Regular.description
-    var nSt: String = BlueTriangle.monitorNetwork?.state.value.description ?? ""
+    var nSt: String = BlueTriangle.monitorNetwork?.state.value?.rawValue.lowercased() ?? ""
 }
 
 extension NativeAppProperties: Codable{
@@ -67,27 +67,27 @@ extension NativeAppProperties: Codable{
         }
         
         if offline > 0{
-            nstString = offline > nstValue ? NetworkState.Offline.description : nstString
+            nstString = offline > nstValue ? NetworkState.Offline.rawValue.lowercased() : nstString
             nstValue = offline > nstValue ? offline : nstValue
             try con.encode(offline, forKey: .offline)
         }
         if wifi > 0{
-            nstString = wifi > nstValue ? NetworkState.Wifi.description : nstString
+            nstString = wifi > nstValue ? NetworkState.Wifi.rawValue.lowercased() : nstString
             nstValue = wifi > nstValue ? wifi : nstValue
             try con.encode(wifi, forKey: .wifi)
         }
         if cellular > 0{
-            nstString = cellular > nstValue ? NetworkState.Cellular.description : nstString
+            nstString = cellular > nstValue ? NetworkState.Cellular.rawValue.lowercased() : nstString
             nstValue = cellular > nstValue ? cellular : nstValue
             try con.encode(cellular, forKey: .cellular)
         }
         if ethernet > 0{
-            nstString = ethernet > nstValue ? NetworkState.Ethernet.description : nstString
+            nstString = ethernet > nstValue ? NetworkState.Ethernet.rawValue.lowercased() : nstString
             nstValue = ethernet > nstValue ? ethernet : nstValue
             try con.encode(ethernet, forKey: .ethernet)
         }
         if other > 0{
-            nstString = other > nstValue ? NetworkState.Other.description : nstString
+            nstString = other > nstValue ? NetworkState.Other.rawValue.lowercased() : nstString
             nstValue = other > nstValue ? other : nstValue
             try con.encode(other, forKey: .other)
         }

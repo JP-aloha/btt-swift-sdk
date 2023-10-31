@@ -193,11 +193,11 @@ class TimerMapActivity {
                   loadTime: calculatedLoadTime,
                   maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
                   viewType: self.viewType,
-                  offline: networkReport.offline,
-                  wifi: networkReport.wifi,
-                  cellular: networkReport.cellular,
-                  ethernet: networkReport.ethernet,
-                  other: networkReport.other)
+                  offline: networkReport?.offline ?? 0,
+                  wifi: networkReport?.wifi  ?? 0,
+                  cellular: networkReport?.cellular  ?? 0,
+                  ethernet: networkReport?.ethernet  ?? 0,
+                  other: networkReport?.other  ?? 0)
             
             BlueTriangle.endTimer(timer)
             
