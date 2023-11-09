@@ -51,23 +51,23 @@ public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
         self.viewType = type
     }
     
-   public func loadStarted(_ id: String, _ name: String) {
+    func loadStarted(_ id: String, _ name: String) {
         self.manageTimer(name, id: id, type: .load)
     }
     
-    public func loadFinish(_ id: String, _ name: String) {
+    func loadFinish(_ id: String, _ name: String) {
         self.manageTimer(name, id: id, type: .finish)
     }
     
-    public func viewStart(_ id: String, _ name: String) {
+    func viewStart(_ id: String, _ name: String) {
         self.manageTimer(name, id: id, type: .view)
     }
     
-    public func viewingEnd(_ id: String, _ name: String) {
+    func viewingEnd(_ id: String, _ name: String) {
         self.manageTimer(name, id: id, type: .disapear)
     }
     
-    private func manageTimer(_ pageName : String, id : String, type : TimerMapType){
+    func manageTimer(_ pageName : String, id : String, type : TimerMapType){
         if self.enableLifecycleTracker{
             let timerActivity = getTimerActivity(pageName, id: id)
             btTimeActivityrMap[id] = timerActivity
@@ -169,6 +169,9 @@ class TimerMapActivity {
             viewTime = timeInterval
         }
         else if type == .disapear{
+            if viewTime == nil{
+                viewTime = timeInterval
+            }
             disapearTime = timeInterval
             self.submitTimer()
         }
@@ -213,5 +216,3 @@ class TimerMapActivity {
         Date().timeIntervalSince1970
     }
 }
-
-

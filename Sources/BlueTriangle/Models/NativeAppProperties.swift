@@ -11,6 +11,7 @@ import Foundation
 enum ViewType : String, Encodable, Decodable {
     case UIKit
     case SwiftUI
+    case Manual
 }
 
 enum NativeAppType : CustomStringConvertible, Encodable, Decodable{
