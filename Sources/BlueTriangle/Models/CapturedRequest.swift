@@ -141,6 +141,16 @@ extension CapturedRequest {
             encodedBodySize: 0,
             response: response)
     }
+    
+    init(timer: InternalTimer, relativeTo startTime: Millisecond, response: CustomResponse) {
+        self.init(
+            startTime: timer.startTime.milliseconds - startTime,
+            endTime: timer.endTime.milliseconds - startTime,
+            duration: timer.endTime.milliseconds - timer.startTime.milliseconds,
+            decodedBodySize: response.length,
+            encodedBodySize: 0,
+            response: response)
+    }
 
     init(metrics: URLSessionTaskMetrics, relativeTo startTime: Millisecond) {
         let lastMetric = metrics.transactionMetrics.last
@@ -186,6 +196,27 @@ extension CapturedRequest {
 
         self.url = response?.url?.absoluteString ?? ""
         self.file = response?.url?.lastPathComponent ?? ""
+        self.startTime = startTime
+        self.endTime = endTime
+        self.duration = duration
+        self.decodedBodySize = decodedBodySize
+        self.encodedBodySize = encodedBodySize
+    }
+    
+    init(
+        startTime: Millisecond,
+        endTime: Millisecond,
+        duration: Millisecond,
+        decodedBodySize: Int64,
+        encodedBodySize: Int64,
+        response: CustomResponse
+    ) {
+        self.host = ""
+        self.domain = ""
+        self.statusCode = response.status
+        self.initiatorType = .other
+        self.url = response.url
+        self.file =  ""
         self.startTime = startTime
         self.endTime = endTime
         self.duration = duration

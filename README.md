@@ -133,6 +133,16 @@ URLSession.shared.btDataTask(with: URL(string: "https://example.com")!) { data, 
 }.resume()
 ```
 
+### Mannual Network Capture
+
+For other network capture requirements, captured requests can be manually created and submitted to the tracker.
+
+```swift
+let tracker = NetworkCaptureTracker(url: "https://hub.dummyapis.com/delay?seconds=3", status: "200", length: 11120)
+tracker.submit()
+```
+
+
 ### Screen View Tracking
 
 All UIViewControllers view count can be tracked. Setting "enableScreenTracking"  configuration property to true will capture view counts of every UIViewController in your app. You can see each view controller name with there count on our dashboard.
@@ -181,5 +191,18 @@ A "Memory Warning" is raise to a situation where an application is consuming a s
  BlueTriangle.configure { config in
          ...
          config.enableMemoryWarning = true
+     }
+```
+
+
+### Network State
+
+ A "Network State" feature is used to monitoring state of network ( like - wifi, offline, online etc. ) and provided time period of each used state (i.e provide usege of each network state). It can be enabled by setting "enableTrackingNetworkState" configuration property to "true".
+
+
+```swift
+ BlueTriangle.configure { config in
+         ...
+         config.enableTrackingNetworkState = true
      }
 ```

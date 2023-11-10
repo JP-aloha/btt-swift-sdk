@@ -56,6 +56,10 @@ actor CapturedRequestCollector: CapturedRequestCollecting {
     func collect(timer: InternalTimer, response: URLResponse?) {
         requestCollection?.insert(timer: timer, response: response)
     }
+    
+    func collect(timer: InternalTimer, response: CustomResponse){
+        requestCollection?.insert(timer: timer, response: response)
+    }
 
     func collect(metrics: URLSessionTaskMetrics) {
         requestCollection?.insert(metrics: metrics)

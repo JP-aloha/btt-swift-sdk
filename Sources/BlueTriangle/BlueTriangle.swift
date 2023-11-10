@@ -376,6 +376,12 @@ public extension BlueTriangle {
             await capturedRequestCollector?.collect(timer: timer, response: response)
         }
     }
+    
+    internal static func captureRequest(timer: InternalTimer, response: CustomResponse) {
+        Task {
+            await capturedRequestCollector?.collect(timer: timer, response: response)
+        }
+    }
 
     /// Captures a network request.
     /// - Parameters:
