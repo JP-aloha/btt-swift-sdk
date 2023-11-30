@@ -14,8 +14,9 @@ final class RequestFailureHandler: RequestFailureHandling {
     private let logger: Logging
     private let networkMonitor: NWPathMonitor
     private var cancellables = Set<AnyCancellable>()
+    private static var flushTimeInterval : Date?
     var send: (() -> Void)?
-    private static var flushTime = Date()
+
 
     init(persistence: RequestCache, logger: Logging) {
         self.persistence = persistence
@@ -36,7 +37,6 @@ final class RequestFailureHandler: RequestFailureHandling {
         networkMonitor.publisher(queue: queue)
             .filter { $0.status == .satisfied }
             .sink { [weak self] status in
-                
                 self?.sendSaved()
             }.store(in: &cancellables)
 
@@ -77,7 +77,7 @@ final class RequestFailureHandler: RequestFailureHandling {
     
     func sendSaved() {
         
-        if Date().timeIntervalSince1970 - RequestFailureHandler.flushTime.timeIntervalSince1970 >  60 {
+        guard let flushInterval = RequestFailureHandler.flushTimeInterval else {
             
             self.migrateCache()
             
@@ -85,7 +85,19 @@ final class RequestFailureHandler: RequestFailureHandling {
                 send()
             }
             
-            RequestFailureHandler.flushTime = Date()
+            RequestFailureHandler.flushTimeInterval = Date()
+            
+            return
+        }
+        
+        if (Date().timeIntervalSince1970 - flushInterval.timeIntervalSince1970) >  60{
+            self.migrateCache()
+            
+            if let send = send{
+                send()
+            }
+            
+            RequestFailureHandler.flushTimeInterval = Date()
         }
     }
 
