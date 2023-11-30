@@ -14,12 +14,14 @@ enum Constants {
     static let globalUserIDKey = "com.bluetriangle.kGlobalUserIDUserDefault"
     static let persistenceDirectory = "com.bluetriangle.sdk"
     static let sdkProductIdentifier = "btt-swift-sdk"
-
+    static let cacheRequestsDirectory = "CacheRequests"
+    
     // Settings
     static let minimumSampleInterval: TimeInterval = 1 / 60
     static let sessionTimeoutInMinutes = 30
     static let userSessionTimeoutInDays = 365
-
+    static let maxPayloadAttempts = 3
+    
     // Endpoints
     static let capturedRequestEndpoint: URL = "https://d.btttag.com/wcdv02.rcv"
     static let errorEndpoint: URL = "https://d.btttag.com/err.rcv"

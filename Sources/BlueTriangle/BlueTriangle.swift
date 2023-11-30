@@ -54,6 +54,7 @@ final public class BlueTriangle: NSObject {
     private static var logger: Logging = {
         configuration.makeLogger()
     }()
+    
 
     private static var uploader: Uploading = {
         configuration.uploaderConfiguration.makeUploader(
@@ -106,7 +107,9 @@ final public class BlueTriangle: NSObject {
         ANRWatchDog(
             mainThreadObserver: MainThreadObserver.live,
             session: session,
-            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: nil),
+            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
+                file: .requests,
+                logger: logger)),
             logger: BlueTriangle.logger)
     }()
     
