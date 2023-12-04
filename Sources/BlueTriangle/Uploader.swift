@@ -51,7 +51,7 @@ final class Uploader: Uploading {
     func send(request: Request) {
         logger.debug(request.debugDescription)
         let id = UUID()
-        let cache = PayloadCache()
+        let cache = BlueTriangle.payloadCache
         let publisher = networking(request)
             .retry(retryConfiguration, scheduler: queue)
             .subscribe(on: queue)
@@ -76,8 +76,8 @@ final class Uploader: Uploading {
     }
     
     func uploadCacheRequests(){
-        let cache = PayloadCache()
         do{
+            let cache = BlueTriangle.payloadCache
             if let payload = try cache.pickNext(){
                 logger.debug(payload.data.debugDescription)
                 let id = UUID()
@@ -106,8 +106,11 @@ final class Uploader: Uploading {
                     })
                 
                 addSubscription(publisher, id: id)
+            }else{
+                RequestFailureHandler.isUploading = false
             }
         }catch{
+            RequestFailureHandler.isUploading = false
             self.logger.error("Unable to pick payload : \(error)")
         }
     }

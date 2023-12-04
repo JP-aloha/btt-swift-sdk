@@ -48,14 +48,6 @@ class Payload : Codable{
         }
     }
     
-    
-    private static func randomDateId() -> String{
-        let formatter = DateFormatter()
-        formatter.dateFormat = "YYYYMMddhhmm"
-        let value = formatter.string(from: Date())
-        return value
-    }
-    
     private static func fileType(_ url : URL)-> PayloadType{
         
         if url.path.contains("err.rcv"){

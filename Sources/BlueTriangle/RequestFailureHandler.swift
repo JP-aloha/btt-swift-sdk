@@ -14,7 +14,7 @@ final class RequestFailureHandler: RequestFailureHandling {
     private let logger: Logging
     private let networkMonitor: NWPathMonitor
     private var cancellables = Set<AnyCancellable>()
-    private static var flushTimeInterval : Date?
+    static var isUploading : Bool = false
     var send: (() -> Void)?
 
 
@@ -63,7 +63,7 @@ final class RequestFailureHandler: RequestFailureHandling {
     func migrateCache() {
         do {
             guard let requests = try persistence.read() else { return }
-            let cache = PayloadCache()
+            let cache = BlueTriangle.payloadCache
             requests.forEach {
                 do {
                     try cache.save(Payload(request: $0))
@@ -77,27 +77,15 @@ final class RequestFailureHandler: RequestFailureHandling {
     
     func sendSaved() {
         
-        guard let flushInterval = RequestFailureHandler.flushTimeInterval else {
+        if !RequestFailureHandler.isUploading {
+           
+            RequestFailureHandler.isUploading = true
             
             self.migrateCache()
             
             if let send = send{
                 send()
             }
-            
-            RequestFailureHandler.flushTimeInterval = Date()
-            
-            return
-        }
-        
-        if (Date().timeIntervalSince1970 - flushInterval.timeIntervalSince1970) >  60{
-            self.migrateCache()
-            
-            if let send = send{
-                send()
-            }
-            
-            RequestFailureHandler.flushTimeInterval = Date()
         }
     }
 

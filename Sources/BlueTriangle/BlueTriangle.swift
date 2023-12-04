@@ -102,6 +102,12 @@ final public class BlueTriangle: NSObject {
 
     private static var appEventObserver: AppEventObserver?
 
+    //Cache components
+    internal static var payloadCache : PayloadCacheProtocol = {
+        PayloadCache.init(configuration.cacheMemoryLimit,
+                          expiry: configuration.cacheExpiryDuration)
+    }()
+    
     //ANR components
     private static let anrWatchDog : ANRWatchDog = {
         ANRWatchDog(

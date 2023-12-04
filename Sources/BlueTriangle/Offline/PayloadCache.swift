@@ -9,8 +9,8 @@ import UIKit
 
 
 protocol PayloadCacheProtocol: AnyObject {
-    var memoryLimit: Int { get set }
-    var expiryDuration : CGFloat { get set }
+    //var memoryLimit: UInt { get set }
+    //var expiryDuration : Millisecond { get set }
     func pickNext() throws -> Payload?
     func save(_ payload : Payload) throws
     func delete(_ payload : Payload) throws
@@ -19,11 +19,37 @@ protocol PayloadCacheProtocol: AnyObject {
 class PayloadCache : PayloadCacheProtocol{
    
     //MB * 1024 * 1024
-    var memoryLimit: Int =  30 * 1024 * 1024
-    //day * 24 * 60 * 60
-    var expiryDuration : CGFloat = 2 * 24 * 60 * 60
+    private var memoryLimit: UInt
+    //day * 24 * 60 * 60 * 1000
+    private var expiryDuration : Millisecond
+    
+    private var minExpiryDuration : Millisecond =  2 * 60 * 1000//1 * 24 * 60 * 60 * 1000
+    private var maxExpiryDuration : Millisecond = 10 * 24 * 60 * 60 * 1000
+    private var minMemoryLimit : UInt =   5 * 1024 //10 * 1024 * 1024
+    private var maxMemoryLimit : UInt = 300 * 1024 * 1024
        
-    init(){}
+    init(_ memoryLimit : UInt , expiry : Millisecond){
+        
+        if memoryLimit < minMemoryLimit{
+            self.memoryLimit = minMemoryLimit
+        }
+        else if(memoryLimit > maxMemoryLimit){
+            self.memoryLimit = maxMemoryLimit
+        }
+        else{
+            self.memoryLimit = memoryLimit
+        }
+        
+        if expiry < minExpiryDuration{
+            self.expiryDuration = minExpiryDuration
+        }
+        else if(expiry > maxExpiryDuration){
+            self.expiryDuration = maxExpiryDuration
+        }
+        else{
+            self.expiryDuration = expiry
+        }
+    }
     
     // Return most recent of type by priority (Analytics, Error, Wcd) which are not expired and not attempted it all attempt.
     
@@ -217,7 +243,7 @@ extension PayloadCache {
     }
     
     private func hasExpired(_ payload : Payload) -> Bool{
-        if Date().timeIntervalSince1970 - payload.createdDate.timeIntervalSince1970 > expiryDuration{
+        if (Date().timeIntervalSince1970 - payload.createdDate.timeIntervalSince1970).milliseconds > expiryDuration{
             return true
         }
         return false
