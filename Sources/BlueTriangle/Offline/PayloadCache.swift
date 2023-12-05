@@ -95,14 +95,18 @@ extension PayloadCache {
     }
     
     private func isOverSize() throws -> Bool{
+
+        var folderSize: UInt64 = 0
+        let files = try self.getAllAvailableFiles()
         
-        guard let path = File.cacheRequestsFolder?.url.path else {
-            return false
+        for file in files {
+            guard let newfile = File.cacheRequests(file) else { return false}
+            let attr = try FileManager.default.attributesOfItem(atPath: newfile.path)
+            let fileSize = attr[FileAttributeKey.size] as! UInt64
+            folderSize = folderSize + fileSize
         }
         
-        let attr = try FileManager.default.attributesOfItem(atPath: path)
-        let size = attr[FileAttributeKey.size] as! UInt64
-        if size > memoryLimit{
+        if folderSize > memoryLimit{
             return true
         }
         

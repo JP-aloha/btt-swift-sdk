@@ -81,11 +81,11 @@ final public class BlueTriangleConfiguration: NSObject {
     @objc public var networkSampleRate: Double = 0.05
     
     /// Offline or Failure request storage expiry period by default it is 2 day i.e 2 * 24 * 60 * 60  second
-    /// Interval unit should be in Seconds  min 1 day 10 day
+    /// Interval unit should be in Millisecond
     @objc public var cacheExpiryDuration: Millisecond = 2 * 24 * 60 * 60 * 1000
     
     /// Offline or Failure request storage memory limit by default it is 30 Mb i.e 30 * 1024 * 1024 byte
-    /// Memory unit should be in Bytes  min 10 mb 300 mb
+    /// Memory unit should be in Bytes
     @objc public var cacheMemoryLimit: UInt = 30 * 1024 * 1024
 
     /// When enabled tasks running on main thread are monitored for there run duration time.

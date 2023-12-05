@@ -27,6 +27,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             config.ANRMonitoring = true
             config.ANRWarningTimeInterval = 1
             config.enableScreenTracking = true
+            //config.cacheMemoryLimit = 5 * 1024
+            //config.cacheExpiryDuration = 2 * 60 * 1000
         }
         
         runTest(onEvent: .OnAppLaunch)
