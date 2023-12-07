@@ -147,8 +147,8 @@ extension CapturedRequest {
             startTime: timer.startTime.milliseconds - startTime,
             endTime: timer.endTime.milliseconds - startTime,
             duration: timer.endTime.milliseconds - timer.startTime.milliseconds,
-            decodedBodySize: response.length,
-            encodedBodySize: 0,
+            decodedBodySize: response.responseBodyLength,
+            encodedBodySize: response.requestBodylength,
             response: response)
     }
 
@@ -213,8 +213,8 @@ extension CapturedRequest {
     ) {
         self.host = ""
         self.domain = ""
-        self.statusCode = response.status
-        self.initiatorType = .other
+        self.statusCode = "\(response.httpStatusCode)"
+        self.initiatorType =  .init(rawValue: response.contentType) ?? .other
         self.url = response.url
         self.file =  ""
         self.startTime = startTime
@@ -270,3 +270,14 @@ extension CapturedRequest: CustomStringConvertible {
         "CapturedRequest(url: \(url), startTime: \(startTime))"
     }
 }
+
+
+
+
+
+
+
+
+
+
+

@@ -1,6 +1,6 @@
 //
 //  BTTScreenTracker.swift
-//  
+//
 //
 //  Created by Ashok Singh on 06/11/23.
 //
@@ -36,6 +36,13 @@ public class BTTScreenTracker{
         self.hasViewing = true
         self.updateScreenType()
         bttTracker.manageTimer(pageName, id: id, type: .load)
+    }
+    
+    public func loadEnded() {
+        if self.hasViewing{
+            self.updateScreenType()
+            bttTracker.manageTimer(pageName, id: id, type: .finish)
+        }
     }
 
     public func viewStart() {
