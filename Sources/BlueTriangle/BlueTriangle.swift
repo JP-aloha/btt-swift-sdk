@@ -403,9 +403,9 @@ public extension BlueTriangle {
 
     /// Captures a network request.
     /// - Parameter metrics: An object encapsulating the metrics for a session task.
-    static func captureRequest(metrics: URLSessionTaskMetrics) {
+    static func captureRequest(metrics: URLSessionTaskMetrics, error : Error?) {
         Task {
-            await capturedRequestCollector?.collect(metrics: metrics)
+            await capturedRequestCollector?.collect(metrics: metrics, error: error)
         }
     }
 }

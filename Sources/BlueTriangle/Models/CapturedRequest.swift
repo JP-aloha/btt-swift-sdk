@@ -167,55 +167,16 @@ extension CapturedRequest {
             response: response)
     }
 
-    init(metrics: URLSessionTaskMetrics, relativeTo startTime: Millisecond) {
+    init(metrics: URLSessionTaskMetrics, relativeTo startTime: Millisecond, error: Error?) {
         let lastMetric = metrics.transactionMetrics.last
-
         self.init(
             startTime: metrics.taskInterval.start.timeIntervalSince1970.milliseconds - startTime,
             endTime: metrics.taskInterval.end.timeIntervalSince1970.milliseconds - startTime,
             duration: metrics.taskInterval.duration.milliseconds,
             decodedBodySize: lastMetric?.countOfResponseBodyBytesAfterDecoding ?? 0,
             encodedBodySize: lastMetric?.countOfResponseBodyBytesReceived ?? 0,
-            response: lastMetric?.response)
-    }
-
-    init(
-        startTime: Millisecond,
-        endTime: Millisecond,
-        duration: Millisecond,
-        decodedBodySize: Int64,
-        encodedBodySize: Int64,
-        response: URLResponse?
-    ) {
-        let hostComponents = response?.url?.host?.split(separator: ".") ?? []
-        self.host = hostComponents.first != nil ? String(hostComponents.first!) : ""
-        if hostComponents.count > 2 {
-            self.domain = hostComponents.dropFirst().joined(separator: ".")
-        } else {
-            self.domain = response?.url?.host ?? ""
-        }
-
-        let httpResponse = response as? HTTPURLResponse
-        if let statusCode = httpResponse?.statusCode {
-            self.statusCode = String(statusCode)
-        }
-
-        if let contentType = httpResponse?.contentType {
-            self.initiatorType = .init(contentType) ?? .other
-        } else if let pathExtensionString = response?.url?.pathExtension,
-                  let pathExtension = InitiatorType.PathExtension(rawValue: pathExtensionString) {
-            self.initiatorType = .init(pathExtension) ?? .other
-        } else {
-            self.initiatorType = .other
-        }
-
-        self.url = response?.url?.absoluteString ?? ""
-        self.file = response?.url?.lastPathComponent ?? ""
-        self.startTime = startTime
-        self.endTime = endTime
-        self.duration = duration
-        self.decodedBodySize = decodedBodySize
-        self.encodedBodySize = encodedBodySize
+            response: lastMetric?.response,
+            error: error)
     }
     
     init(

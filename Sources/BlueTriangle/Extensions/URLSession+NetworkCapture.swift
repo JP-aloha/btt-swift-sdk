@@ -21,17 +21,9 @@ public extension URLSession {
         with url: URL,
         completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
     ) -> URLSessionDataTask {
-        let timer = BlueTriangle.startRequestTimer()
-        return dataTask(with: URLRequest(url: url)) { data, response, error in
-            if var timer = timer {
-                timer.end()
-                BlueTriangle.captureRequest(timer: timer, data: data, response: response, error: error)
-            }
-
-            completionHandler(data, response, error)
-        }
+        return btDataTaskResponseForRequest(URLRequest(url: url), completionHandler)
     }
-
+    
     /// Creates a task that retrieves the contents of a URL based on the specified URL request object, and calls a handler upon completion.
     /// - Parameters:
     ///   - request: A URL request object that provides the URL, cache policy, request type, body data or body stream, and so on.
@@ -43,13 +35,17 @@ public extension URLSession {
         with request: URLRequest,
         completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
     ) -> URLSessionDataTask {
+        return btDataTaskResponseForRequest(request, completionHandler)
+    }
+    
+    fileprivate func btDataTaskResponseForRequest(_ request: URLRequest, _ completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
         let timer = BlueTriangle.startRequestTimer()
         return dataTask(with: request) { data, response, error in
             if var timer = timer {
                 timer.end()
                 BlueTriangle.captureRequest(timer: timer, data: data, response: response, error: error)
             }
-
+            
             completionHandler(data, response, error)
         }
     }

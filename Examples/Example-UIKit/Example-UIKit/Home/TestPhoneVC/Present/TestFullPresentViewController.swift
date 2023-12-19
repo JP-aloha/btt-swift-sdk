@@ -48,7 +48,6 @@ class TestFullPresentViewController: UIViewController {
     
     @IBAction func didSelectBtDataTaskUrl(_ sender : Any) {
         let timer = BlueTriangle.startTimer(page: Page(pageName: "TestFullPresentViewController"))
-        //404
         URLSession.shared.btDataTask(with: URL(string: "http://www.127.0.0.1:10000/api/server")!) { data, response, error in
        
         }.resume()
@@ -78,6 +77,20 @@ class TestFullPresentViewController: UIViewController {
             } receiveValue: { _ in}
         
         addSubscription(publiser, id: id)
+    }
+    
+    
+    @IBAction func didSelectBtDelegate(_ sender : Any) {
+        Task{
+            
+            let session = URLSession(
+                configuration: .default,
+                delegate: NetworkCaptureSessionDelegate(),
+                delegateQueue: nil)
+
+            let timer = BlueTriangle.startTimer(page: Page(pageName: "MY_PAGE"))
+            try await session.data(from: URL(string: "http://www.127.0.0.1:10000/api/server")!)
+        }
     }
     
 

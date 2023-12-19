@@ -65,8 +65,8 @@ actor CapturedRequestCollector: CapturedRequestCollecting {
         requestCollection?.insert(timer: timer, request: request, error: error)
     }
 
-    func collect(metrics: URLSessionTaskMetrics) {
-        requestCollection?.insert(metrics: metrics)
+    func collect(metrics: URLSessionTaskMetrics, error: Error?) {
+        requestCollection?.insert(metrics: metrics, error: error)
     }
 
     // Use `nonisolated` to enable capture by timerManager handler.
