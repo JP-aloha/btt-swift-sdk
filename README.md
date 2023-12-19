@@ -138,8 +138,8 @@ URLSession.shared.btDataTask(with: URL(string: "https://example.com")!) { data, 
 For other network capture requirements, captured requests can be manually created and submitted to the tracker.
 
 ```swift
-let tracker = NetworkCaptureTracker(url: "https://hub.dummyapis.com/delay?seconds=3", status: "200", length: 11120)
-tracker.submit()
+let tracker = NetworkCaptureTracker.init(url: "https://hub.dummyapis.com/delay?seconds=3", method: "post", requestBodylength: 9130)
+tracker.submit(200, responseBodyLength: 11120, contentType: "json")
 ```
 
 

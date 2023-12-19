@@ -39,6 +39,7 @@ struct NativeAppProperties: Equatable {
     let cellular: Millisecond
     let ethernet: Millisecond
     let other: Millisecond
+    var err: String?
     var type : String = NativeAppType.Regular.description
     var netState: String = BlueTriangle.monitorNetwork?.state.value?.rawValue.lowercased() ?? ""
 }
@@ -97,6 +98,10 @@ extension NativeAppProperties: Codable{
             nstValue = other > nstValue ? other : nstValue
             try con.encode(other, forKey: .other)
         }
+        
+        if let err = err, err.count > 0{
+            try con.encode(err, forKey: .err)
+        }
     
         if nstString.count > 0{
             try con.encode(nstString, forKey: .netState)
@@ -131,10 +136,27 @@ extension NativeAppProperties: Codable{
         case netState
         case other
         case type
+        case err
     }
 }
 
 extension NativeAppProperties {
+    
+    static func `init`(_ error : String?) -> Self{
+        return  .init(
+            fullTime: 0,
+            loadTime: 0,
+            maxMainThreadUsage: 0,
+            viewType: nil,
+            offline: 0,
+            wifi: 0,
+            cellular: 0,
+            ethernet: 0,
+            other: 0,
+            err: error,
+            type: NativeAppType.NST.description)
+    }
+    
     static let empty: Self = .init(
         fullTime: 0,
         loadTime: 0,

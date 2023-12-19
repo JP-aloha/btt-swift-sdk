@@ -31,6 +31,9 @@ class TestPushViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        
+       /* let tracker = NetworkCaptureTracker.init(url: "https://hub.dummyapis.com/delay?seconds=3", method: "post", requestBodylength: 9130)
+        tracker.submit(200, responseBodyLength: 11120, contentType: "json")*/
     }
     
     private func heavyLoopTest(){

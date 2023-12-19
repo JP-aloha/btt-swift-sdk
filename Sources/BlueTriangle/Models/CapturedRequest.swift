@@ -54,6 +54,8 @@ struct CapturedRequest: Encodable, Equatable {
     var decodedBodySize: Int64
     /// Decompressed size of content.
     var encodedBodySize: Int64
+    //Http method
+    var httpMethod: String?
     // Native App Properties
     var nativeAppProperty: NativeAppProperties = .nstEmpty
 }
@@ -132,14 +134,27 @@ extension CapturedRequest.InitiatorType {
 }
 
 extension CapturedRequest {
-    init(timer: InternalTimer, relativeTo startTime: Millisecond, response: URLResponse?) {
+    
+    init(timer: InternalTimer, relativeTo startTime: Millisecond, response: URLResponse?, error : Error?) {
         self.init(
             startTime: timer.startTime.milliseconds - startTime,
             endTime: timer.endTime.milliseconds - startTime,
             duration: timer.endTime.milliseconds - timer.startTime.milliseconds,
             decodedBodySize: response?.expectedContentLength ?? 0,
             encodedBodySize: 0,
-            response: response)
+            response: response,
+            error: error)
+    }
+    
+    init(timer: InternalTimer, relativeTo startTime: Millisecond, request: URLRequest?, error : Error?) {
+        self.init(
+            startTime: timer.startTime.milliseconds - startTime,
+            endTime: timer.endTime.milliseconds - startTime,
+            duration: timer.endTime.milliseconds - timer.startTime.milliseconds,
+            decodedBodySize:  0,
+            encodedBodySize: 0,
+            request: request,
+            error: error)
     }
     
     init(timer: InternalTimer, relativeTo startTime: Millisecond, response: CustomResponse) {
@@ -213,10 +228,105 @@ extension CapturedRequest {
     ) {
         self.host = ""
         self.domain = ""
-        self.statusCode = "\(response.httpStatusCode)"
+        self.httpMethod = response.method
+        if let statusCode = response.httpStatusCode{
+            self.statusCode = "\(statusCode)"
+        }
+        
+        if let error = response.error?.localizedDescription{
+            self.nativeAppProperty = NativeAppProperties.`init`(error)
+        }
         self.initiatorType =  .init(rawValue: response.contentType) ?? .other
         self.url = response.url
         self.file =  ""
+        self.startTime = startTime
+        self.endTime = endTime
+        self.duration = duration
+        self.decodedBodySize = decodedBodySize
+        self.encodedBodySize = encodedBodySize
+    }
+    
+    init(
+        startTime: Millisecond,
+        endTime: Millisecond,
+        duration: Millisecond,
+        decodedBodySize: Int64,
+        encodedBodySize: Int64,
+        request: URLRequest?,
+        error: Error?
+    ) {
+        let hostComponents = request?.url?.host?.split(separator: ".") ?? []
+        self.host = hostComponents.first != nil ? String(hostComponents.first!) : ""
+        if hostComponents.count > 2 {
+            self.domain = hostComponents.dropFirst().joined(separator: ".")
+        } else {
+            self.domain = request?.url?.host ?? ""
+        }
+
+        if let httpMethod = request?.httpMethod {
+            self.httpMethod = httpMethod
+        }
+        if let _ = error{
+            self.statusCode = "600"
+        }
+
+        if let pathExtensionString = request?.url?.pathExtension,
+           let pathExtension = InitiatorType.PathExtension(rawValue: pathExtensionString) {
+            self.initiatorType = .init(pathExtension) ?? .other
+        } else {
+            self.initiatorType = .other
+        }
+        
+        if let error = error?.localizedDescription{
+            self.nativeAppProperty = NativeAppProperties.`init`(error)
+        }
+        self.url = request?.url?.absoluteString ?? ""
+        self.file = request?.url?.lastPathComponent ?? ""
+        self.startTime = startTime
+        self.endTime = endTime
+        self.duration = duration
+        self.decodedBodySize = decodedBodySize
+        self.encodedBodySize = encodedBodySize
+    }
+    
+    init(
+        startTime: Millisecond,
+        endTime: Millisecond,
+        duration: Millisecond,
+        decodedBodySize: Int64,
+        encodedBodySize: Int64,
+        response: URLResponse?,
+        error: Error?
+    ) {
+        let hostComponents = response?.url?.host?.split(separator: ".") ?? []
+        self.host = hostComponents.first != nil ? String(hostComponents.first!) : ""
+        if hostComponents.count > 2 {
+            self.domain = hostComponents.dropFirst().joined(separator: ".")
+        } else {
+            self.domain = response?.url?.host ?? ""
+        }
+
+        let httpResponse = response as? HTTPURLResponse
+        if let statusCode = httpResponse?.statusCode {
+            self.statusCode = String(statusCode)
+        }else if let _ = error{
+            self.statusCode = "600"
+        }
+
+        if let contentType = httpResponse?.contentType {
+            self.initiatorType = .init(contentType) ?? .other
+        } else if let pathExtensionString = response?.url?.pathExtension,
+                  let pathExtension = InitiatorType.PathExtension(rawValue: pathExtensionString) {
+            self.initiatorType = .init(pathExtension) ?? .other
+        } else {
+            self.initiatorType = .other
+        }
+
+        if let error = error?.localizedDescription{
+            self.nativeAppProperty = NativeAppProperties.`init`(error)
+        }
+        self.url = response?.url?.absoluteString ?? ""
+        self.file = response?.url?.lastPathComponent ?? ""
         self.startTime = startTime
         self.endTime = endTime
         self.duration = duration

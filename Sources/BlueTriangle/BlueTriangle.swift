@@ -371,9 +371,16 @@ public extension BlueTriangle {
     ///   - timer: The request timer.
     ///   - data: The request response data.
     ///   - response: The request response.
-    static func captureRequest(timer: InternalTimer, data: Data?, response: URLResponse?) {
+    ///   - error: The response error 
+   /* static func captureRequest(timer: InternalTimer, data: Data?, response: URLResponse?) {
         Task {
             await capturedRequestCollector?.collect(timer: timer, response: response)
+        }
+    }*/
+    
+    static func captureRequest(timer: InternalTimer, data: Data?, response: URLResponse?, error : Error?) {
+        Task {
+            await capturedRequestCollector?.collect(timer: timer, response: response, error: error)
         }
     }
     
@@ -389,7 +396,13 @@ public extension BlueTriangle {
     ///   - tuple: The asynchronously-delivered tuple containing the request contents as a Data instance and a URLResponse.
     static func captureRequest(timer: InternalTimer, tuple: (Data, URLResponse)) {
         Task {
-            await capturedRequestCollector?.collect(timer: timer, response: tuple.1)
+            await capturedRequestCollector?.collect(timer: timer, response: tuple.1, error: nil)
+        }
+    }
+    
+    static func captureRequest(timer: InternalTimer, request : URLRequest, error: Error?) {
+        Task {
+            await capturedRequestCollector?.collect(timer: timer, request: request, error: error)
         }
     }
 

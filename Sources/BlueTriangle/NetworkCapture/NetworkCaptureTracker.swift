@@ -30,11 +30,20 @@ public class NetworkCaptureTracker {
                                                           contentType: contentType,
                                                           httpStatusCode: httpStatusCode,
                                                              requestBodylength: self.requestBodylength,
-                                                          responseBodyLength: responseBodyLength))
+                                                             responseBodyLength: responseBodyLength,
+                                                             error: nil))
     }
     
     public func failled(_ error : Error){
-        //Yet to implement
+        self.timer.end()
+        BlueTriangle.captureRequest(timer: timer,
+                                    response: CustomResponse(url: self.url,
+                                                             method: self.method,
+                                                          contentType: "",
+                                                          httpStatusCode: 600,
+                                                             requestBodylength: self.requestBodylength,
+                                                             responseBodyLength: 0,
+                                                             error: error))
     }
 }
 
@@ -42,7 +51,8 @@ struct CustomResponse{
     let url: String
     let method: String
     let contentType: String
-    let httpStatusCode: Int64
+    let httpStatusCode: Int64?
     let requestBodylength: Int64
     let responseBodyLength: Int64
+    let error: Error?
 }

@@ -21,9 +21,13 @@ struct RequestCollection: Equatable {
         self.startTime = startTime
         self.requests = requests
     }
-
-    mutating func insert(timer: InternalTimer, response: URLResponse?) {
-        requests.append(CapturedRequest(timer: timer, relativeTo: startTime, response: response))
+    
+    mutating func insert(timer: InternalTimer, response: URLResponse?, error: Error?) {
+        requests.append(CapturedRequest(timer: timer, relativeTo: startTime, response: response, error: error))
+    }
+    
+    mutating func insert(timer: InternalTimer, request: URLRequest?, error: Error?) {
+        requests.append(CapturedRequest(timer: timer, relativeTo: startTime, request: request, error: error))
     }
     
     mutating func insert(timer: InternalTimer, response: CustomResponse) {
