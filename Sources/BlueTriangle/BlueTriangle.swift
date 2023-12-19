@@ -371,12 +371,7 @@ public extension BlueTriangle {
     ///   - timer: The request timer.
     ///   - data: The request response data.
     ///   - response: The request response.
-    ///   - error: The response error 
-   /* static func captureRequest(timer: InternalTimer, data: Data?, response: URLResponse?) {
-        Task {
-            await capturedRequestCollector?.collect(timer: timer, response: response)
-        }
-    }*/
+    ///   - error: The response error
     
     static func captureRequest(timer: InternalTimer, data: Data?, response: URLResponse?, error : Error?) {
         Task {
