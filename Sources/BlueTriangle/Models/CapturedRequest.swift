@@ -211,7 +211,7 @@ extension CapturedRequest {
         }
         self.initiatorType =  .init(rawValue: response.contentType) ?? .other
         self.url = response.url
-        self.file =  ""
+        self.file =  URL(string: response.url)?.lastPathComponent ?? ""
         self.startTime = startTime
         self.endTime = endTime
         self.duration = duration
