@@ -169,14 +169,26 @@ extension CapturedRequest {
 
     init(metrics: URLSessionTaskMetrics, relativeTo startTime: Millisecond, error: Error?) {
         let lastMetric = metrics.transactionMetrics.last
-        self.init(
-            startTime: metrics.taskInterval.start.timeIntervalSince1970.milliseconds - startTime,
-            endTime: metrics.taskInterval.end.timeIntervalSince1970.milliseconds - startTime,
-            duration: metrics.taskInterval.duration.milliseconds,
-            decodedBodySize: lastMetric?.countOfResponseBodyBytesAfterDecoding ?? 0,
-            encodedBodySize: lastMetric?.countOfResponseBodyBytesReceived ?? 0,
-            response: lastMetric?.response,
-            error: error)
+        
+        if let response = lastMetric?.response{
+            self.init(
+                startTime: metrics.taskInterval.start.timeIntervalSince1970.milliseconds - startTime,
+                endTime: metrics.taskInterval.end.timeIntervalSince1970.milliseconds - startTime,
+                duration: metrics.taskInterval.duration.milliseconds,
+                decodedBodySize: lastMetric?.countOfResponseBodyBytesAfterDecoding ?? 0,
+                encodedBodySize: lastMetric?.countOfResponseBodyBytesReceived ?? 0,
+                response: response,
+                error: error)
+        }else{
+            self.init(
+                startTime: metrics.taskInterval.start.timeIntervalSince1970.milliseconds - startTime,
+                endTime: metrics.taskInterval.end.timeIntervalSince1970.milliseconds - startTime,
+                duration: metrics.taskInterval.duration.milliseconds,
+                decodedBodySize: lastMetric?.countOfResponseBodyBytesAfterDecoding ?? 0,
+                encodedBodySize: lastMetric?.countOfResponseBodyBytesReceived ?? 0,
+                request: lastMetric?.request,
+                error: error)
+        }
     }
     
     init(
