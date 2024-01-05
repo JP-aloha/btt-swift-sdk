@@ -135,15 +135,14 @@ extension CapturedRequest.InitiatorType {
 
 extension CapturedRequest {
     
-    init(timer: InternalTimer, relativeTo startTime: Millisecond, response: URLResponse?, error : Error?) {
+    init(timer: InternalTimer, relativeTo startTime: Millisecond, response: URLResponse?) {
         self.init(
             startTime: timer.startTime.milliseconds - startTime,
             endTime: timer.endTime.milliseconds - startTime,
             duration: timer.endTime.milliseconds - timer.startTime.milliseconds,
             decodedBodySize: response?.expectedContentLength ?? 0,
             encodedBodySize: 0,
-            response: response,
-            error: error)
+            response: response)
     }
     
     init(timer: InternalTimer, relativeTo startTime: Millisecond, request: URLRequest?, error : Error?) {
@@ -152,7 +151,7 @@ extension CapturedRequest {
             endTime: timer.endTime.milliseconds - startTime,
             duration: timer.endTime.milliseconds - timer.startTime.milliseconds,
             decodedBodySize:  0,
-            encodedBodySize: 0,
+            encodedBodySize: Int64(request?.httpBody?.count ?? 0),
             request: request,
             error: error)
     }
@@ -177,15 +176,14 @@ extension CapturedRequest {
                 duration: metrics.taskInterval.duration.milliseconds,
                 decodedBodySize: lastMetric?.countOfResponseBodyBytesAfterDecoding ?? 0,
                 encodedBodySize: lastMetric?.countOfResponseBodyBytesReceived ?? 0,
-                response: response,
-                error: error)
+                response: response)
         }else{
             self.init(
                 startTime: metrics.taskInterval.start.timeIntervalSince1970.milliseconds - startTime,
                 endTime: metrics.taskInterval.end.timeIntervalSince1970.milliseconds - startTime,
                 duration: metrics.taskInterval.duration.milliseconds,
                 decodedBodySize: lastMetric?.countOfResponseBodyBytesAfterDecoding ?? 0,
-                encodedBodySize: lastMetric?.countOfResponseBodyBytesReceived ?? 0,
+                encodedBodySize: Int64(lastMetric?.request.httpBody?.count ?? 0),
                 request: lastMetric?.request,
                 error: error)
         }
@@ -268,8 +266,7 @@ extension CapturedRequest {
         duration: Millisecond,
         decodedBodySize: Int64,
         encodedBodySize: Int64,
-        response: URLResponse?,
-        error: Error?
+        response: URLResponse?
     ) {
         let hostComponents = response?.url?.host?.split(separator: ".") ?? []
         self.host = hostComponents.first != nil ? String(hostComponents.first!) : ""
@@ -282,8 +279,6 @@ extension CapturedRequest {
         let httpResponse = response as? HTTPURLResponse
         if let statusCode = httpResponse?.statusCode {
             self.statusCode = String(statusCode)
-        }else if let _ = error{
-            self.statusCode = "600"
         }
 
         if let contentType = httpResponse?.contentType {
@@ -295,9 +290,6 @@ extension CapturedRequest {
             self.initiatorType = .other
         }
 
-        if let error = error?.localizedDescription{
-            self.nativeAppProperty = NativeAppProperties.`init`(error)
-        }
         self.url = response?.url?.absoluteString ?? ""
         self.file = response?.url?.lastPathComponent ?? ""
         self.startTime = startTime

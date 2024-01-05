@@ -41,14 +41,14 @@ class TestFullPresentViewController: UIViewController {
   
     @IBAction func didSelectCustomError(_ sender : Any) {
         let tracker = NetworkCaptureTracker.init(url: "http://www.127.0.0.1:10000/api/server", method: "post", requestBodylength: 9130)
-        let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Faill to connect with server."])
+        let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Fail to connect with server."])
         tracker.failled(error)
     }
     
     
     @IBAction func didSelectBtDataTaskUrl(_ sender : Any) {
         let timer = BlueTriangle.startTimer(page: Page(pageName: "TestFullPresentViewController"))
-        URLSession.shared.btDataTask(with: URL(string: "http://www.127.0.0.1:10000/api/server")!) { data, response, error in
+        URLSession.shared.btDataTask(with: URL(string: "https://httpbin.org/invalidendpoint")!) { data, response, error in
        
         }.resume()
     }

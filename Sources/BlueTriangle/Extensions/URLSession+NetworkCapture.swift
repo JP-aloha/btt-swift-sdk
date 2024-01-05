@@ -43,7 +43,11 @@ public extension URLSession {
         return dataTask(with: request) { data, response, error in
             if var timer = timer {
                 timer.end()
-                BlueTriangle.captureRequest(timer: timer, data: data, response: response, error: error)
+                if let error = error{
+                    BlueTriangle.captureRequest(timer: timer, request: request, error: error)
+                }else{
+                    BlueTriangle.captureRequest(timer: timer, response: response)
+                }
             }
             
             completionHandler(data, response, error)
