@@ -9,6 +9,8 @@ import WebKit
 
 public class BttHybridSupport {
 
+    public let hybridSupport = BttHybridSupport()
+    
     public func setupTrackerForWeb(_  webView : WKWebView){
         let sessionId = BlueTriangle.sessionID
         let expiration = NSString(string:"\(Date.addCurrentTimeInMinut(1800))")
@@ -26,17 +28,6 @@ public class BttHybridSupport {
             if error == nil {}
             else{}
         }
-    }
-}
-
-extension Date {
-    func adding(minutes: Int64) -> Date {
-        return Calendar.current.date(byAdding: .minute, value: Int(minutes), to: self)!
-    }
-    
-    static func addCurrentTimeInMinut(_ minut : Int64) -> Int64{
-        let totalMilisecond = Date().adding(minutes: minut).timeIntervalSince1970.milliseconds
-        return totalMilisecond
     }
 }
 
