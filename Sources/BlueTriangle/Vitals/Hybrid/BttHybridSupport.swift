@@ -8,10 +8,8 @@
 import WebKit
 
 public class BttHybridSupport {
-
-    public let hybridSupport = BttHybridSupport()
     
-    public func setupTrackerForWeb(_  webView : WKWebView){
+    public static func setupTrackerForWeb(_  webView : WKWebView){
         let sessionId = BlueTriangle.sessionID
         let expiration = NSString(string:"\(Date.addCurrentTimeInMinut(1800))")
         let BTTSessionValues = String(format: "{\"value\":\"%@\", \"expires\":\"%@\"}", sessionId, expiration)
