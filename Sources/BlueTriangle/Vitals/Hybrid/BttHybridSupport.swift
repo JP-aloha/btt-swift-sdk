@@ -14,6 +14,11 @@ public class BttHybridSupport {
         let expiration = NSString(string:"\(Date.addCurrentTimeInMinut(1800))")
         let BTTSessionValues = String(format: "{\"value\":\"%@\", \"expires\":\"%@\"}", sessionId, expiration)
         let sessionJavascript = String(format: "localStorage.setItem(\"%@\", JSON.stringify(%@))", "BTT_X0siD", BTTSessionValues)
+        
+        if #available(iOS 16.4, *) {
+            webView.isInspectable = true
+        }
+        
         webView.evaluateJavaScript(sessionJavascript as String) { (result, error) in
             if error == nil {}
             else{}
