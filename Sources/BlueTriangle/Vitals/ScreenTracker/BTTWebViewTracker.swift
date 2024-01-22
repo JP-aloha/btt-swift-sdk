@@ -40,6 +40,18 @@ public class BTTWebViewTracker {
             if error == nil {}
             else{}
         }
+        
+        if BlueTriangle.configuration.enableScreenTracking{
+            //WCD
+            let isEnableTracking = "on"
+            let BTTWCDValues = String(format: "{\"value\":\"%@\", \"expires\":\"%@\"}", isEnableTracking, expiration)
+            let wcdJavascript = String(format: "localStorage.setItem(\"%@\", JSON.stringify(%@))", "BTT_WCD_Collect", BTTWCDValues)
+            
+            webView.evaluateJavaScript(wcdJavascript as String) { (result, error) in
+                if error == nil {}
+                else{}
+            }
+        }
     }
 }
 
