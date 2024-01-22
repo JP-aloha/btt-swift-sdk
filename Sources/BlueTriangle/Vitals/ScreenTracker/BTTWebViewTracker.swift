@@ -10,14 +10,23 @@ import WebKit
 #endif
 
 public class BTTWebViewTracker {
- 
-    public init(){}
+     
+    static var isEnableScreenTracking = false
     
-    @available(iOS 14.0, macOS 11.0, *)
-    public func webView( _ webView: WKWebView, didCommit navigation: WKNavigation!){
+    public static func webView( _ webView: WKWebView, didCommit navigation: WKNavigation!){
+       
+        let tracker = BTTWebViewTracker()
+        
+        tracker.injectSessionIdOnWebView(webView)
+        tracker.injectWCDCollectionOnWebView(webView)
+        tracker.injectVersionOnWebView(webView)
+    }
+    
+    private func injectSessionIdOnWebView(_ webView : WKWebView){
+       
         //Session
         let sessionId = "\(BlueTriangle.sessionID)"
-        let expiration = NSString(string:"\(Date.addCurrentTimeInMinut(1800))")
+        let expiration = NSString(string:"\(Date.addCurrentTimeInMinut(18000))")
         let BTTSessionValues = String(format: "{\"value\":\"%@\", \"expires\":\"%@\"}", sessionId, expiration)
         let sessionJavascript = String(format: "localStorage.setItem(\"%@\", JSON.stringify(%@))", "BTT_X0siD", BTTSessionValues)
         
@@ -30,9 +39,13 @@ public class BTTWebViewTracker {
             if error == nil {}
             else{}
         }
+    }
+    
+    private func injectVersionOnWebView(_ webView : WKWebView){
         
         //Version
         let sdkVersion = "iOS_\(Version.number)"
+        let expiration = NSString(string:"\(Date.addCurrentTimeInMinut(18000))")
         let BTTVersionValues = String(format: "{\"value\":\"%@\", \"expires\":\"%@\"}", sdkVersion, expiration)
         let versionJavascript = String(format: "localStorage.setItem(\"%@\", JSON.stringify(%@))", "BTT_SDK_VER", BTTVersionValues)
         
@@ -40,10 +53,15 @@ public class BTTWebViewTracker {
             if error == nil {}
             else{}
         }
+    }
+    
+    private func injectWCDCollectionOnWebView(_ webView : WKWebView){
+      
         
-        if BlueTriangle.configuration.enableScreenTracking{
+        if BTTWebViewTracker.isEnableScreenTracking {
             //WCD
             let isEnableTracking = "on"
+            let expiration = NSString(string:"\(Date.addCurrentTimeInMinut(18000))")
             let BTTWCDValues = String(format: "{\"value\":\"%@\", \"expires\":\"%@\"}", isEnableTracking, expiration)
             let wcdJavascript = String(format: "localStorage.setItem(\"%@\", JSON.stringify(%@))", "BTT_WCD_Collect", BTTWCDValues)
             
@@ -54,4 +72,6 @@ public class BTTWebViewTracker {
         }
     }
 }
+
+
 
