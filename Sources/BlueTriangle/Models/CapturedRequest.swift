@@ -54,6 +54,10 @@ struct CapturedRequest: Encodable, Equatable {
     var decodedBodySize: Int64
     /// Decompressed size of content.
     var encodedBodySize: Int64
+    //Http method
+    var httpMethod: String?
+    // Native App Properties
+    var nativeAppProperty: NativeAppProperties = .nstEmpty
 }
 
 extension CapturedRequest.InitiatorType {
@@ -130,6 +134,7 @@ extension CapturedRequest.InitiatorType {
 }
 
 extension CapturedRequest {
+    
     init(timer: InternalTimer, relativeTo startTime: Millisecond, response: URLResponse?) {
         self.init(
             startTime: timer.startTime.milliseconds - startTime,
@@ -139,19 +144,122 @@ extension CapturedRequest {
             encodedBodySize: 0,
             response: response)
     }
-
-    init(metrics: URLSessionTaskMetrics, relativeTo startTime: Millisecond) {
-        let lastMetric = metrics.transactionMetrics.last
-
+    
+    init(timer: InternalTimer, relativeTo startTime: Millisecond, request: URLRequest?, error : Error?) {
         self.init(
-            startTime: metrics.taskInterval.start.timeIntervalSince1970.milliseconds - startTime,
-            endTime: metrics.taskInterval.end.timeIntervalSince1970.milliseconds - startTime,
-            duration: metrics.taskInterval.duration.milliseconds,
-            decodedBodySize: lastMetric?.countOfResponseBodyBytesAfterDecoding ?? 0,
-            encodedBodySize: lastMetric?.countOfResponseBodyBytesReceived ?? 0,
-            response: lastMetric?.response)
+            startTime: timer.startTime.milliseconds - startTime,
+            endTime: timer.endTime.milliseconds - startTime,
+            duration: timer.endTime.milliseconds - timer.startTime.milliseconds,
+            decodedBodySize:  0,
+            encodedBodySize: Int64(request?.httpBody?.count ?? 0),
+            request: request,
+            error: error)
+    }
+    
+    init(timer: InternalTimer, relativeTo startTime: Millisecond, response: CustomResponse) {
+        self.init(
+            startTime: timer.startTime.milliseconds - startTime,
+            endTime: timer.endTime.milliseconds - startTime,
+            duration: timer.endTime.milliseconds - timer.startTime.milliseconds,
+            decodedBodySize: response.responseBodyLength,
+            encodedBodySize: response.requestBodylength,
+            response: response)
     }
 
+    init(metrics: URLSessionTaskMetrics, relativeTo startTime: Millisecond, error: Error?) {
+        let lastMetric = metrics.transactionMetrics.last
+        
+        if let response = lastMetric?.response{
+            self.init(
+                startTime: metrics.taskInterval.start.timeIntervalSince1970.milliseconds - startTime,
+                endTime: metrics.taskInterval.end.timeIntervalSince1970.milliseconds - startTime,
+                duration: metrics.taskInterval.duration.milliseconds,
+                decodedBodySize: lastMetric?.countOfResponseBodyBytesAfterDecoding ?? 0,
+                encodedBodySize: lastMetric?.countOfResponseBodyBytesReceived ?? 0,
+                response: response)
+        }else{
+            self.init(
+                startTime: metrics.taskInterval.start.timeIntervalSince1970.milliseconds - startTime,
+                endTime: metrics.taskInterval.end.timeIntervalSince1970.milliseconds - startTime,
+                duration: metrics.taskInterval.duration.milliseconds,
+                decodedBodySize: lastMetric?.countOfResponseBodyBytesAfterDecoding ?? 0,
+                encodedBodySize: Int64(lastMetric?.request.httpBody?.count ?? 0),
+                request: lastMetric?.request,
+                error: error)
+        }
+    }
+    
+    init(
+        startTime: Millisecond,
+        endTime: Millisecond,
+        duration: Millisecond,
+        decodedBodySize: Int64,
+        encodedBodySize: Int64,
+        response: CustomResponse
+    ) {
+        self.host = ""
+        self.domain = ""
+        self.httpMethod = response.method
+        if let statusCode = response.httpStatusCode{
+            self.statusCode = "\(statusCode)"
+        }
+        
+        if let error = response.error?.localizedDescription{
+            self.nativeAppProperty = NativeAppProperties.`init`(error)
+        }
+        self.initiatorType =  .init(rawValue: response.contentType) ?? .other
+        self.url = response.url
+        self.file =  URL(string: response.url)?.lastPathComponent ?? ""
+        self.startTime = startTime
+        self.endTime = endTime
+        self.duration = duration
+        self.decodedBodySize = decodedBodySize
+        self.encodedBodySize = encodedBodySize
+    }
+    
+    init(
+        startTime: Millisecond,
+        endTime: Millisecond,
+        duration: Millisecond,
+        decodedBodySize: Int64,
+        encodedBodySize: Int64,
+        request: URLRequest?,
+        error: Error?
+    ) {
+        let hostComponents = request?.url?.host?.split(separator: ".") ?? []
+        self.host = hostComponents.first != nil ? String(hostComponents.first!) : ""
+        if hostComponents.count > 2 {
+            self.domain = hostComponents.dropFirst().joined(separator: ".")
+        } else {
+            self.domain = request?.url?.host ?? ""
+        }
+
+        if let httpMethod = request?.httpMethod {
+            self.httpMethod = httpMethod
+        }
+        if let _ = error{
+            self.statusCode = "600"
+        }
+
+        if let pathExtensionString = request?.url?.pathExtension,
+           let pathExtension = InitiatorType.PathExtension(rawValue: pathExtensionString) {
+            self.initiatorType = .init(pathExtension) ?? .other
+        } else {
+            self.initiatorType = .other
+        }
+        
+        if let error = error?.localizedDescription{
+            self.nativeAppProperty = NativeAppProperties.`init`(error)
+        }
+        self.url = request?.url?.absoluteString ?? ""
+        self.file = request?.url?.lastPathComponent ?? ""
+        self.startTime = startTime
+        self.endTime = endTime
+        self.duration = duration
+        self.decodedBodySize = decodedBodySize
+        self.encodedBodySize = encodedBodySize
+    }
+    
     init(
         startTime: Millisecond,
         endTime: Millisecond,
@@ -194,6 +302,7 @@ extension CapturedRequest {
 
 // MARK: - Supporting Types
 extension CapturedRequest {
+    
     enum CodingKeys: String, CodingKey {
         case entryType = "e"
         case domain = "dmn"
@@ -207,6 +316,26 @@ extension CapturedRequest {
         case initiatorType = "i"
         case decodedBodySize = "dz"
         case encodedBodySize = "ez"
+        case nativeAppProperty = "NATIVEAPP"
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var con = encoder.container(keyedBy: CodingKeys.self)
+        try con.encode(entryType, forKey: .entryType)
+        try con.encode(domain, forKey: .domain)
+        try con.encode(host, forKey: .host)
+        try con.encode(url, forKey: .url)
+        try con.encode(file, forKey: .file)
+        try con.encode(statusCode, forKey: .statusCode)
+        try con.encode(startTime, forKey: .startTime)
+        try con.encode(endTime, forKey: .endTime)
+        try con.encode(duration, forKey: .duration)
+        try con.encode(initiatorType, forKey: .initiatorType)
+        try con.encode(decodedBodySize, forKey: .decodedBodySize)
+        try con.encode(encodedBodySize, forKey: .encodedBodySize)
+        if nativeAppProperty.netState.count > 0{
+            try con.encode(nativeAppProperty, forKey: .nativeAppProperty)
+        }
     }
 }
 
@@ -216,3 +345,14 @@ extension CapturedRequest: CustomStringConvertible {
         "CapturedRequest(url: \(url), startTime: \(startTime))"
     }
 }
+
+
+
+
+
+
+
+
+
+
+

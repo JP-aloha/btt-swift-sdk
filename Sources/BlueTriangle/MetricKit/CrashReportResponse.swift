@@ -1,9 +1,8 @@
 //
 //  CrashReportResponse.swift
-//  Metric
 //
-//  Created by New user on 18/07/23.
-//
+//  Created by JP on 18/07/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 
 import Foundation
 

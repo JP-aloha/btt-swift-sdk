@@ -13,7 +13,7 @@ final class CrashReportManagerTests: XCTestCase {
         let message = "There as an error"
     }
 
-    let crashErrorReport = ErrorReport(message: "crash_message", line: 1, column: 2, time: 100)
+    let crashErrorReport = ErrorReport(eTp: BT_ErrorType.NativeAppCrash.rawValue, message: "crash_message", line: 1, column: 2, time: 100)
 
     var crashReport: CrashReport {
         .init(sessionID: 100_000_000_000_000_001, pageName: "CrashReportManagerTests", report: crashErrorReport)

@@ -5,10 +5,11 @@
 //  Copyright © 2022 Blue Triangle. All rights reserved.
 //
 
-protocol PerformanceMonitoring {
+protocol PerformanceMonitoring : CustomDebugStringConvertible {
     var measurementCount: Int { get }
 
     func start()
     func end()
     func makeReport() -> PerformanceReport
 }
+

@@ -75,6 +75,9 @@ final public class BlueTriangleConfiguration: NSObject {
     ///
     /// The smallest allowed interval is one measurement every 1/60 of a second.
     @objc public var performanceMonitorSampleRate: TimeInterval = 1
+    
+    /// Boolean indicating whether performance monitoring is enabled.
+    @objc public var isPerformanceMonitorEnabled: Bool = false
 
     /// Percentage of sessions for which network calls will be captured. A value of `0.05`
     /// means that 5% of sessions will be tracked.
@@ -110,6 +113,13 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// Boolean indicating whether screen tracking is enabled.
     @objc public var enableScreenTracking: Bool = false
+    
+    /// Track the network state during Timer Network State and Errors. State Includes wifi, cellular, ethernet and offline.
+    /// Default Value is false
+    @objc public var enableTrackingNetworkState: Bool = false
+    
+    /// Boolean indicating whether memory warning is enabled.
+    @objc public var enableMemoryWarning: Bool = false
 
     var timerConfiguration: BTTimer.Configuration = .live
 
@@ -164,6 +174,11 @@ extension BlueTriangleConfiguration {
     }
 
     func makePerformanceMonitorFactory() -> (() -> PerformanceMonitoring)? {
-        performanceMonitorBuilder.builder(performanceMonitorSampleRate)
+        
+        if isPerformanceMonitorEnabled{
+            return performanceMonitorBuilder.builder(performanceMonitorSampleRate)
+        }else{
+            return nil
+        }
     }
 }

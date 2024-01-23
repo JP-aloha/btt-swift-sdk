@@ -2,7 +2,7 @@
 //  AppDelegate.swift
 //  TimerRequest
 //
-//  Created by admin on 09/06/23.
+//  Created by JP on 09/06/23.
 //
 
 import Foundation
@@ -32,7 +32,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             config.ANRStackTrace = false
             config.ANRWarningTimeInterval = 1
             config.enableScreenTracking = true
-            
+            config.enableTrackingNetworkState = true
+            config.isPerformanceMonitorEnabled = true            
             completion()
         }
     }

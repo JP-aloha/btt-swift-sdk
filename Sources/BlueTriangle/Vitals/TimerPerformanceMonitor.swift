@@ -70,4 +70,18 @@ final class TimerPerformanceMonitor: PerformanceMonitoring {
         NSLog("Measurement Sample \(sample)")
         measurements.append(sample)
     }
+    
+    var debugDescription: String{
+        get{
+            var memory = [UInt64]()
+            var cpu = [Double]()
+            let activeProcessorCount = Double(ProcessInfo.processInfo.activeProcessorCount)
+            for measurement in measurements {
+                memory.append(measurement.memoryUsage)
+                cpu.append(measurement.cpuUsage / activeProcessorCount)
+            }
+            
+            return "Memory Sample : PAGE NAME : \(memory) \n CPU Sample : PAGE NAME : \(cpu)"
+        }
+    }
 }

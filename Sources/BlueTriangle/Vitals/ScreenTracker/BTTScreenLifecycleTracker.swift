@@ -26,7 +26,7 @@ protocol BTScreenLifecycleTracker{
     func viewingEnd(_ id : String, _ name : String)
 }
 
-class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
+public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     
     static let shared = BTTScreenLifecycleTracker()
     private var btTimeActivityrMap = [String: TimerMapActivity]()
@@ -67,7 +67,7 @@ class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
         self.manageTimer(name, id: id, type: .disapear)
     }
     
-    private func manageTimer(_ pageName : String, id : String, type : TimerMapType){
+    func manageTimer(_ pageName : String, id : String, type : TimerMapType){
         if self.enableLifecycleTracker{
             let timerActivity = getTimerActivity(pageName, id: id)
             btTimeActivityrMap[id] = timerActivity
@@ -169,6 +169,9 @@ class TimerMapActivity {
             viewTime = timeInterval
         }
         else if type == .disapear{
+            if viewTime == nil{
+                viewTime = timeInterval
+            }
             disapearTime = timeInterval
             self.submitTimer()
         }
@@ -180,23 +183,31 @@ class TimerMapActivity {
            
             //When "pgtm" is zero then fallback mechanism triggered that calculate performence time as screen time automatically. So to avoiding "pgtm" zero value setting default value 15 milliseconds.
             // Default "pgtm" should be minimum 0.01 sec (15 milliseconds). Because timer is not reflecting on dot chat bellow to that interval.
-            let calculatedLoadTime = max((viewTime.milliseconds - loadTime.milliseconds), 15)
+            let calculatedLoadTime = max((viewTime.milliseconds - loadTime.milliseconds), Constants.minPgTm)
             
             timer.pageTimeBuilder = {
                 return calculatedLoadTime
             }
             
+            let networkReport = timer.networkReport
+            
             timer.nativeAppProperties = NativeAppProperties(
                 fullTime: disapearTime.milliseconds - loadTime.milliseconds,
                 loadTime: calculatedLoadTime,
-                maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,viewType: self.viewType)
+                maxMainThreadUsage: timer.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
+                viewType: self.viewType,
+                offline: networkReport?.offline ?? 0,
+                wifi: networkReport?.wifi  ?? 0,
+                cellular: networkReport?.cellular  ?? 0,
+                ethernet: networkReport?.ethernet  ?? 0,
+                other: networkReport?.other  ?? 0)
             
             BlueTriangle.endTimer(timer)
             
             self.logger?.info("View tracker timer submited for screen :\(pageName)")
         }
     }
-    
+                
     func getPageName()->String{
         return pageName
     }
@@ -205,5 +216,3 @@ class TimerMapActivity {
         Date().timeIntervalSince1970
     }
 }
-
-
