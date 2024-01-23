@@ -36,4 +36,10 @@ struct File {
 extension File {
     static let crashReport = Self(fileLocation: UserLocation.cache(Constants.persistenceDirectory), name: "crash_report")
     static let requests = Self(fileLocation: UserLocation.cache(Constants.persistenceDirectory), name: "requests")
+    
+    static let cacheRequestsFolder = Self(fileLocation: UserLocation.cache(Constants.cacheRequestsDirectory), name: "")
+    static func cacheRequests(_ fileName : String) -> File?{
+        let file = fileName.contains(".json") ? fileName : "\(fileName).json"
+        return Self(fileLocation: UserLocation.cache(Constants.cacheRequestsDirectory), name: file)
+    }
 }

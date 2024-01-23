@@ -75,10 +75,21 @@ final public class BlueTriangleConfiguration: NSObject {
     ///
     /// The smallest allowed interval is one measurement every 1/60 of a second.
     @objc public var performanceMonitorSampleRate: TimeInterval = 1
+    
+    /// Boolean indicating whether performance monitoring is enabled.
+    @objc public var isPerformanceMonitorEnabled: Bool = false
 
     /// Percentage of sessions for which network calls will be captured. A value of `0.05`
     /// means that 5% of sessions will be tracked.
     @objc public var networkSampleRate: Double = 0.05
+    
+    /// Offline or Failure request storage expiry period by default it is 2 day i.e 2 * 24 * 60 * 60  second
+    /// Interval unit should be in Millisecond
+    @objc public var cacheExpiryDuration: Millisecond = 2 * 24 * 60 * 60 * 1000
+    
+    /// Offline or Failure request storage memory limit by default it is 30 Mb i.e 30 * 1024 * 1024 byte
+    /// Memory unit should be in Bytes
+    @objc public var cacheMemoryLimit: UInt = 30 * 1024 * 1024
 
     /// When enabled tasks running on main thread are monitored for there run duration time.
     ///
@@ -102,6 +113,13 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// Boolean indicating whether screen tracking is enabled.
     @objc public var enableScreenTracking: Bool = false
+    
+    /// Track the network state during Timer Network State and Errors. State Includes wifi, cellular, ethernet and offline.
+    /// Default Value is false
+    @objc public var enableTrackingNetworkState: Bool = false
+    
+    /// Boolean indicating whether memory warning is enabled.
+    @objc public var enableMemoryWarning: Bool = false
 
     var timerConfiguration: BTTimer.Configuration = .live
 
@@ -156,6 +174,11 @@ extension BlueTriangleConfiguration {
     }
 
     func makePerformanceMonitorFactory() -> (() -> PerformanceMonitoring)? {
-        performanceMonitorBuilder.builder(performanceMonitorSampleRate)
+        
+        if isPerformanceMonitorEnabled{
+            return performanceMonitorBuilder.builder(performanceMonitorSampleRate)
+        }else{
+            return nil
+        }
     }
 }

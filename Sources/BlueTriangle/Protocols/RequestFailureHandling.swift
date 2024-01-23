@@ -10,7 +10,7 @@ import Foundation
 import Network
 
 protocol RequestFailureHandling: AnyObject {
-    var send: ((Request) -> Void)? { get set }
+    var send: (() -> Void)? { get set }
 
     func configureSubscriptions(queue: DispatchQueue)
     func store(request: Request)

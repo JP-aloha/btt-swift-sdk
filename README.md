@@ -133,6 +133,16 @@ URLSession.shared.btDataTask(with: URL(string: "https://example.com")!) { data, 
 }.resume()
 ```
 
+### Mannual Network Capture
+
+For other network capture requirements, captured requests can be manually created and submitted to the tracker.
+
+```swift
+let tracker = NetworkCaptureTracker.init(url: "https://hub.dummyapis.com/delay?seconds=3", method: "post", requestBodylength: 9130)
+tracker.submit(200, responseBodyLength: 11120, contentType: "json")
+```
+
+
 ### Screen View Tracking
 
 All UIViewControllers view count can be tracked. Setting "enableScreenTracking"  configuration property to true will capture view counts of every UIViewController in your app. You can see each view controller name with there count on our dashboard.
@@ -172,3 +182,27 @@ ANR(Application Not Responding) detects to main thread in which an app becomes u
 By default, the ANR interval is set to 5 seconds.
 
 
+### Memory Warning
+
+A "Memory Warning" is raise to a situation where an application is consuming a significant amount of memory, and the operating system is notifying your app that it should release any unnecessary resources to free up memory. It can be enabled by setting "enableMemoryWarning" configuration property to "true".
+
+
+```swift
+ BlueTriangle.configure { config in
+         ...
+         config.enableMemoryWarning = true
+     }
+```
+
+
+### Network State
+
+ A "Network State" feature is used to monitoring state of network ( like - wifi, offline, online etc. ) and provided time period of each used state (i.e provide usege of each network state). It can be enabled by setting "enableTrackingNetworkState" configuration property to "true".
+
+
+```swift
+ BlueTriangle.configure { config in
+         ...
+         config.enableTrackingNetworkState = true
+     }
+```

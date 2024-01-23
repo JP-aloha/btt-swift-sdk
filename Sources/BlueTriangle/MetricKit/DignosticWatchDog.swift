@@ -2,7 +2,8 @@
 //  DignosticWatchDog.swift
 //  Matric Dignostic
 //
-//  Created by jaiprakash bokhare on 28/06/23.
+//  Created by JP on 28/06/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
 
 #if os(iOS)
@@ -235,10 +236,14 @@ extension MetricKitSubscriber {
         }
         
         let binaryName = decorateWithPadding(string: subFrames.binaryName, columnSize: 40)
-        let binaryUUID = decorateWithPadding(string: subFrames.binaryUUID, columnSize: 40)
-        let address = decorateWithPadding(string: "\(subFrames.address)", columnSize: 25)
-        let offsetIntoBinaryTextSegment = decorateWithPadding(string: "+ \(subFrames.offsetIntoBinaryTextSegment)", columnSize: 20)
-        let string = "~~ \(binaryName) \(binaryUUID) \(address) \(offsetIntoBinaryTextSegment)"
+        
+        let hexAddress = String(subFrames.address, radix: 16, uppercase: true)
+        let address = decorateWithPadding(string: "+ \(hexAddress)", columnSize: 20)
+        
+        let hexOffsetIntoBinaryTextSegment = String(subFrames.offsetIntoBinaryTextSegment, radix: 16, uppercase: true)
+        let offsetIntoBinaryTextSegment = decorateWithPadding(string: "+ \(hexOffsetIntoBinaryTextSegment)", columnSize: 20)
+       
+        let string = "\n \(binaryName)  0x\(address)  0x\(offsetIntoBinaryTextSegment)"
         
         formattedCrashReportString += string
     }

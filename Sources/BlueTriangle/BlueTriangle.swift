@@ -54,6 +54,7 @@ final public class BlueTriangle: NSObject {
     private static var logger: Logging = {
         configuration.makeLogger()
     }()
+    
 
     private static var uploader: Uploading = {
         configuration.uploaderConfiguration.makeUploader(
@@ -82,6 +83,8 @@ final public class BlueTriangle: NSObject {
 
     private static var crashReportManager: CrashReportManaging?
     
+    static var monitorNetwork: NetworkStateMonitorProtocol?
+    
     private static var capturedRequestCollector: CapturedRequestCollecting? = {
         if shouldCaptureRequests {
             let collector = configuration.capturedRequestCollectorConfiguration.makeRequestCollector(
@@ -101,12 +104,30 @@ final public class BlueTriangle: NSObject {
 
     private static var appEventObserver: AppEventObserver?
 
+    //Cache components
+    internal static var payloadCache : PayloadCacheProtocol = {
+        PayloadCache.init(configuration.cacheMemoryLimit,
+                          expiry: configuration.cacheExpiryDuration)
+    }()
+    
     //ANR components
     private static let anrWatchDog : ANRWatchDog = {
         ANRWatchDog(
             mainThreadObserver: MainThreadObserver.live,
             session: session,
-            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: nil),
+            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
+                file: .requests,
+                logger: logger)),
+            logger: BlueTriangle.logger)
+    }()
+    
+    //ANR components
+    private static let memoryWarningWatchDog : MemoryWarningWatchDog = {
+        MemoryWarningWatchDog(
+            session: session,
+            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
+                file: .requests,
+                logger: logger)),
             logger: BlueTriangle.logger)
     }()
     
@@ -231,9 +252,11 @@ extension BlueTriangle {
                 }
             }
             
+            configureMemoryWarning(with: configuration.enableMemoryWarning)
             configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
                                  interval: configuration.ANRWarningTimeInterval)
             configureScreenTracking(with: configuration.enableScreenTracking)
+            configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
         }
     }
 
@@ -359,7 +382,15 @@ public extension BlueTriangle {
     ///   - timer: The request timer.
     ///   - data: The request response data.
     ///   - response: The request response.
-    static func captureRequest(timer: InternalTimer, data: Data?, response: URLResponse?) {
+    ///   - error: The response error
+    
+    static func captureRequest(timer: InternalTimer, response: URLResponse?) {
+        Task {
+            await capturedRequestCollector?.collect(timer: timer, response: response)
+        }
+    }
+    
+    internal static func captureRequest(timer: InternalTimer, response: CustomResponse) {
         Task {
             await capturedRequestCollector?.collect(timer: timer, response: response)
         }
@@ -374,12 +405,18 @@ public extension BlueTriangle {
             await capturedRequestCollector?.collect(timer: timer, response: tuple.1)
         }
     }
+    
+    static func captureRequest(timer: InternalTimer, request : URLRequest, error: Error?) {
+        Task {
+            await capturedRequestCollector?.collect(timer: timer, request: request, error: error)
+        }
+    }
 
     /// Captures a network request.
     /// - Parameter metrics: An object encapsulating the metrics for a session task.
-    static func captureRequest(metrics: URLSessionTaskMetrics) {
+    static func captureRequest(metrics: URLSessionTaskMetrics, error : Error?) {
         Task {
-            await capturedRequestCollector?.collect(metrics: metrics)
+            await capturedRequestCollector?.collect(metrics: metrics, error: error)
         }
     }
 }
@@ -416,7 +453,8 @@ extension BlueTriangle {
     ///
     /// - Parameter exception: The exception to upload.
     public static func storeException(exception: NSException) {
-        let crashReport = CrashReport(sessionID: sessionID, exception: exception)
+        let pageName = BlueTriangle.recentTimer()?.page.pageName
+        let crashReport = CrashReport(sessionID: sessionID, exception: exception, pageName: pageName)
         CrashReportPersistence.save(crashReport)
     }
 }
@@ -444,6 +482,26 @@ extension BlueTriangle{
         if enabled {
 #if os(iOS)
             UIViewController.setUp()
+#endif
+        }
+    }
+}
+
+// MARK: - Network State
+extension BlueTriangle{
+    static func configureMonitoringNetworkState(with enabled: Bool){
+        if enabled {
+            monitorNetwork = NetworkStateMonitor.init(logger)
+        }
+    }
+}
+
+//MARK: - Memory Warning
+extension BlueTriangle{
+    static func configureMemoryWarning(with enabled: Bool){
+        if enabled {
+#if os(iOS)
+            self.memoryWarningWatchDog.start()
 #endif
         }
     }

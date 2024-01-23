@@ -109,9 +109,9 @@ An task blocking main thread since \(errorTriggerInterval) seconds
 Main Thread Trace
 \(trace)
 """
-            let exp = NSException(name: NSExceptionName("ANR Detected"), reason: message)
-            let report = CrashReport(sessionID: BlueTriangle.sessionID,
-                         exception: exp)
+            
+            let pageName = BlueTriangle.recentTimer()?.page.pageName
+            let report = CrashReport(sessionID: BlueTriangle.sessionID, ANRmessage: message, pageName: pageName)
             uploadReports(session: session, report: report)
             logger.debug(message)
         }catch{
@@ -141,13 +141,15 @@ Main Thread Trace
     
     private func makeTimerRequest(session: Session, report: ErrorReport, pageName: String?) throws -> Request {
         let page = Page(pageName: pageName ?? ANRWatchDog.TIMER_PAGE_NAME, pageType: Device.name)
-        let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: 15)
+        let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
+        let nativeProperty = BlueTriangle.recentTimer()?.nativeAppProperties ?? .empty
         let model = TimerRequest(session: session,
                                  page: page,
                                  timer: timer,
                                  purchaseConfirmation: nil,
                                  performanceReport: nil,
                                  excluded: Constants.excludedValue,
+                                 nativeAppProperties: nativeProperty,
                                  isErrorTimer: true)
 
         return try Request(method: .post,

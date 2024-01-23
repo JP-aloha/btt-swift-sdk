@@ -2,8 +2,8 @@
 //  TimerTest2View.swift
 //  TimerRequest
 //
-//  Created by Ashok Singh on 31/07/23.
-//
+//  Created by JP on 31/07/23.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 
 import SwiftUI
 

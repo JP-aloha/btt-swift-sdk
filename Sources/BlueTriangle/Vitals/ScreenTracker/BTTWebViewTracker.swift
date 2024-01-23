@@ -17,6 +17,10 @@ public class BTTWebViewTracker {
        
         let tracker = BTTWebViewTracker()
         
+        if #available(iOS 16.4, *) {
+            webView.isInspectable = true
+        }
+        
         tracker.injectSessionIdOnWebView(webView)
         tracker.injectWCDCollectionOnWebView(webView)
         tracker.injectVersionOnWebView(webView)
@@ -30,11 +34,6 @@ public class BTTWebViewTracker {
         let BTTSessionValues = String(format: "{\"value\":\"%@\", \"expires\":\"%@\"}", sessionId, expiration)
         let sessionJavascript = String(format: "localStorage.setItem(\"%@\", JSON.stringify(%@))", "BTT_X0siD", BTTSessionValues)
         
-
-        if #available(iOS 16.4, *) {
-            webView.isInspectable = true
-        }
-        
         webView.evaluateJavaScript(sessionJavascript as String) { (result, error) in
             if error == nil {}
             else{}
@@ -44,7 +43,7 @@ public class BTTWebViewTracker {
     private func injectVersionOnWebView(_ webView : WKWebView){
         
         //Version
-        let sdkVersion = "iOS_\(Version.number)"
+        let sdkVersion = "iOS-\(Version.number)"
         let expiration = NSString(string:"\(Date.addCurrentTimeInMinut(18000))")
         let BTTVersionValues = String(format: "{\"value\":\"%@\", \"expires\":\"%@\"}", sdkVersion, expiration)
         let versionJavascript = String(format: "localStorage.setItem(\"%@\", JSON.stringify(%@))", "BTT_SDK_VER", BTTVersionValues)

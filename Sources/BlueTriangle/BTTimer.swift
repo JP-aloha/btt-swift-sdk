@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 /// An object that measures the duration of a user interaction.
 final public class BTTimer: NSObject {
@@ -42,6 +43,8 @@ final public class BTTimer: NSObject {
     private let timeIntervalProvider: () -> TimeInterval
     private let onStart: (TimerType, Page, TimeInterval) -> Void
     private let performanceMonitor: PerformanceMonitoring?
+    private var networkAccumulator : BTTimerNetStateAccumulatorProtocol?
+    private var nativeAppProp : NativeAppProperties?
 
     /// The type of the timer.
     @objc public let type: TimerType
@@ -84,10 +87,34 @@ final public class BTTimer: NSObject {
         self.endTime.milliseconds - self.startTime.milliseconds
     }
     
-    var nativeAppProperties: NativeAppProperties?
+    var nativeAppProperties: NativeAppProperties{
+        get{
+            guard let nativeAppProp = nativeAppProp else{
+                return NativeAppProperties(
+                    fullTime: 0,
+                    loadTime: 0,
+                    maxMainThreadUsage: performanceReport?.maxMainThreadTask.milliseconds ?? 0,
+                    viewType: nil,
+                    offline: networkReport?.offline ?? 0,
+                    wifi: networkReport?.wifi ?? 0,
+                    cellular: networkReport?.cellular ?? 0,
+                    ethernet: networkReport?.ethernet ?? 0,
+                    other: networkReport?.other ?? 0)
+            }
+            
+            return nativeAppProp
+        }
+        set(newValue){
+            nativeAppProp = newValue
+        }
+    }
 
     var performanceReport: PerformanceReport? {
         performanceMonitor?.makeReport()
+    }
+    
+    var networkReport: NetworkReport? {
+        return networkAccumulator?.makeReport()
     }
 
     init(page: Page,
@@ -111,6 +138,7 @@ final public class BTTimer: NSObject {
     public func start() {
         BlueTriangle.addActiveTimer(self)
         handle(.start)
+        self.startNetState()
     }
 
     /// Mark the timer interactive at current time if the timer has been started and not
@@ -126,6 +154,14 @@ final public class BTTimer: NSObject {
     /// End the timer.
     @objc
     public func end() {
+        self.stopNetState()
+        
+        if let pm = performanceMonitor{
+            let pageName = self.page.pageName
+            let page = pm.debugDescription.replacingOccurrences(of: "PAGE NAME", with: pageName)
+            logger.info(page)
+        }
+        
         BlueTriangle.removeActiveTimer(self)
         handle(.end)
     }
@@ -159,6 +195,19 @@ final public class BTTimer: NSObject {
                 logger.error("Invalid transition.")
             }
         }
+    }
+}
+
+extension BTTimer{
+    func startNetState(){
+        if let monitor = BlueTriangle.monitorNetwork{
+            self.networkAccumulator = BTTimerNetStateAccumulator(monitor)
+            self.networkAccumulator?.start()
+        }
+    }
+    
+    func stopNetState(){
+        self.networkAccumulator?.stop()
     }
 }
 

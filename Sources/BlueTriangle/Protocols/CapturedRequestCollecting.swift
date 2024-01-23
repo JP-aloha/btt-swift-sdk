@@ -9,6 +9,8 @@ import Foundation
 
 protocol CapturedRequestCollecting: Actor {
     func start(page: Page, startTime: TimeInterval)
+    func collect(timer: InternalTimer, response: CustomResponse)
+    func collect(metrics: URLSessionTaskMetrics, error : Error?)
     func collect(timer: InternalTimer, response: URLResponse?)
-    func collect(metrics: URLSessionTaskMetrics)
+    func collect(timer: InternalTimer, request : URLRequest, error: Error?)
 }

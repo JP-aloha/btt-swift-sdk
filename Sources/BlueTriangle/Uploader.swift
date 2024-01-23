@@ -42,8 +42,8 @@ final class Uploader: Uploading {
         self.failureHandler = failureHandler
         self.retryConfiguration = retryConfiguration
 
-        failureHandler?.send = { [weak self] request in
-            self?.send(request: request)
+        failureHandler?.send = { [weak self]  in
+            self?.uploadCacheRequests()
         }
         failureHandler?.configureSubscriptions(queue: queue)
     }
@@ -51,15 +51,20 @@ final class Uploader: Uploading {
     func send(request: Request) {
         logger.debug(request.debugDescription)
         let id = UUID()
+        let cache = BlueTriangle.payloadCache
         let publisher = networking(request)
             .retry(retryConfiguration, scheduler: queue)
             .subscribe(on: queue)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                     if case .failure(let error) = completion {
-                         self?.logger.error(error.localizedDescription)
-                         self?.failureHandler?.store(request: request)
-                     }
+            .sink(receiveCompletion: { [weak self] completion in
+                    if case .failure(let error) = completion {
+                        self?.logger.error(error.localizedDescription)
+                        do{
+                            try cache.save(Payload(request: request))
+                        }catch{
+                            self?.logger.error("Unable to save payload : \(error)")
+                        }
+                    }
+                    
                     self?.removeSubscription(id: id)
                 },
                 receiveValue: { [weak self] value in
@@ -68,6 +73,46 @@ final class Uploader: Uploading {
             )
 
         addSubscription(publisher, id: id)
+    }
+    
+    func uploadCacheRequests(){
+        do{
+            let cache = BlueTriangle.payloadCache
+            if let payload = try cache.pickNext(){
+                logger.debug(payload.data.debugDescription)
+                let id = UUID()
+                let publisher = networking(payload.data)
+                    .subscribe(on: queue)
+                    .sink(receiveCompletion: { [weak self] completion in
+                        if case .failure( _) = completion {
+                            self?.logger.debug(payload.data.debugDescription)
+                            do{
+                                try cache.save(payload)
+                            }catch{
+                                self?.logger.error("Unable to save payload : \(error)")
+                            }
+                            self?.uploadCacheRequests()
+                        }
+                        self?.removeSubscription(id: id)
+                    },receiveValue: { [weak self] value in
+                        self?.logger.info("HTTP Status: \(value.response.statusCode)")
+                        do{
+                            try cache.delete(payload)
+                        }
+                        catch{
+                            self?.logger.error("Unable to delete payload : \(error)")
+                        }
+                        self?.uploadCacheRequests()
+                    })
+                
+                addSubscription(publisher, id: id)
+            }else{
+                RequestFailureHandler.isUploading = false
+            }
+        }catch{
+            RequestFailureHandler.isUploading = false
+            self.logger.error("Unable to pick payload : \(error)")
+        }
     }
 
     private func addSubscription(_ cancellable: AnyCancellable, id: UUID) {
