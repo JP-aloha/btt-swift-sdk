@@ -19,9 +19,9 @@ protocol PayloadCacheProtocol: AnyObject {
 class PayloadCache : PayloadCacheProtocol{
    
     //MB * 1024 * 1024
-    private var memoryLimit: UInt
+    private(set) var memoryLimit: UInt
     //day * 24 * 60 * 60 * 1000
-    private var expiryDuration : Millisecond
+    private(set) var expiryDuration : Millisecond
     
     private var minExpiryDuration : Millisecond =  2 * 60 * 1000//1 * 24 * 60 * 60 * 1000
     private var maxExpiryDuration : Millisecond = 10 * 24 * 60 * 60 * 1000
@@ -239,6 +239,7 @@ extension PayloadCache {
         var fileList = [String]()
         
         guard let docs = File.cacheRequestsFolder?.url.path else { return fileList}
+       
         if let files = try? FileManager.default.contentsOfDirectory(atPath:docs).filter({ name in return name.contains(".json")}) {
             fileList.append(contentsOf: files)
         }
