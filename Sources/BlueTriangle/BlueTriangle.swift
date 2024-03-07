@@ -255,7 +255,7 @@ extension BlueTriangle {
             configureMemoryWarning(with: configuration.enableMemoryWarning)
             configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
                                  interval: configuration.ANRWarningTimeInterval)
-            configureScreenTracking(with: configuration.enableScreenTracking)
+            configureScreenTracking(with: configuration.enableScreenTracking, ignoreVCs: configuration.ignoreViewControllers)
             configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
         }
     }
@@ -474,14 +474,14 @@ extension BlueTriangle{
 
 // MARK: - Screen Tracking
 extension BlueTriangle{
-    static func configureScreenTracking(with enabled: Bool){
+    static func configureScreenTracking(with enabled: Bool, ignoreVCs : Set<String>){
         BTTScreenLifecycleTracker.shared.setLifecycleTracker(enabled)
         BTTScreenLifecycleTracker.shared.setUpLogger(logger)
         BTTWebViewTracker.isEnableScreenTracking = enabled
         
         if enabled {
 #if os(iOS)
-            UIViewController.setUp()
+            UIViewController.setUp(ignoreVCs)
 #endif
         }
     }

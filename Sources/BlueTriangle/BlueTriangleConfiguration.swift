@@ -112,7 +112,15 @@ final public class BlueTriangleConfiguration: NSObject {
     @objc public var enableDebugLogging: Bool = false
     
     /// Boolean indicating whether screen tracking is enabled.
+    /// To track alll UIKit screen autometically, It should be enabled
+    /// To track swiftUI screen, It should be enabled
+    /// You can mannually track view by enabling that
+    /// When this is off, Non of above would  get  track
     @objc public var enableScreenTracking: Bool = false
+    
+    /// This is a  Set of ViewControllers  which developer does not want to track or want to ignore their track. This property can only ignore that screen, Which is being tracked autometically. And It can not ignore , Which is being tracked  manually.
+    /// Set an array of view controlles which user want to ignore
+    @objc public  var ignoreViewControllers: Set<String> = Set<String>()
     
     /// Track the network state during Timer Network State and Errors. State Includes wifi, cellular, ethernet and offline.
     /// Default Value is false
