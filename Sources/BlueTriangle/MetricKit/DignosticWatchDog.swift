@@ -206,6 +206,8 @@ extension MetricKitSubscriber {
                                        pageName: timerDetail.pageName,
                                        intervalProvider: timerDetail.startTime)
         
+        NSLog("MatricKit caught crash : \(formattedCrashReportString)")
+        
        CrashReportPersistence.saveCrash(crashReport: crashReport)
     }
     

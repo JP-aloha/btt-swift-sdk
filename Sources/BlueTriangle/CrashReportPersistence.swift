@@ -30,6 +30,7 @@ struct CrashReportPersistence: CrashReportPersisting {
         switch configuration {
         case .nsException:
             NSSetUncaughtExceptionHandler { exception in
+                NSLog("GlobleExceptionHandler caught crash : \(exception.description)")
                 Self.save(
                     CrashReport(sessionID: BlueTriangle.sessionID,
                                 exception: exception, pageName: BlueTriangle.recentTimer()?.page.pageName))
