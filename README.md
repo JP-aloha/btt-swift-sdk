@@ -29,9 +29,7 @@ To integrate BlueTriangle using CocoaPods into your iOS project, you need to fol
   ```
 
 
-## Usage
-
-### Configuration
+## Configuration
 
 Before sending timers you must first configure `BlueTriangle`. It is recommended to do this in your `AppDelegate.application(_:didFinishLaunchingWithOptions:)` method:
 
@@ -50,7 +48,7 @@ BlueTriangle.configure { config in
 }
 ```
 
-### Timers
+## Timers
 
 To measure the duration of a user interaction, initialize a `Page` object describing that interaction and pass it to `BlueTriangle.startTimer(page:timerType)` to receive a running timer instance.
 
@@ -91,7 +89,7 @@ let purchaseConfirmation = PurchaseConfirmation(cartValue: 99.00)
 BlueTriangle.endTimer(timer, purchaseConfirmation: purchaseConfirmation)
 ```
 
-#### Timer Types
+### Timer Types
 
 `BlueTriangle.makeTimer(page:timerType:)` and `BlueTriangle.startTimer(page:timerType:)` have a `timerType` parameter to specify the type of the timer they return. By default, both methods return main timers with the type `BTTimer.TimerType.main`. When network capture is enabled, requests made with one of the `bt`-prefixed `URLSession` methods will be associated with the last main timer to have been started at the time the request completes. It is recommended to only have a single main timer running at any given time. If you need overlapping timers, create additional custom timers by specifying a `BTTimer.TimerType.custom` timer type:
 
@@ -104,7 +102,7 @@ BlueTriangle.endTimer(mainTimer)
 BlueTriangle.endTimer(customTimer)
 ```
 
-### Network Capture
+## Network Capture
 
 The Blue Triangle SDK supports capturing network requests using either the `NetworkCaptureSessionDelegate` or `bt`-prefixed `URLSession` methods.
 
@@ -119,7 +117,7 @@ BlueTriangle.configure { config in
 
 A value of `0.05`, for example, means that network capture will be randomly enabled for 5% of user sessions. Network requests using a `URLSession` with a `NetworkCaptureSessionDelegate` or made with one of the `bt`-prefixed `URLSession` methods will be associated with the last main timer to have been started at the time a request completes. Note that requests are only captured after at least one main timer has been started and they are not associated with a timer until the request ends.
 
-#### `NetworkCaptureSessionDelegate`
+### `NetworkCaptureSessionDelegate`
 
 You can use `NetworkCaptureSessionDelegate` or a subclass as your `URLSession` delegate to gather information about network requests when network capture is enabled:
 
@@ -134,7 +132,19 @@ let timer = BlueTriangle.startTimer(page: Page(pageName: "MY_PAGE"))
 let (data, response) = try await session.data(from: URL(string: "https://example.com")!)
 ```
 
-#### `URLSession` Methods
+if you have already implemented and set URLSessionDelegate to URLSession. You can call  NetworkCaptureSessionDelegate objects urlSession(session: task: didFinishCollecting:) method like bellow.
+
+```swift
+    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+     
+     //Your code ...
+     
+    let sessionDelegate = NetworkCaptureSessionDelegate()
+    sessionDelegate.urlSession(session, task: task, didFinishCollecting: metrics)
+}
+```
+
+### `URLSession` Methods
 
 Alternatively, use `bt`-prefixed `URLSession` methods to capture network requests:
 
@@ -158,13 +168,36 @@ URLSession.shared.btDataTask(with: URL(string: "https://example.com")!) { data, 
 
 For other network capture requirements, captured requests can be manually created and submitted to the tracker.
 
+#### If you have the URL, method, and requestBodyLength in the request, and httpStatusCode, responseBodyLength, and contentType in the response 
+
 ```swift
 let tracker = NetworkCaptureTracker.init(url: "https://hub.dummyapis.com/delay?seconds=3", method: "post", requestBodylength: 9130)
 tracker.submit(200, responseBodyLength: 11120, contentType: "json")
 ```
 
+#### If you have urlRequest in request and urlResponse in response
 
-### Screen View Tracking
+```swift
+        let tracker = NetworkCaptureTracker.init(request: urlRequest)
+        tracker.submit(urlResponse) 
+```
+where urlRequest and urlResponse are of URLRequest and URLResponse types, respectively
+
+#### If you encounters an error during a network call
+
+```swift
+        let tracker = NetworkCaptureTracker.init(url: "https://hub.dummyapis.com/delay?seconds=3", method: "post", requestBodylength: 9130)
+        tracker.failled(error)
+        
+        OR 
+        
+        let tracker = NetworkCaptureTracker.init(request: urlRequest)
+        tracker.failled(error) 
+
+```
+
+
+## Screen View Tracking
 
 All UIViewControllers view count can be tracked. Setting "enableScreenTracking"  configuration property to true will capture view counts of every UIViewController in your app. You can see each view controller name with there count on our dashboard.
 
@@ -188,7 +221,7 @@ struct ContentView: View {
 }
 ```
 
-### ANR Detection
+## ANR Detection
 
 ANR(Application Not Responding) detects to main thread in which an app becomes unresponsive or stops responding to user input for an extended period of time. It can be enabled by setting "ANRMonitoring" configuration property to "true". And it can set Interval, to consider it an ANR situation by setting "ANRWarningTimeInterval" configuration property as shown below.
 
@@ -216,7 +249,7 @@ Track ios reported low memory worning. iOS reported meory wornings can be tracke
 ```
 
 
-### Network State Capture
+## Network State Capture
 
  BlueTriangle SDK allows capturing of network state data. Network state refers to the availability of any network interfaces on the device. Network interfaces include wifi, ethernet, cellular, etc. Once Network state capturing is enabled, the Network state is associated with all Timers, Errors and Network Requests captured by the SDK.
 
@@ -232,7 +265,7 @@ To enable Network state capture, use the enableTrackingNetworkState property on 
 
 
 
-### Offline Caching
+## Offline Caching
 
 Offline caching is a feature that allows the BTT sdk to keep track of timers and other analytics data while the app is
 in offline mode. i.e, the BTT sdk cannot access the tracker urls.
@@ -254,7 +287,7 @@ Memory limit and Expiry Duration can be set by using configuration property cach
 By default, the cacheMemoryLimit is set to 2 days and cacheExpiryDuration is set to 30 MB.
 
 
-### WebView Tracking
+## WebView Tracking
 
 Websites shown in webview  that are tracked by BlueTriangle can be tracked in the same session as the native app. To achieve this, follow the steps below to configure the WebView:
 
