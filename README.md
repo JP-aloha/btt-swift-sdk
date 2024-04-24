@@ -188,15 +188,25 @@ struct ContentView: View {
 }
 ```
 
+For both UIKit and SwiftUI, 'enableScreenTracking' should be enabled, and by default, it is. If you do not want to track screens anyway, you need to set 'enableScreenTracking' to false.
+
 ### ANR Detection
 
-ANR(Application Not Responding) detects to main thread in which an app becomes unresponsive or stops responding to user input for an extended period of time. It can be enabled by setting "ANRMonitoring" configuration property to "true". And it can set Interval, to consider it an ANR situation by setting "ANRWarningTimeInterval" configuration property as shown below.
+ANR(Application Not Responding) detects to main thread in which an app becomes unresponsive or stops responding to user input for an extended period of time. By default, it is enabled, but it can be disabled by setting the 'ANRMonitoring' configuration property to 'false'. 
+
+```swift
+ BlueTriangle.configure { config in
+         ...
+         config.ANRMonitoring = false
+     }
+```
+
+And it can set Interval, to consider it an ANR situation by setting "ANRWarningTimeInterval" configuration property as shown below.
 
 
 ```swift
  BlueTriangle.configure { config in
          ...
-         config.ANRMonitoring = true
          config.ANRWarningTimeInterval = 3
      }
 ```
@@ -205,13 +215,13 @@ By default, the ANR interval is set to 5 seconds.
 
 ### Memory Warning
 
-Track ios reported low memory worning. iOS reported meory wornings can be tracked by btt. It can be enabled by setting "enableMemoryWarning" configuration property to "true".
+Track ios reported low memory worning. iOS reported meory wornings can be tracked by btt. It is enabled by default but can be disabled by setting the 'enableMemoryWarning' configuration property to 'false'.
 
 
 ```swift
  BlueTriangle.configure { config in
          ...
-         config.enableMemoryWarning = true
+         config.enableMemoryWarning = false
      }
 ```
 
