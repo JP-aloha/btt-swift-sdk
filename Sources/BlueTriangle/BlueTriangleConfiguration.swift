@@ -69,7 +69,7 @@ final public class BlueTriangleConfiguration: NSObject {
     @objc public var trafficSegmentName: String = ""
 
     /// Crash tracking behavior.
-    @objc public var crashTracking: CrashTracking = .none
+    @objc public var crashTracking: CrashTracking = .nsException
 
     /// Controls the frequency at which app performance is sampled.
     ///
