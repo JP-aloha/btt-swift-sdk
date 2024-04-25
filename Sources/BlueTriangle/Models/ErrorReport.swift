@@ -23,9 +23,7 @@ struct ErrorReport: Codable {
         try con.encode(eCnt, forKey: .eCnt)
         try con.encode(eTp, forKey: .eTp)
         try con.encode(ver, forKey: .ver)
-        if nativeApp.netState.count > 0{
-            try con.encode(nativeApp, forKey: .nativeApp)
-        }
+        try con.encode(nativeApp, forKey: .nativeApp)
         try con.encode(appName, forKey: .appName)
         try con.encode(message, forKey: .message)
         try con.encode(line, forKey: .line)
