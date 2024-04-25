@@ -49,6 +49,16 @@ BlueTriangle.configure { config in
     config.performanceMonitorSampleRate = 1.0
 }
 ```
+Replace MY_SITE_ID with your site id. You can find your site ID on the website by following below steps:
+
+1.Go to [https://portal.bluetriangletech.coml](https://portal.bluetriangletech.com)
+2.Login with your portal Account
+3.Go to Settings & Administration.
+4.Click on Site Configuration.
+5.Select Sites.
+6.Get the site id for you site as shown in image below
+
+![Image]{./SettingsSites.jpeg}
 
 ### Timers
 
