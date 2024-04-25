@@ -60,7 +60,7 @@ To find site ID,
 3. Click on "Settings" icon
 4. Open the **Sites** page under the **Settings** Modal. (Logged in user needs to have access to Sites page)
 <img src="./settings_modal.png">
-5. Get the value in the "Tag Prefix" column for the desired "Site Name".
+5. Get the value for site ID from the "Tag Prefix" column for the desired "Site Name".
 <img src="./sites_table.png">
 
 ### Timers
