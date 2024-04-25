@@ -37,7 +37,7 @@ Before sending timers you must first configure `BlueTriangle`. It is recommended
 
 ```swift
 BlueTriangle.configure { config in
-    config.siteID = "MY_SITE_ID"
+    config.siteID = "BTT_SITE_ID"
     config.isReturningVisitor = true
     config.abTestID = "MY_AB_TEST_ID"
     config.campaignMedium = "MY_CAMPAIGN_MEDIUM"
@@ -49,16 +49,21 @@ BlueTriangle.configure { config in
     config.performanceMonitorSampleRate = 1.0
 }
 ```
-Replace MY_SITE_ID with your site id. You can find your site ID on the website by following below steps:
 
-1.Go to [https://portal.bluetriangletech.coml](https://portal.bluetriangletech.com)
-2.Login with your portal Account
-3.Go to Settings & Administration.
-4.Click on Site Configuration.
-5.Select Sites.
-6.Get the site id for you site as shown in image below
+Replace <BTT_SITE_ID> with your site ID.
 
-![Image]{./SettingsSites.jpeg}
+### How to find your site ID
+
+To find site ID,
+1. Go to [https://portal.bluetriangletech.com](https://portal.bluetriangletech.com)
+2. Login to portal
+3. Click on "Settings" icon
+4. Open the **Sites** page under the **Settings** Modal. (Logged in user needs to have access to Sites page)
+[<img src="./settings_modal.png">]
+![<Settings modal image>]{./settings_modal.png}
+5. Get the value in the "Tag Prefix" column for the desired "Site Name".
+[<img src="./sites_table.png">]
+![<Sites table image>]{./sites_table.png}
 
 ### Timers
 
