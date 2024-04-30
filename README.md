@@ -29,7 +29,7 @@ To integrate BlueTriangle using CocoaPods into your iOS project, you need to fol
   ```
 
 
-### Configuration
+## Configuration
 
 In order to use `BlueTriangle`, you need to first configure `BlueTriangle` SDK. To configure it import `BlueTriangle` and call configure function with your siteID. It is recommended to do this in your `AppDelegate.application(_:didFinishLaunchingWithOptions:)` OR `SceneDelegate.scene(_ scene:, willConnectTo session:, options,connectionOptions:)` method:
 
