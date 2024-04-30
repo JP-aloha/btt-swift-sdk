@@ -68,17 +68,7 @@ final class CrashReportManager: CrashReportManaging {
         line: UInt
     ) {
         
-        let nativeApp = NativeAppProperties(
-            fullTime: 0,
-            loadTime: 0,
-            maxMainThreadUsage: 0,
-            viewType: nil,
-            offline: 0,
-            wifi:  0,
-            cellular:  0,
-            ethernet:  0,
-            other:  0,
-            netState: NetworkState.Other.rawValue)
+        let nativeApp = NativeAppProperties.nstEmpty
         let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error, line: line, time: intervalProvider().milliseconds)
         let pageName = BlueTriangle.recentTimer()?.page.pageName
         do {

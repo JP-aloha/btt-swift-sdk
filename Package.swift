@@ -16,8 +16,10 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "BlueTriangle",
-            dependencies: ["Backtrace"]),
+          name: "BlueTriangle",
+          dependencies: ["Backtrace"],
+          resources: [.copy("PrivacyInfo.xcprivacy")]
+        ),
         .target(
             name: "Backtrace",
             dependencies: []),

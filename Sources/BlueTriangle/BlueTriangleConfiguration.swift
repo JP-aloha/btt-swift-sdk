@@ -69,7 +69,7 @@ final public class BlueTriangleConfiguration: NSObject {
     @objc public var trafficSegmentName: String = ""
 
     /// Crash tracking behavior.
-    @objc public var crashTracking: CrashTracking = .none
+    @objc public var crashTracking: CrashTracking = .nsException
 
     /// Controls the frequency at which app performance is sampled.
     ///
@@ -77,7 +77,7 @@ final public class BlueTriangleConfiguration: NSObject {
     @objc public var performanceMonitorSampleRate: TimeInterval = 1
     
     /// Boolean indicating whether performance monitoring is enabled.
-    @objc public var isPerformanceMonitorEnabled: Bool = false
+    @objc public var isPerformanceMonitorEnabled: Bool = true
 
     /// Percentage of sessions for which network calls will be captured. A value of `0.05`
     /// means that 5% of sessions will be tracked.
@@ -98,7 +98,7 @@ final public class BlueTriangleConfiguration: NSObject {
     ///     1. Max Main thread Usage: Each BTTimer will get maximum main thread usage during this BTTimer. How many seconds the longest task on main thread took during every BTTimer.
     ///     2. ANR Warning : If any single task taking more then ``ANRWarningTimeInterval`` "ANRWarningTimeInterval" seconds a warning raised internally and this error reported to Blue Triangle portal.
     /// Default is false
-    @objc public var ANRMonitoring: Bool = false
+    @objc public var ANRMonitoring: Bool = true
     
     ///ANR stack trace helps to identify ANR location
     ///If its value is true, it send stack trace with ANR warning
@@ -116,7 +116,7 @@ final public class BlueTriangleConfiguration: NSObject {
     /// To track swiftUI screen, It should be enabled
     /// You can mannually track view by enabling that
     /// When this is off, Non of above would  get  track
-    @objc public var enableScreenTracking: Bool = false
+    @objc public var enableScreenTracking: Bool = true
     
     /// This is a  Set of ViewControllers  which developer does not want to track or want to ignore their track. This property can only ignore that screen, Which is being tracked autometically. And It can not ignore , Which is being tracked  manually.
     /// Set an array of view controlles which user want to ignore
@@ -124,10 +124,10 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// Track the network state during Timer Network State and Errors. State Includes wifi, cellular, ethernet and offline.
     /// Default Value is false
-    @objc public var enableTrackingNetworkState: Bool = false
+    @objc public var enableTrackingNetworkState: Bool = true
     
     /// Boolean indicating whether memory warning is enabled.
-    @objc public var enableMemoryWarning: Bool = false
+    @objc public var enableMemoryWarning: Bool = true
 
     var timerConfiguration: BTTimer.Configuration = .live
 
