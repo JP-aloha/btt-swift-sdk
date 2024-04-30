@@ -243,7 +243,7 @@ struct ContentView: View {
 }
 ```
 
-To dissable screen tracking, You need to set the enableScreenTracking configuration to false like bellow, This will ignore UIViewControllers activities and bttTrackScreen() modifier calls.
+To dissable screen tracking, You need to set the enableScreenTracking configuration to false during configuration like bellow, This will ignore UIViewControllers activities and bttTrackScreen() modifier calls.
 
 ```swift
  BlueTriangle.configure { config in
@@ -263,7 +263,7 @@ BlueTriangle tracks Apps repulsiveness by monitoring main THREAD USAGE. If any t
      }
 ```
 
- To dissable ANR reporting, You need to set "ANRMonitoring" configuration property to "false".
+You can disable it by setting "ANRMonitoring" configuration property to "false" during configuration.
  
  ```swift
  BlueTriangle.configure { config in
@@ -274,9 +274,9 @@ BlueTriangle tracks Apps repulsiveness by monitoring main THREAD USAGE. If any t
 
 ### Memory Warning
 
-Track ios reported low memory warning. Using UIApplication.didReceiveMemoryWarningNotification Notification.
+Blue Triangle track ios reported low memory warning. By monitoring UIApplication.didReceiveMemoryWarningNotification Notification.
 
-To disable Memory Warning, You need to set setting "enableMemoryWarning" configuration property to "false".
+You can disable it by setting "enableMemoryWarning" configuration property to "false" during configuration.
  
  ```swift
  BlueTriangle.configure { config in
@@ -289,7 +289,7 @@ To disable Memory Warning, You need to set setting "enableMemoryWarning" configu
 
  BlueTriangle SDK allows capturing of network state data. Network state refers to the availability of any network interfaces on the device. Network interfaces include wifi, ethernet, cellular, etc. Once Network state capturing is enabled, the Network state is associated with all Timers, Errors and Network Requests captured by the SDK. This feature is enabled by default.
 
-To disable Network state capture, use the enableTrackingNetworkState property on the configuration object as follows
+You can disable it by setting enableTrackingNetworkState property to "false" during configuration.
 
 ```swift
  BlueTriangle.configure { config in
@@ -325,31 +325,37 @@ By default, the cacheMemoryLimit is set to 2 days and cacheExpiryDuration is set
 
 Websites shown in webview  that are tracked by BlueTriangle can be tracked in the same session as the native app. To achieve this, follow the steps below to configure the WebView:
 
-1. Import BlueTriangle in the hosting iOS WebView class:
+Implement WKNavigationDelegate protocol and  call  BTTWebViewTracker.webView(webView, didCommit: navigation) in 'webView(_:didCommit:)' delegate method as follows. 
 
   ```swift
-      import BlueTriangle
-  ```
-
-2. Conform to the WKNavigationDelegate protocol and implement the 'webView(_:didCommit:)' method as follows. 
-
-  ```swift
+    import BlueTriangle
+   
+    //....
+   
+   extension YourWebViewController: WKNavigationDelegate{
+   
+    //....
+    
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        
+        //....
+        
+        //Call BlueTringles 'webView(_:didCommit:)' method
         BTTWebViewTracker.webView(webView, didCommit: navigation)
-    }
+      }
+    
+   }
+   
   ``` 
 
+See below full example code for more clarity
 
- or if you already have a WKNavigationDelegate porotool, just call the 'BTTWebViewTracker.webView(webView, didCommit: navigation)' in it's 'webView(_:didCommit:)' method.
-
-Here is Swift and SwiftUI implementation example code respectively.
-
-### Swift example code
-
+Webviw with UIViewController full example
   ```swift
   
 import UIKit
 import WebKit
+//Need to import BlueTriagle
 import BlueTriangle
 
 class YourWebViewController: UIViewController {
@@ -359,29 +365,37 @@ class YourWebViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //Set navigationDelegate
         webView.navigationDelegate = self
+        
+        //Load Url
         if let htmlURL = URL(string: "https://example.com"){
             webView.load(URLRequest(url: htmlURL))
         }
     }
 }
 
+//Implement Navigation Delagate
 extension YourWebViewController: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        
         //...
+        
+        //Call BlueTringles 'webView(_:didCommit:)' method
         BTTWebViewTracker.webView(webView, didCommit: navigation)
     }
 }
 
   ``` 
 
-### SwiftUI example code
+Webviw with SwiftUI full example
 
   ```swift
   
 import SwiftUI
 import WebKit
+//Need to import BlueTriagle
 import BlueTriangle
 
 struct YourWebView: UIViewRepresentable {
@@ -393,8 +407,12 @@ struct YourWebView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> some UIView {
+    
+        //Set navigationDelegate
+        webView.navigationDelegate = context.coordinator
+        
+        //Load Url
         if let htmlURL = URL(string: "https://example.com"){
-            webView.navigationDelegate = context.coordinator
             webView.load(URLRequest(url: htmlURL))
         }
         return webView
@@ -403,10 +421,15 @@ struct YourWebView: UIViewRepresentable {
 
 extension YourWebView {
     
+    //Implement Navigation Delagate  Coordinator
+    
     class Coordinator: NSObject, WKNavigationDelegate {
        
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+           
             //...
+            
+            //Call BlueTringles 'webView(_:didCommit:)' method
             BTTWebViewTracker.webView(webView, didCommit: navigation)
         }
     }
