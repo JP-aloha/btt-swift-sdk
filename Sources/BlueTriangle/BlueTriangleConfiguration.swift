@@ -124,7 +124,7 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// Track the network state during Timer Network State and Errors. State Includes wifi, cellular, ethernet and offline.
     /// Default Value is false
-    @objc public var enableTrackingNetworkState: Bool = false
+    @objc public var enableTrackingNetworkState: Bool = true
     
     /// Boolean indicating whether memory warning is enabled.
     @objc public var enableMemoryWarning: Bool = true
