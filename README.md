@@ -16,7 +16,7 @@ To integrate BlueTriangle using Swift Packages Manager into your iOS project, yo
 
 To integrate BlueTriangle using CocoaPods into your iOS project, you need to follow these steps:
   
-   1. Open 'Podfile' in text mode and specify following commands:
+   1. Open 'Podfile' in text mode and add following:
   
    ```
       pod 'BlueTriangleSDK-Swift'     
@@ -31,7 +31,7 @@ To integrate BlueTriangle using CocoaPods into your iOS project, you need to fol
 
 ### Configuration
 
-Before sending timers you must first configure `BlueTriangle`. It is recommended to do this in your `AppDelegate.application(_:didFinishLaunchingWithOptions:)` OR `SceneDelegate.scene(_ scene:, willConnectTo session:, options,connectionOptions:)` method:
+In order to use `BlueTriangle`, you need to first configure `BlueTriangle` SDK. To configure it import `BlueTriangle` and call configure function with your siteID. It is recommended to do this in your `AppDelegate.application(_:didFinishLaunchingWithOptions:)` OR `SceneDelegate.scene(_ scene:, willConnectTo session:, options,connectionOptions:)` method:
 
 ```swift
 BlueTriangle.configure { config in
@@ -47,10 +47,14 @@ import SwiftUI
 
 struct YourApp: App {
     init() {
-          //Your Code
+          
+          //Configure BlueTriagle with your siteID
           BlueTriangle.configure { config in
                config.siteID = "<MY_SITE_ID>"
            }
+           
+           //...
+           
     }
     
     var body: some Scene {
@@ -121,32 +125,7 @@ BlueTriangle.endTimer(customTimer)
 
 The Blue Triangle SDK supports capturing network requests using either the `NetworkCaptureSessionDelegate` or `bt`-prefixed `URLSession` methods.
 
-The default networkSampleRate value is 0.05, indicating that only 5% of sessions are captured.
- 
-A value of `0.05`, for example, means that network capture will be randomly enabled for 5% of user sessions. Network requests using a `URLSession` with a `NetworkCaptureSessionDelegate` or made with one of the `bt`-prefixed `URLSession` methods will be associated with the last main timer to have been started at the time a request completes. Note that requests are only captured after at least one main timer has been started and they are not associated with a timer until the request ends.
-
-
-### How to capture all sessions
- 
-To capture all sessions network data, set networkSampleRate configuration to 1 as shown bellow.
-
-```swift
-BlueTriangle.configure { config in
-    ...
-    config.networkSampleRate = 1.0
-}
-```
-
-### How to disable network data capture for all sessions
-
-To disable network data capture for all sessions, set networkSampleRate configuration to 0 as shown bellow.
-
-```swift
-BlueTriangle.configure { config in
-    ...
-    config.networkSampleRate = 0.0
-}
-```
+Network requests using a `URLSession` with a `NetworkCaptureSessionDelegate` or made with one of the `bt`-prefixed `URLSession` methods will be associated with the last main timer to have been started at the time a request completes. Note that requests are only captured after at least one main timer has been started and they are not associated with a timer until the request ends.
 
 ### `NetworkCaptureSessionDelegate`
 
@@ -227,10 +206,29 @@ where urlRequest and urlResponse are of URLRequest and URLResponse types, respec
 
 ```
 
+### Network Capture Sample Rate
+
+Network sample rate indicate how many percent session  network request are captured. For exampme a value of `0.05` means that network capture will be randomly enabled for 5% of user sessions. Network sample rate value should be between 0.0 to 1.0 representing fraction value of percent 0 to 100.
+
+The default networkSampleRate value is 0.05, i.e  only 5% of sessions network request are captured.
+
+To change network capture sample rate set value to 'config.networkSampleRate' during configuration like bellow code sets sample rate to 50%.
+
+```swift
+BlueTriangle.configure { config in
+    config.siteID = "<MY_SITE_ID>"
+    config.networkSampleRate = 0.5
+    ...
+}
+```
+
+To dissable network capture set 0.0 to 'config.networkSampleRate' during configuration.
+
+It is recomended to have 100% sample rate while developing/debuging. By setting 'config.networkSampleRate' to 1.0 during configuration.
 
 ## Screen View Tracking
 
-All UIKit UIViewControllers view count can be tracked automatically. You can see each view controller name with there count on our dashboard.
+All UIKit UIViewControllers view count tracked automatically. You can see each view controller name with there count on our dashboard.
 
 SwiftUI views are not captured automatically. You need to call bttTrackScreen(<screen Name>) modifier on each view which you want to track. Below example show usage of "bttTrackScreen(_ screenName: String)" to track About Us screen.
 
@@ -245,9 +243,7 @@ struct ContentView: View {
 }
 ```
 
-### How To disable
-
-If you want to turn off screen tracking, you need to set the enableScreenTracking configuration to false, This applies to both SwiftUI and UIKit. It stops automatic UIKIt viewControllers tracking, including the tracking done by the bttTrackScreen(_ screenName: String) modifier in SwiftUI.
+To dissable screen tracking, You need to set the enableScreenTracking configuration to false like bellow, This will ignore UIViewControllers activities and bttTrackScreen() modifier calls.
 
 ```swift
  BlueTriangle.configure { config in
@@ -258,13 +254,16 @@ If you want to turn off screen tracking, you need to set the enableScreenTrackin
 
 ## ANR Detection
 
-ANR(Application Not Responding) detects to main thread in which an app becomes unresponsive or stops responding to user input for an extended period of time.
+BlueTriangle tracks Apps repulsiveness by monitoring main THREAD USAGE. If any task blocking main thread for extended period of time causing app not responding, will be tracked as ANR Morning. By default this time interval is 5 Sec I.e. if any task blocking main thread more then 5 sec will be triggered as ANRWorning. This timinterval can be changed using "ANRWarningTimeInterval" Property below.  
 
-By default, ANR (Application Not Responding) monitoring is enabled, and it reports when the app is unresponsive for more than 5(default interval) seconds.
+ ```swift
+ BlueTriangle.configure { config in
+         ...
+        config.ANRWarningTimeInterval = 3
+     }
+```
 
-### How to disable ANR monitoring
-
- If you want to turn off ANR reporting. It can be disable by setting "ANRMonitoring" configuration property to "false".
+ To dissable ANR reporting, You need to set "ANRMonitoring" configuration property to "false".
  
  ```swift
  BlueTriangle.configure { config in
@@ -272,25 +271,12 @@ By default, ANR (Application Not Responding) monitoring is enabled, and it repor
          config.ANRMonitoring = false
      }
 ```
-### How to adjust the ANR interval
-
-To change the interval at which ANR situation is detected, You can set the "ANRWarningTimeInterval" configuration property as shown below
- 
-  ```swift
- BlueTriangle.configure { config in
-         ...
-         config.ANRMonitoring = true
-         config.ANRWarningTimeInterval = 3
-     }
-```
 
 ### Memory Warning
 
-Track ios reported low memory warning. iOS reported memory warnings can be tracked by btt. This feature is enabled by default.
+Track ios reported low memory warning. Using UIApplication.didReceiveMemoryWarningNotification Notification.
 
-### How To disable
-
- It can be disable by setting "enableMemoryWarning" configuration property to "false".
+To disable Memory Warning, You need to set setting "enableMemoryWarning" configuration property to "false".
  
  ```swift
  BlueTriangle.configure { config in
@@ -303,11 +289,7 @@ Track ios reported low memory warning. iOS reported memory warnings can be track
 
  BlueTriangle SDK allows capturing of network state data. Network state refers to the availability of any network interfaces on the device. Network interfaces include wifi, ethernet, cellular, etc. Once Network state capturing is enabled, the Network state is associated with all Timers, Errors and Network Requests captured by the SDK. This feature is enabled by default.
 
-
-### How To disable
-
 To disable Network state capture, use the enableTrackingNetworkState property on the configuration object as follows
-
 
 ```swift
  BlueTriangle.configure { config in
@@ -360,7 +342,7 @@ Websites shown in webview  that are tracked by BlueTriangle can be tracked in th
 
  or if you already have a WKNavigationDelegate porotool, just call the 'BTTWebViewTracker.webView(webView, didCommit: navigation)' in it's 'webView(_:didCommit:)' method.
 
-Here is SwiftUI and Swift implementation example code respectively.
+Here is Swift and SwiftUI implementation example code respectively.
 
 ### Swift example code
 
