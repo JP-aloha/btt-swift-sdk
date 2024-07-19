@@ -80,13 +80,8 @@ class LaunchTimeReporter : ObservableObject {
         let timer = PageTimeInterval(startTime: time, interactiveTime: 0, pageTime: duration)
         let model = TimerRequest(session: session,
                                  page: page,
-                                 timer: timer,
-                                 purchaseConfirmation: nil,
-                                 performanceReport: nil,
-                                 excluded: Constants.excludedValue,
-                                 nativeAppProperties: nil,
-                                 isErrorTimer: false)
-
+                                 timer: timer)
+       print("TypeLaunch")
         return try Request(method: .post,
                            url: Constants.timerEndpoint,
                            model: model)
