@@ -504,6 +504,7 @@ extension BlueTriangle{
         
 #if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
+        BTTWebViewTracker.logger = logger
         if enabled {
             UIViewController.setUp(ignoreVCs)
         }
