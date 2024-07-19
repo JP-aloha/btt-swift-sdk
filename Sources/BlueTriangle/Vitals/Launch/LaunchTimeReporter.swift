@@ -81,7 +81,6 @@ class LaunchTimeReporter : ObservableObject {
         let model = TimerRequest(session: session,
                                  page: page,
                                  timer: timer)
-       print("TypeLaunch")
         return try Request(method: .post,
                            url: Constants.timerEndpoint,
                            model: model)
