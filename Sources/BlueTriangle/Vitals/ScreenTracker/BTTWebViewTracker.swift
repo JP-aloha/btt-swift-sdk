@@ -22,6 +22,8 @@ public class BTTWebViewTracker {
     }
 
     public static func verifySessionStitchingOnWebView( _ webView: WKWebView, completion: @escaping (Bool, Error?) -> Void){
+
+#if DEBUG
         let sessionId = "\(BlueTriangle.sessionID)"
         let bttJSVerificationTag = "_bttTagInit"
         let bttJSSessionIdTag = "_bttUtil.sessionID"
@@ -61,6 +63,8 @@ public class BTTWebViewTracker {
                 completion(false, stitchingError)
             }
         }
+#endif
+        
     }
 }
 
