@@ -13,6 +13,56 @@ public class BTTWebViewTracker {
     static var shouldCaptureRequests = false
     static var logger : Logging?
     
+    public static func verifySessionStitchingOnWebView( _ webView: WKWebView) -> Error?{
+        let sessionId = "\(BlueTriangle.sessionID)"
+        let bttJSVerificationTag = "_bttTagInit"
+        let bttJSSessionIdTag = "_bttUtil.sessionID"
+        var stitchingError : Error?
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        webView.evaluateJavaScript(bttJSVerificationTag) { (result, error) in
+            
+            if let isBttJSAvailable = result as? Bool{
+               
+                if isBttJSAvailable {
+                    
+                    webView.evaluateJavaScript(bttJSSessionIdTag) { (result, error) in
+                        
+                        if let bttSessionID = result as? String{
+                            
+                            if bttSessionID == sessionId {
+                                stitchingError = nil
+                                semaphore.signal()
+                            }else{
+                                stitchingError = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Session stitching has not been done properly. Make sure the BTTWebViewTracker.webView(_:didCommit:) method is invoked from the webview's webView(_:didCommit:) delegate."])
+                                semaphore.signal()
+                            }
+                        }else{
+                            stitchingError = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Session stitching has not been done properly. Make sure the BTTWebViewTracker.webView(_:didCommit:) method is invoked from the webview's webView(_:didCommit:) delegate."])
+                            semaphore.signal()
+                        }
+                    }
+                }else{
+                    stitchingError = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Unable to load btt.js. Make sure that there are no network issues preventing access."])
+                    semaphore.signal()
+                }
+            }else{
+                stitchingError = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Unable to load btt.js. Make sure that there are no network issues preventing access."])
+                semaphore.signal()
+            }
+        }
+        
+        semaphore.wait()
+        
+        if let error = stitchingError {
+            BTTWebViewTracker.logger?.info("BlueTriangle:  WebViewTracker: \(error.localizedDescription) \(sessionId)")
+        }else{
+            BTTWebViewTracker.logger?.info("BlueTriangle: WebViewTracker: Session stitching was successfully completed for session \(sessionId)")
+        }
+       
+        return stitchingError
+    }
+        
     public static func webView( _ webView: WKWebView, didCommit navigation: WKNavigation!){
        
         let tracker = BTTWebViewTracker()
