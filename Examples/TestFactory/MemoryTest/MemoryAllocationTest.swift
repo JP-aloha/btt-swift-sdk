@@ -57,5 +57,9 @@ extension MemoryAllocationTest{
     func freeAllMemoryTest() {
         self.deallocateMemory()
     }
+    
+    func freeBlockMemory(){
+        freeOneBlockMemory()
+    }
 }
 

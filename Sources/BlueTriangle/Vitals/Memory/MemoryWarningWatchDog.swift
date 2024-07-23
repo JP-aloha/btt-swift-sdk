@@ -47,14 +47,7 @@ class MemoryWarningWatchDog {
     }
     
     private func formatedMemoryWarningMessage() -> String{
-
-        let memory =  ResourceUsage.memory() / 1024 / 1024
-        let message = "Critical memory usage detected. iOS raised memory warning. App using \(memory) MB."
-        
-        if memory == 0{
-            logger.error("Memory resource uses return zero.")
-        }
-        
+        let message = "Critical memory usage detected. iOS raised memory warning. App received UIApplication.didReceiveMemoryWarningNotification notification."
         return message
     }
     

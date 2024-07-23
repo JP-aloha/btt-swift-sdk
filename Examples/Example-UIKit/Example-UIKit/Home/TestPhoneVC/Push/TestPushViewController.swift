@@ -63,14 +63,16 @@ class TestPushViewController: UIViewController {
     }
     
     private func memoryWarningTest(){
-        //memmoryTest.runMemoryTest()
-        cpuTest.runDoubleCoreHundradePercent()
-        
-        print("activeProcessorCount :\(ProcessInfo.processInfo.activeProcessorCount)")
+        memmoryTest.runMemoryTest()
+       // cpuTest.runDoubleCoreHundradePercent()
+        print("Increase 100 MB")
+
+        //print("activeProcessorCount :\(ProcessInfo.processInfo.activeProcessorCount)")
     }
     
     @IBAction func didRunTestCase(_ sender: Any) {
         self.memoryWarningTest()
+       // self.lateMomeryWarning()
     }
     
     @IBAction func didStartTimer(_ sender: Any) {
@@ -79,6 +81,21 @@ class TestPushViewController: UIViewController {
     
     @IBAction func didStopTimer(_ sender: Any) {
         self.stopTimer()
+    }
+    
+    
+    func hangMainThreadFor(seconds: Int) {
+        
+        print("Main thread hang")
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        DispatchQueue.global().asyncAfter(deadline: .now() + .seconds(seconds)) {
+            semaphore.signal()
+        }
+        
+        semaphore.wait()
+        
+        print("Main thread resumed after \(seconds) seconds.")
     }
     
     private func startTimer(){
@@ -112,6 +129,48 @@ class TestPushViewController: UIViewController {
                                                           object: nil)
     }
     
+    
+    // lateMemoryWarning() is a function to test the late memory warning test case. To test this, do the following:
+    // Change the SDK MemoryAllocationTest runMemoryTest function allocation from 100 MB to 50 MB.
+   
+    private func lateMomeryWarning(){
+        let startTime = Date()
+        var isIncreased = false
+        
+        while true {
+            
+            let memory = self.memory()  / 1024 / 1024
+            
+            NSLog("\(Date()) - All Memory allocated \(memory) MB")
+           
+            if memory < 2060 && !isIncreased{
+                if (Date().timeIntervalSince1970 - startTime.timeIntervalSince1970) < 30{
+                    memmoryTest.runMemoryTest()
+                }
+            }else{
+                isIncreased = true
+                if (Date().timeIntervalSince1970 - startTime.timeIntervalSince1970) < 30{
+                    memmoryTest.freeBlockMemory()
+                }else{
+                    break;
+                }
+            }
+        }
+    }
+    
+    private func memory() -> UInt64 {
+        var taskInfo = task_vm_info_data_t()
+        var count = mach_msg_type_number_t(MemoryLayout<task_vm_info>.size) / 4
+        let result: kern_return_t = withUnsafeMutablePointer(to: &taskInfo) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+            }
+        }
+
+        let used: UInt64 = result == KERN_SUCCESS ? UInt64(taskInfo.phys_footprint) : 0
+        return used
+    }
+    
     deinit {
         removeObserver()
     }
@@ -121,7 +180,7 @@ class TestPushViewController: UIViewController {
 class ExtractCombination{
     
     var result: [String] = []
-    
+
     func runInfiniteLoop(){
         
         let startTime = Date()
