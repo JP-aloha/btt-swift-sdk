@@ -63,13 +63,13 @@ public class BTTWebViewTracker {
                                 }
                                 
                             }else{
-                                let error =  NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Found an error in session stitching. The native siteId differs from the webView siteId."])
+                                let error =  NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Found an error in session stitching. The native siteId does not match the webView siteId."])
                                 BTTWebViewTracker.logger?.info("BlueTriangle: WebViewTracker: \(error.localizedDescription) \(sessionId)")
                                 completion(false, error)
                             }
                             
                         }else{
-                            let error =  NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Found an error in session stitching. The native siteId does not match the web siteId"])
+                            let error =  NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Found an error in session stitching. The native siteId does not match the webView siteId"])
                             BTTWebViewTracker.logger?.info("BlueTriangle: WebViewTracker: \(error.localizedDescription) \(sessionId)")
                             completion(false, error)
                         }
