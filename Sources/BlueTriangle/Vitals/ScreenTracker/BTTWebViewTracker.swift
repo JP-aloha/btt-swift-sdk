@@ -25,7 +25,10 @@ public class BTTWebViewTracker {
 
 #if DEBUG
         let sessionId = "\(BlueTriangle.sessionID)"
+        let siteId = "\(BlueTriangle.siteID)"
+        
         let bttJSVerificationTag = "_bttTagInit"
+        let bttJSSiteIdTag = "_bttUtil.prefix"
         let bttJSSessionIdTag = "_bttUtil.sessionID"
         
         webView.evaluateJavaScript(bttJSVerificationTag) { (result, error) in
@@ -34,20 +37,39 @@ public class BTTWebViewTracker {
                
                 if isBttJSAvailable {
                     
-                    webView.evaluateJavaScript(bttJSSessionIdTag) { (result, error) in
+                    webView.evaluateJavaScript(bttJSSiteIdTag) { (result, error) in
                         
-                        if let bttSessionID = result as? String{
+                        if let bttSiteID = result as? String{
                             
-                            if bttSessionID == sessionId {
-                                BTTWebViewTracker.logger?.info("BlueTriangle: WebViewTracker: Session stitching was successfully completed for session \(sessionId)")
-                                completion(true, nil)
+                            if bttSiteID == siteId {
+                                
+                                webView.evaluateJavaScript(bttJSSessionIdTag) { (result, error) in
+                                    
+                                    if let bttSessionID = result as? String{
+                                        
+                                        if bttSessionID == sessionId {
+                                            BTTWebViewTracker.logger?.info("BlueTriangle: WebViewTracker: Session stitching was successfully completed for session \(sessionId)")
+                                            completion(true, nil)
+                                        }else{
+                                            let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Session stitching has not been done properly. Make sure the BTTWebViewTracker.webView(_:didCommit:) method is invoked from the webview's webView(_:didCommit:) delegate."])
+                                            BTTWebViewTracker.logger?.info("BlueTriangle: WebViewTracker: \(error.localizedDescription) \(sessionId)")
+                                            completion(false, error)
+                                        }
+                                    }else{
+                                        let error =  NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Session stitching has not been done properly. Make sure the BTTWebViewTracker.webView(_:didCommit:) method is invoked from the webview's webView(_:didCommit:) delegate."])
+                                        BTTWebViewTracker.logger?.info("BlueTriangle: WebViewTracker: \(error.localizedDescription) \(sessionId)")
+                                        completion(false, error)
+                                    }
+                                }
+                                
                             }else{
-                                let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Session stitching has not been done properly. Make sure the BTTWebViewTracker.webView(_:didCommit:) method is invoked from the webview's webView(_:didCommit:) delegate."])
+                                let error =  NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Found an error in session stitching. The native siteId differs from the webView siteId."])
                                 BTTWebViewTracker.logger?.info("BlueTriangle: WebViewTracker: \(error.localizedDescription) \(sessionId)")
                                 completion(false, error)
                             }
+                            
                         }else{
-                            let error =  NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Session stitching has not been done properly. Make sure the BTTWebViewTracker.webView(_:didCommit:) method is invoked from the webview's webView(_:didCommit:) delegate."])
+                            let error =  NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Found an error in session stitching. The native siteId does not match the web siteId"])
                             BTTWebViewTracker.logger?.info("BlueTriangle: WebViewTracker: \(error.localizedDescription) \(sessionId)")
                             completion(false, error)
                         }
