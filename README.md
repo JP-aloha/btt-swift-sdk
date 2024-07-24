@@ -128,6 +128,7 @@ Websites shown in webview that are tracked by BlueTriangle can be tracked in the
 
 Implement WKNavigationDelegate protocol and call BTTWebViewTracker.webView(webView, didCommit: navigation) in 'webView(_:didCommit:)' delegate method as follows.
 
+
 ```swift
 
 import BlueTriangle
@@ -223,8 +224,8 @@ extension YourWebView {
   //Implement Navigation Delegate  Coordinator
 
   class Coordinator: NSObject, WKNavigationDelegate {
-
-      func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+    
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
 
           //...
 
@@ -235,7 +236,42 @@ extension YourWebView {
 }
 
 ```
+** Troubleshoot session stitching **
 
+To verify if session stitching is done correctly, We have function verifySessionStitchingOnWebView(_:completion:) to verify. Use is for debuging purpose only 
+
+Inside WKNavigationDelegate protocol's webView(_:didFinish:) delegate method, call BTTWebViewTracker.verifySessionStitchingOnWebView(_:completion:) as follows.
+
+```swift
+
+import BlueTriangle
+
+  //....
+
+extension YourWebViewController: WKNavigationDelegate{
+
+  //....
+
+  func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+
+  //....
+
+   //Call BlueTringles 'verifySessionStitchingOnWebView(_:completion:)' method
+    BTTWebViewTracker.verifySessionStitchingOnWebView(webView) { sessionId, error in
+        if let error = error{
+            NSLog("BlueTriangle: \(error)")
+        }else{
+            NSLog("BlueTriangle: Session stitching was successfull for session \(sessionId)")
+        }
+    }
+  }
+}
+```
+
+#### Session Stitching Verification
+
+To verify session stitching done properly or not, Implement WKNavigationDelegate protocol 'webView(_:didFinish:)' delegate method and call BTTWebViewTracker.verifySessionStitchingOnWebView(_:, completion:) in it as follows.
+ 
 ### Network Capture- Mandatory
 
 The Blue Triangle SDK supports capturing network requests using either the bt-prefixed URLSession methods or the NetworkCaptureSessionDelegate.

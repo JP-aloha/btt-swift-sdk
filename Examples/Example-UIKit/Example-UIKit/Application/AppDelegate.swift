@@ -21,6 +21,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
             config.siteID = Constants.siteID
             config.enableDebugLogging = true
+            config.trafficSegmentName = "Demo Traffic Segment"
             config.performanceMonitorSampleRate = 1
             config.networkSampleRate = 1
             config.crashTracking  = .nsException
