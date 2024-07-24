@@ -10,9 +10,6 @@ import Combine
 
 class LaunchTimeReporter : ObservableObject {
     
-    static let COLD_LAUNCH_PAGE_NAME = "ColdLaunchTime"
-    static let HOT_LAUNCH_PAGE_NAME = "HotLaunchTime"
-    static let LAUNCH_TIME_PAGE_GROUP = "LaunchTime"
     private var cancellables = Set<AnyCancellable>()
     
     private let session: Session
@@ -40,10 +37,10 @@ class LaunchTimeReporter : ObservableObject {
                     switch event {
                     case .Cold(let date, let duration):
                         self.logger.info("Received cold launch at \(date)")
-                        self.uploadReports(LaunchTimeReporter.COLD_LAUNCH_PAGE_NAME, date, duration)
+                        self.uploadReports(Constants.COLD_LAUNCH_PAGE_NAME, date, duration)
                     case .Hot(let date, let duration):
                         self.logger.info("Received hot launch at \(date)")
-                        self.uploadReports(LaunchTimeReporter.HOT_LAUNCH_PAGE_NAME, date, duration)
+                        self.uploadReports(Constants.HOT_LAUNCH_PAGE_NAME, date, duration)
                     }
                 }
             }.store(in: &self.cancellables)
@@ -58,7 +55,8 @@ class LaunchTimeReporter : ObservableObject {
                     return
                 }
                 
-                let groupName = LaunchTimeReporter.LAUNCH_TIME_PAGE_GROUP
+                let groupName = Constants.LAUNCH_TIME_PAGE_GROUP
+                let trafficSegmentName = Constants.LAUNCH_TIME_TRAFFIC_SEGMENT
                 let timeMS = time.timeIntervalSince1970.milliseconds
                 let durationMS = duration.milliseconds
                 
@@ -66,7 +64,8 @@ class LaunchTimeReporter : ObservableObject {
                                                                    time: timeMS,
                                                                    duration: durationMS,
                                                                    pageName: pageName,
-                                                                   pageGroup: groupName)
+                                                                   pageGroup: groupName,
+                                                                   trafficSegment: trafficSegmentName)
                 strongSelf.uploader.send(request: timerRequest)
                 strongSelf.logger.info("Launch time reported at \(time)")
             } catch {
@@ -75,12 +74,13 @@ class LaunchTimeReporter : ObservableObject {
         }
     }
     
-    private func makeTimerRequest(session: Session, time : Millisecond, duration : Millisecond , pageName: String, pageGroup : String) throws -> Request {
+    private func makeTimerRequest(session: Session, time : Millisecond, duration : Millisecond , pageName: String, pageGroup : String, trafficSegment : String) throws -> Request {
         let page = Page(pageName: pageName , pageType: pageGroup)
         let timer = PageTimeInterval(startTime: time, interactiveTime: 0, pageTime: duration)
         let model = TimerRequest(session: session,
                                  page: page,
-                                 timer: timer)
+                                 timer: timer,
+                                 trafficSegmentName: trafficSegment)
         return try Request(method: .post,
                            url: Constants.timerEndpoint,
                            model: model)

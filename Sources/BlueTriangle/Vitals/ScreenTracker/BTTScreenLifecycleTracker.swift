@@ -196,6 +196,8 @@ class TimerMapActivity {
                 return calculatedLoadTime
             }
             
+            timer.trafficSegmentName = Constants.SCREEN_TRACKING_TRAFFIC_SEGMENT
+            
             let networkReport = timer.networkReport
             
             timer.nativeAppProperties = NativeAppProperties(

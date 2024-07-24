@@ -14,6 +14,7 @@ struct TimerRequest: Equatable {
     let purchaseConfirmation: PurchaseConfirmation?
     let performanceReport: PerformanceReport?
     let excluded: String?
+    let trafficSegmentName: String?
     let nativeAppProperties: NativeAppProperties?
     let isErrorTimer: Bool
 
@@ -21,6 +22,7 @@ struct TimerRequest: Equatable {
         session: Session,
         page: Page,
         timer: PageTimeInterval,
+        trafficSegmentName: String? = nil,
         purchaseConfirmation: PurchaseConfirmation? = nil,
         performanceReport: PerformanceReport? = nil,
         excluded: String? = nil,
@@ -35,6 +37,7 @@ struct TimerRequest: Equatable {
         self.excluded = excluded
         self.nativeAppProperties = nativeAppProperties
         self.isErrorTimer = isErrorTimer
+        self.trafficSegmentName = trafficSegmentName
     }
 }
 
@@ -65,7 +68,7 @@ extension TimerRequest: Codable {
         try con.encode(session.campaignName, forKey: .campaignName)
         try con.encode(session.campaignSource, forKey: .campaignSource)
         try con.encode(session.dataCenter, forKey: .dataCenter)
-        try con.encode(session.trafficSegmentName, forKey: .trafficSegmentName)
+        try con.encode(trafficSegmentName ?? session.trafficSegmentName, forKey: .trafficSegmentName)
 
         // Page
         try con.encode(page.brandValue, forKey: .brandValue)
@@ -276,6 +279,7 @@ extension TimerRequest: Codable {
         self.excluded = try container.decodeIfPresent(String.self, forKey: .excluded)
         let errValue = try container.decodeIfPresent(Int.self, forKey: .err) ?? 0
         self.isErrorTimer = errValue > 0 ? true : false
+        self.trafficSegmentName = nil
     }
 
     enum CodingKeys: String, CodingKey {

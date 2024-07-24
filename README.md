@@ -268,10 +268,6 @@ extension YourWebViewController: WKNavigationDelegate{
 }
 ```
 
-#### Session Stitching Verification
-
-To verify session stitching done properly or not, Implement WKNavigationDelegate protocol 'webView(_:didFinish:)' delegate method and call BTTWebViewTracker.verifySessionStitchingOnWebView(_:, completion:) in it as follows.
- 
 ### Network Capture- Mandatory
 
 The Blue Triangle SDK supports capturing network requests using either the bt-prefixed URLSession methods or the NetworkCaptureSessionDelegate.

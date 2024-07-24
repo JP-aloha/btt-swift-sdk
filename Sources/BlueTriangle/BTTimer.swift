@@ -51,6 +51,9 @@ final public class BTTimer: NSObject {
 
     /// An object describing the user interaction measured by the timer.
     @objc public var page: Page
+    
+    /// Traffic segment.
+    @objc public var trafficSegmentName: String?
 
     /// The state of the timer.
     @objc public private(set) var state: State = .initial

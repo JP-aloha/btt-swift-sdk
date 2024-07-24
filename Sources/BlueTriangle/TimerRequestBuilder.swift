@@ -13,7 +13,8 @@ struct TimerRequestBuilder {
     static let live = TimerRequestBuilder { session, timer, purchase in
         let model = TimerRequest(session: session,
                                  page: timer.page,
-                                 timer: timer.pageTimeInterval,
+                                 timer: timer.pageTimeInterval, 
+                                 trafficSegmentName : timer.trafficSegmentName,
                                  purchaseConfirmation: purchase,
                                  performanceReport: timer.performanceReport,
                                  nativeAppProperties : timer.nativeAppProperties)

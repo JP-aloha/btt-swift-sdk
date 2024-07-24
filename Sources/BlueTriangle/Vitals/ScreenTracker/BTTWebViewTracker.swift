@@ -51,7 +51,7 @@ public class BTTWebViewTracker {
                                             BTTWebViewTracker.logger?.info("BlueTriangle: Session stitching was successfull with session \(sessionId) and siteId : \(siteId)")
                                             completion(sessionId, nil)
                                         }else{
-                                            let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Session stitching has NOT been done. Make sure the BTTWebViewTracker.webView(_:didCommit:) method is invoked from the webview's webView(_:didCommit:) delegate. as explaned in ReadMe.Found app sessionId \(sessionId) and btt.js \(bttSessionID)"])
+                                            let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Session stitching has NOT been done. Make sure the BTTWebViewTracker.webView(_:didCommit:) method is invoked from the webview's webView(_:didCommit:) delegate. as explaned in ReadMe. Found app sessionId \(sessionId) and btt.js \(bttSessionID)"])
                                             BTTWebViewTracker.logger?.info("BlueTriangle: \(error.localizedDescription) \(sessionId)")
                                             completion(nil, error)
                                         }
@@ -80,11 +80,13 @@ public class BTTWebViewTracker {
                     completion(nil, error)
                 }
             }else{
-                let stitchingError = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "btt.js missing. btt.js not loaded. Make sure btt.js is there in this webpage and its loaded: \(bttJSVerificationTag) got error \(error?.localizedDescription ?? "")"])
+                let stitchingError = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "btt.js is missing. btt.js not loaded. Make sure btt.js is there in this webpage and its loaded: \(bttJSVerificationTag) got error \(error?.localizedDescription ?? "")"])
                 BTTWebViewTracker.logger?.info("BlueTriangle: \(stitchingError.localizedDescription) \(sessionId)")
                 completion(nil, stitchingError)
             }
         }
+#else
+    completion(nil, nil)
 #endif
         
     }
@@ -108,7 +110,6 @@ extension BTTWebViewTracker {
             else{
                 BTTWebViewTracker.logger?.info("BlueTriangle: Successfully injected sessionId in WebView: BTT_SDK_VER: \(sessionId) with expiration \(expiration)")
             }
-
         }
     }
     

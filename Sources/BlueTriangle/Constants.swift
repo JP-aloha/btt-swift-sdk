@@ -38,4 +38,11 @@ enum Constants {
     // Logging
     static let loggingSubsystem = "com.bluetriangle.sdk"
     static let loggingCategory = "tracker"
+    
+    static let COLD_LAUNCH_PAGE_NAME = "ColdLaunchTime"
+    static let HOT_LAUNCH_PAGE_NAME = "HotLaunchTime"
+    static let LAUNCH_TIME_PAGE_GROUP = "LaunchTime"
+    static let LAUNCH_TIME_TRAFFIC_SEGMENT = "LaunchTime"
+    static let SCREEN_TRACKING_TRAFFIC_SEGMENT = "ScreenTracker"
+
 }
