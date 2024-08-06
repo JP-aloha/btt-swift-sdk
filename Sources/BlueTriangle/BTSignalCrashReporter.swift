@@ -106,7 +106,7 @@ exit value : \(crash.exit_value)
 // MARK: - Private
 private extension BTSignalCrashReporter {
     private  func makeTimerRequest(session: Session, report: ErrorReport, pageName : String?) throws -> Request {
-        let page = Page(pageName: pageName ?? Constants.crashID, pageType: Device.name)
+        let page = Page(pageName: pageName ?? Constants.crashID, pageType: "")
         let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
         let nativeProperty =  report.nativeApp.copy(.Regular)
         let model = TimerRequest(session: session,
@@ -131,7 +131,7 @@ private extension BTSignalCrashReporter {
             "txnName": session.trafficSegmentName,
             "sessionID": String(session.sessionID),
             "pgTm": "0",
-            "pageType": Device.name,
+            "pageType": "",
             "AB": session.abTestID,
             "DCTR": session.dataCenter,
             "CmpN": session.campaignName,
