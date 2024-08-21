@@ -23,14 +23,17 @@ public class BTTWebViewTracker {
     }
     
     public static func restitchWebView() {
-        
         if let webView = tracker.webView{
-            let sessionId = "\(BlueTriangle.sessionID)"
-            BTTWebViewTracker.logger?.info("BlueTriangle: Session Re-stitching was successfull with session \(sessionId)")
-            print("Session Re-stitching has done : \(sessionId)")
-            tracker.injectSessionIdOnWebView(webView)
-            tracker.injectWCDCollectionOnWebView(webView)
-            tracker.injectVersionOnWebView(webView)
+            let bttJSVerificationTag = "_bttTagInit"
+            webView.evaluateJavaScript(bttJSVerificationTag) { (result, error) in
+                if let _ = result as? Bool{
+                    let sessionId = "\(BlueTriangle.sessionID)"
+                    tracker.injectSessionIdOnWebView(webView)
+                    tracker.injectWCDCollectionOnWebView(webView)
+                    tracker.injectVersionOnWebView(webView)
+                    BTTWebViewTracker.logger?.info("BlueTriangle: Session re-stitching was successfull with session \(sessionId)")
+                }
+            }
         }
     }
 
