@@ -15,11 +15,11 @@ class MemoryWarningWatchDog {
 
     static let DEFAULT_PAGE_NAME = BT_ErrorType.MemoryWarning.rawValue
     
-    let session: Session
+    let session: SessionProvider
     let uploader: Uploading
     let logger: Logging
     
-    init(session: Session,
+    init(session: @escaping SessionProvider,
          uploader: Uploading,
          logger: Logging ) {
         
@@ -42,7 +42,7 @@ class MemoryWarningWatchDog {
         let pageName = BlueTriangle.recentTimer()?.page.pageName
         let report = CrashReport(sessionID: BlueTriangle.sessionID,
                                  memoryWarningMessage: message, pageName: pageName)
-        uploadReports(session: session, report: report)
+        uploadReports(session: session(), report: report)
         logger.debug(message)
     }
     

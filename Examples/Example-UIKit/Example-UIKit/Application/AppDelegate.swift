@@ -18,7 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // Configure BlueTriangle
         BlueTriangle.configure { config in
-
+            
             config.siteID = Constants.siteID
             config.enableDebugLogging = true
             config.performanceMonitorSampleRate = 1

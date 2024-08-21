@@ -34,12 +34,12 @@ class ANRWatchDog{
     
     let sampleTimeInterval: TimeInterval    = 2
     let mainThreadObserver: MainThreadObserver
-    let session: Session
+    let session: SessionProvider
     let uploader: Uploading
     let logger: Logging
     
     init(mainThreadObserver: MainThreadObserver,
-         session: Session,
+         session: @escaping SessionProvider,
          uploader: Uploading,
          logger: Logging ) {
         
@@ -107,7 +107,7 @@ An task blocking main thread since \(self.errorTriggerInterval) seconds
 """
         let pageName = BlueTriangle.recentTimer()?.page.pageName
         let report = CrashReport(sessionID: BlueTriangle.sessionID, ANRmessage: message, pageName: pageName)
-        uploadReports(session: session, report: report)
+        uploadReports(session: session(), report: report)
         logger.debug(message)
     }
     

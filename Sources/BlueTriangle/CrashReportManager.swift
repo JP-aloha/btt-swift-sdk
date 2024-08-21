@@ -15,7 +15,7 @@ final class CrashReportManager: CrashReportManaging {
 
     private let uploader: Uploading
 
-    private let sessionProvider: () -> Session
+    private let session: SessionProvider
 
     private let intervalProvider: () -> TimeInterval
 
@@ -25,16 +25,16 @@ final class CrashReportManager: CrashReportManaging {
         crashReportPersistence: CrashReportPersisting.Type,
         logger: Logging,
         uploader: Uploading,
-        sessionProvider: @escaping () -> Session,
+        session: @escaping SessionProvider,
         intervalProvider: @escaping () -> TimeInterval = { Date().timeIntervalSince1970 }
     ) {
         self.crashReportPersistence = crashReportPersistence
         self.logger = logger
         self.uploader = uploader
-        self.sessionProvider = sessionProvider
+        self.session = session
         self.intervalProvider = intervalProvider
         self.startupTask = Task.delayed(byTimeInterval: Constants.startupDelay, priority: .utility) { [weak self] in
-            guard let session = self?.sessionProvider() else {
+            guard let session = self?.session() else {
                 return
             }
 
@@ -72,7 +72,7 @@ final class CrashReportManager: CrashReportManaging {
         let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error, line: line, time: intervalProvider().milliseconds)
         let pageName = BlueTriangle.recentTimer()?.page.pageName
         do {
-            try upload(session:sessionProvider() , report: report, pageName: pageName)
+            try upload(session:session() , report: report, pageName: pageName)
         } catch {
             logger.error(error.localizedDescription)
         }

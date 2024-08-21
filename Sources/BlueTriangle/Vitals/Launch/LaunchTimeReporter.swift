@@ -12,12 +12,11 @@ class LaunchTimeReporter : ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    private let session: Session
+    private let session: SessionProvider
     private let uploader: Uploading
     private let logger: Logging
     private let monitor : LaunchTimeMonitor
-    
-    init(session: Session,
+    init(using session: @escaping SessionProvider,
          uploader: Uploading,
          logger: Logging ,
          monitor : LaunchTimeMonitor) {
@@ -55,12 +54,13 @@ class LaunchTimeReporter : ObservableObject {
                     return
                 }
                 
+                print("Session uploadReports: \(strongSelf.session().sessionID)")
                 let groupName = Constants.LAUNCH_TIME_PAGE_GROUP
                 let trafficSegmentName = Constants.LAUNCH_TIME_TRAFFIC_SEGMENT
                 let timeMS = time.timeIntervalSince1970.milliseconds
                 let durationMS = duration.milliseconds
                 
-                let timerRequest = try strongSelf.makeTimerRequest(session: strongSelf.session,
+                let timerRequest = try strongSelf.makeTimerRequest(session: strongSelf.session(),
                                                                    time: timeMS,
                                                                    duration: durationMS,
                                                                    pageName: pageName,

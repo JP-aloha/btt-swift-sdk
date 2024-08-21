@@ -12,13 +12,26 @@ public class BTTWebViewTracker {
      
     static var shouldCaptureRequests = false
     static var logger : Logging?
+    private(set) weak var webView: WKWebView?
+    private static let tracker = BTTWebViewTracker()
   
     public static func webView( _ webView: WKWebView, didCommit navigation: WKNavigation!){
-       
-        let tracker = BTTWebViewTracker()
+        tracker.webView = webView
         tracker.injectSessionIdOnWebView(webView)
         tracker.injectWCDCollectionOnWebView(webView)
         tracker.injectVersionOnWebView(webView)
+    }
+    
+    public static func restitchWebView() {
+        
+        if let webView = tracker.webView{
+            let sessionId = "\(BlueTriangle.sessionID)"
+            BTTWebViewTracker.logger?.info("BlueTriangle: Session Re-stitching was successfull with session \(sessionId)")
+            print("Session Re-stitching has done : \(sessionId)")
+            tracker.injectSessionIdOnWebView(webView)
+            tracker.injectWCDCollectionOnWebView(webView)
+            tracker.injectVersionOnWebView(webView)
+        }
     }
 
     public static func verifySessionStitchingOnWebView( _ webView: WKWebView, completion: @escaping (String?, Error?) -> Void){

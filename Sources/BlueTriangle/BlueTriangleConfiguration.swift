@@ -143,6 +143,8 @@ final public class BlueTriangleConfiguration: NSObject {
     var requestBuilder: TimerRequestBuilder = .live
 
     var performanceMonitorBuilder: PerformanceMonitorBuilder = .live
+    
+    var session: Session?
 }
 
 // MARK: - Supporting Types
@@ -164,18 +166,44 @@ extension BlueTriangleConfiguration {
     }
 
     func makeSession() -> Session {
-        Session(siteID: siteID,
-                globalUserID: customGlobalUserID ?? globalUserID,
-                sessionID: customSessionID ?? sessionID,
-                isReturningVisitor: isReturningVisitor,
-                abTestID: abTestID,
-                campaign: customCampaign,
-                campaignMedium: campaignMedium,
-                campaignName: campaignName,
-                campaignSource: campaignSource,
-                dataCenter: dataCenter,
-                trafficSegmentName: trafficSegmentName
+        print("makeSession : \(session?.sessionID)")
+        
+        if let session = self.session{
+            return session
+        }else{
+            session = Session(siteID: siteID,
+                              globalUserID: customGlobalUserID ?? globalUserID,
+                              sessionID: customSessionID ?? sessionID,
+                              isReturningVisitor: isReturningVisitor,
+                              abTestID: abTestID,
+                              campaign: customCampaign,
+                              campaignMedium: campaignMedium,
+                              campaignName: campaignName,
+                              campaignSource: campaignSource,
+                              dataCenter: dataCenter,
+                              trafficSegmentName: trafficSegmentName
+                      )
+            return session!
+        }
+    }
+    
+    func updateSession(_ sessionId : Identifier) {
+        
+        session = Session(siteID: siteID,
+                          globalUserID: customGlobalUserID ?? globalUserID,
+                          sessionID: customSessionID ?? sessionId,
+                          isReturningVisitor: isReturningVisitor,
+                          abTestID: abTestID,
+                          campaign: customCampaign,
+                          campaignMedium: campaignMedium,
+                          campaignName: campaignName,
+                          campaignSource: campaignSource,
+                          dataCenter: dataCenter,
+                          trafficSegmentName: trafficSegmentName
         )
+        
+        print("updateSession : \(session?.sessionID)")
+        
     }
 
     func makeLogger () -> Logging {

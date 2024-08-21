@@ -30,24 +30,24 @@ class BTSignalCrashReporter {
     private let logger: Logging
     
     private let uploader: Uploading
-    
-    private let sessionProvider: () -> Session
-    
+        
     private let intervalProvider: () -> TimeInterval
     
     private var startupTask: Task<Void, Error>?
+    
+    private let session: SessionProvider
     
     init(
         directory: String,
         logger: Logging,
         uploader: Uploading,
-        sessionProvider: @escaping () -> Session,
+        session: @escaping SessionProvider,
         intervalProvider: @escaping () -> TimeInterval = { Date().timeIntervalSince1970 }
     ) {
         self.directory = directory
         self.logger = logger
         self.uploader = uploader
-        self.sessionProvider = sessionProvider
+        self.session = session
         self.intervalProvider = intervalProvider
     }
     
@@ -66,7 +66,7 @@ class BTSignalCrashReporter {
     
     private func uploadAllStoredSignalCrashes(){
         do{
-            let session = self.sessionProvider()
+            let session = self.session()
             let crashes = try self.getAllCrashes()
             for crash in crashes {
                 uploadSignalCrash(crash, session)
