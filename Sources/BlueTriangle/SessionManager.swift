@@ -20,7 +20,7 @@ class SessionData: Codable {
 
 class SessionStore {
     
-    private let sessionKey = "SavedSession"
+    private let sessionKey = "SAVED_SESSION_DATA"
     
     func saveSession(_ session: SessionData) {
         if let encoded = try? JSONEncoder().encode(session) {
@@ -58,40 +58,27 @@ class SessionStore {
 
 class SessionManager {
    
-    private let sessionTimeout: Millisecond = 1 * 60 * 1000 // 30 minutes in seconds
-    private let  store = SessionStore()
+    private let expirationDuration: Millisecond = 1 * 60 * 1000 // 30 minutes in seconds
+    private let  sessionStore = SessionStore()
     private var currentSession : SessionData?
     
     func start(){
         
         NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
-            self.didEnterBackground()
+            self.appOffScreen()
         }
-        
-        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
-            self.appWillEnterForeground()
-        }
-        
-        print("SessionManager : init")
-        self.updateSession()
-    }
-    
-    @objc private func didEnterBackground() {
-        print("SessionManager : didEnterBackground")
-        self.appOffScreen()
-    }
 
-    @objc private func appWillEnterForeground() {
-        print("SessionManager : appWillEnterForeground")
-        self.appOnScreen()
+        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
+            self.appOnScreen()
+        }
+        
+        self.updateSession()
     }
     
     private func appOffScreen(){
         if let session = currentSession{
-            let expiry = Int64(Date().timeIntervalSince1970) * 1000 + sessionTimeout
-            session.expiration = expiry
-            store.saveSession(session)
-            print("Saved Session \(session.sessionID)")
+            session.expiration = expirynDuration()
+            sessionStore.saveSession(session)
         }
     }
     
@@ -100,19 +87,16 @@ class SessionManager {
     }
     
     private func invalidateSession(){
-        if store.isExpired(){
-            let expiry = Int64(Date().timeIntervalSince1970) * 1000 + sessionTimeout
-            let session = SessionData(sessionID: generateSessionID(), expiration: expiry)
+        if sessionStore.isExpired(){
+            let session = SessionData(sessionID: generateSessionID(), expiration: expirynDuration())
             currentSession = session
-            store.saveSession(session)
+            sessionStore.saveSession(session)
         }else{
-            currentSession = store.retrieveSessionData()
+            currentSession = sessionStore.retrieveSessionData()
         }
-        
-        print("Fetched Session \(currentSession?.sessionID)")
     }
     
-    internal func updateSession(){
+    private func updateSession(){
         if let currentSession = self.getCurrentSession(){
             BlueTriangle.updateSession(currentSession.sessionID)
         }
@@ -123,9 +107,12 @@ class SessionManager {
     }
 
     private func getCurrentSession() -> SessionData? {
-        
         self.invalidateSession()
-       
         return currentSession
+    }
+    
+    private func expirynDuration()-> Millisecond {
+        let expiry = Int64(Date().timeIntervalSince1970) * 1000 + expirationDuration
+        return expiry
     }
 }
