@@ -6,7 +6,13 @@
 //
 
 import Foundation
+#if canImport(UIKit)
 import UIKit
+#endif
+
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
 
 class SessionData: Codable {
     var sessionID: Identifier
@@ -20,6 +26,7 @@ class SessionData: Codable {
 
 class SessionStore {
     
+    private let lock = NSLock()
     private let sessionKey = "SAVED_SESSION_DATA"
     
     func saveSession(_ session: SessionData) {
@@ -29,11 +36,13 @@ class SessionStore {
     }
     
     func retrieveSessionData() -> SessionData? {
+        
         if let savedSession = UserDefaults.standard.object(forKey: sessionKey) as? Data {
             if let decodedSession = try? JSONDecoder().decode(SessionData.self, from: savedSession) {
                 return decodedSession
             }
         }
+        
         return nil
     }
     
@@ -58,26 +67,32 @@ class SessionStore {
 
 class SessionManager {
    
-    private let expirationDuration: Millisecond = 1 * 60 * 1000 // 30 minutes in seconds
+    private let lock = NSLock()
+    private var expirationDurationInMS: Millisecond = 30 * 60 * 1000
     private let  sessionStore = SessionStore()
     private var currentSession : SessionData?
+    private let notificationQueue = OperationQueue()
     
-    func start(){
+    public func start(with  expiry : Millisecond){
         
-        NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
+        expirationDurationInMS = expiry
+        
+#if os(iOS)
+        NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: notificationQueue) { notification in
             self.appOffScreen()
         }
 
-        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
+        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: notificationQueue) { notification in
             self.appOnScreen()
         }
-        
+#endif
+
         self.updateSession()
     }
     
     private func appOffScreen(){
-        if let session = currentSession{
-            session.expiration = expirynDuration()
+        if let session = currentSession {
+            session.expiration = expiryDuration()
             sessionStore.saveSession(session)
         }
     }
@@ -86,33 +101,36 @@ class SessionManager {
         self.updateSession()
     }
     
-    private func invalidateSession(){
+    private func invalidateSession() -> SessionData{
+        
         if sessionStore.isExpired(){
-            let session = SessionData(sessionID: generateSessionID(), expiration: expirynDuration())
+            let session = SessionData(sessionID: generateSessionID(), expiration: expiryDuration())
             currentSession = session
             sessionStore.saveSession(session)
+            return session
         }else{
-            currentSession = sessionStore.retrieveSessionData()
+            let session = sessionStore.retrieveSessionData()
+            return session!
         }
     }
     
     private func updateSession(){
-        if let currentSession = self.getCurrentSession(){
-            BlueTriangle.updateSession(currentSession.sessionID)
-        }
+        BlueTriangle.updateSessionID(self.currentSessionId())
     }
 
     private func generateSessionID()-> Identifier {
         return Identifier.random()
     }
-
-    private func getCurrentSession() -> SessionData? {
-        self.invalidateSession()
-        return currentSession
-    }
     
-    private func expirynDuration()-> Millisecond {
-        let expiry = Int64(Date().timeIntervalSince1970) * 1000 + expirationDuration
+    public func currentSessionId() -> Identifier {
+        lock.sync {
+            let updatedSession = self.invalidateSession()
+            return updatedSession.sessionID
+        }
+    }
+        
+    internal func expiryDuration()-> Millisecond {
+        let expiry = Int64(Date().timeIntervalSince1970) * 1000 + expirationDurationInMS
         return expiry
     }
 }

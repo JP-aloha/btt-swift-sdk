@@ -16,16 +16,6 @@ final public class BlueTriangleConfiguration: NSObject {
     /// Blue Triangle Technologies-assigned site ID.
     @objc public var siteID: String = ""
 
-    /// Session ID.
-    @objc public var sessionID: Identifier {
-        get {
-            Identifier.random()
-        }
-        set {
-            customSessionID = newValue
-        }
-    }
-
     /// Global User ID.
     @objc public var globalUserID: Identifier {
         get {
@@ -90,6 +80,9 @@ final public class BlueTriangleConfiguration: NSObject {
     /// Offline or Failure request storage memory limit by default it is 30 Mb i.e 30 * 1024 * 1024 byte
     /// Memory unit should be in Bytes
     @objc public var cacheMemoryLimit: UInt = 30 * 1024 * 1024
+    
+    
+    @objc public var sessionExpiryDuration: Millisecond = 2 * 60 * 1000
 
     /// When enabled tasks running on main thread are monitored for there run duration time.
     ///
@@ -131,6 +124,7 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// Boolean indicating whether launch time is enabled.
     @objc public var enableLaunchTime: Bool = true
+    
 
     var timerConfiguration: BTTimer.Configuration = .live
 
@@ -144,7 +138,6 @@ final public class BlueTriangleConfiguration: NSObject {
 
     var performanceMonitorBuilder: PerformanceMonitorBuilder = .live
     
-    var session: Session?
 }
 
 // MARK: - Supporting Types
@@ -164,46 +157,21 @@ extension BlueTriangleConfiguration {
             }
         }
     }
-
-    func makeSession() -> Session {
-        print("makeSession : \(session?.sessionID)")
-        
-        if let session = self.session{
-            return session
-        }else{
-            session = Session(siteID: siteID,
-                              globalUserID: customGlobalUserID ?? globalUserID,
-                              sessionID: customSessionID ?? sessionID,
-                              isReturningVisitor: isReturningVisitor,
-                              abTestID: abTestID,
-                              campaign: customCampaign,
-                              campaignMedium: campaignMedium,
-                              campaignName: campaignName,
-                              campaignSource: campaignSource,
-                              dataCenter: dataCenter,
-                              trafficSegmentName: trafficSegmentName
-                      )
-            return session!
-        }
-    }
     
-    func updateSession(_ sessionId : Identifier) {
+    func makeSession() -> Session {
         
-        session = Session(siteID: siteID,
-                          globalUserID: customGlobalUserID ?? globalUserID,
-                          sessionID: customSessionID ?? sessionId,
-                          isReturningVisitor: isReturningVisitor,
-                          abTestID: abTestID,
-                          campaign: customCampaign,
-                          campaignMedium: campaignMedium,
-                          campaignName: campaignName,
-                          campaignSource: campaignSource,
-                          dataCenter: dataCenter,
-                          trafficSegmentName: trafficSegmentName
-        )
-        
-        print("updateSession : \(session?.sessionID)")
-        
+        return Session(siteID: siteID,
+                       globalUserID: customGlobalUserID ?? globalUserID,
+                       sessionID: BlueTriangleConfiguration.currentSessionId,
+                       isReturningVisitor: isReturningVisitor,
+                       abTestID: abTestID,
+                       campaign: customCampaign,
+                       campaignMedium: campaignMedium,
+                       campaignName: campaignName,
+                       campaignSource: campaignSource,
+                       dataCenter: dataCenter,
+                       trafficSegmentName: trafficSegmentName
+               )
     }
 
     func makeLogger () -> Logging {
@@ -219,5 +187,9 @@ extension BlueTriangleConfiguration {
         }else{
             return nil
         }
+    }
+    
+    private static var currentSessionId : Identifier {
+        return BlueTriangle.sessionManager.currentSessionId()
     }
 }

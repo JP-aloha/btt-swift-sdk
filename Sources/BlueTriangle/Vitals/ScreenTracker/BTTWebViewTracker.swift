@@ -12,22 +12,23 @@ public class BTTWebViewTracker {
      
     static var shouldCaptureRequests = false
     static var logger : Logging?
-    private(set) weak var webView: WKWebView?
+    private var webViews: [WeakWebView] = []
     private static let tracker = BTTWebViewTracker()
   
     public static func webView( _ webView: WKWebView, didCommit navigation: WKNavigation!){
-        tracker.webView = webView
+        let weakWebView = WeakWebView(webView)
+        tracker.webViews.append(weakWebView)
         tracker.injectSessionIdOnWebView(webView)
         tracker.injectWCDCollectionOnWebView(webView)
         tracker.injectVersionOnWebView(webView)
     }
     
-    public static func restitchWebView() {
-        if let webView = tracker.webView{
-            let bttJSVerificationTag = "_bttTagInit"
-            webView.evaluateJavaScript(bttJSVerificationTag) { (result, error) in
-                if let _ = result as? Bool{
-                    let sessionId = "\(BlueTriangle.sessionID)"
+    public static func reStitchWebView(_ sessionID : Identifier) {
+        tracker.cleanUpWebViews()
+        for web in tracker.webViews {
+            if let webView = web.weekWebView{
+                if hasBttTag(webView) {
+                    let sessionId = "\(sessionID)"
                     tracker.injectSessionIdOnWebView(webView)
                     tracker.injectWCDCollectionOnWebView(webView)
                     tracker.injectVersionOnWebView(webView)
@@ -168,6 +169,42 @@ extension BTTWebViewTracker {
                 }
             }
         }
+    }
+    
+    private static func hasBttTag(_ web : WKWebView) -> Bool{
+        
+        var hasTag = false
+        let bttJSVerificationTag = "_bttTagInit"
+        let bttJSSiteIdTag = "_bttUtil.prefix"
+        let siteId = "\(BlueTriangle.siteID)"
+        
+        web.evaluateJavaScript(bttJSVerificationTag) { (result, error) in
+            if let isBttJSAvailable = result as? Bool{
+                if isBttJSAvailable {
+                    web.evaluateJavaScript(bttJSSiteIdTag) { (result, error) in
+                        if let bttSiteID = result as? String{
+                            if bttSiteID == siteId {
+                                hasTag = true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return hasTag
+    }
+    
+    private func cleanUpWebViews(){
+        webViews = webViews.filter { $0.weekWebView != nil }
+    }
+}
+
+class WeakWebView {
+    private(set) weak var weekWebView: WKWebView?
+    
+    init(_ webView: WKWebView) {
+        self.weekWebView = webView
     }
 }
 

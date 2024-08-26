@@ -20,9 +20,9 @@ class PayloadCache : PayloadCacheProtocol{
     //day * 24 * 60 * 60 * 1000
     private(set) var expiryDuration : Millisecond
     
-    private var minExpiryDuration : Millisecond =  2 * 60 * 1000//1 * 24 * 60 * 60 * 1000
+    private var minExpiryDuration : Millisecond =  1 * 24 * 60 * 60 * 1000
     private var maxExpiryDuration : Millisecond = 10 * 24 * 60 * 60 * 1000
-    private var minMemoryLimit : UInt =   5 * 1024 //10 * 1024 * 1024
+    private var minMemoryLimit : UInt =   10 * 1024 * 1024
     private var maxMemoryLimit : UInt = 300 * 1024 * 1024
        
     init(_ memoryLimit : UInt , expiry : Millisecond){

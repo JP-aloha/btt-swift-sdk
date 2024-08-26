@@ -51,8 +51,7 @@ final class CrashReportManagerTests: XCTestCase {
             crashReportPersistence: CrashReportPersistenceMock.self,
             logger: LoggerMock(),
             uploader: UploaderMock(),
-            sessionProvider: { Mock.session }
-        )
+            session: Mock.sessionProvider)
 
         sut.uploadCrashReport(session: Mock.session)
         wait(for: [reportReadExpectation, reportClearedExpectation], timeout: 1.0)
@@ -76,8 +75,7 @@ final class CrashReportManagerTests: XCTestCase {
             crashReportPersistence: CrashReportPersistenceMock.self,
             logger: LoggerMock(),
             uploader: uploader,
-            sessionProvider: { Mock.session }
-        )
+            session: Mock.sessionProvider)
 
         sut.uploadCrashReport(session: Mock.session)
         wait(for: [uploadExpectation], timeout: 1.0)
@@ -107,8 +105,7 @@ final class CrashReportManagerTests: XCTestCase {
             crashReportPersistence: CrashReportPersistenceMock.self,
             logger: LoggerMock(),
             uploader: uploader,
-            sessionProvider: { Mock.session }
-        )
+            session: Mock.sessionProvider)
 
         sut.uploadCrashReport(session: Mock.session)
         wait(for: [uploadExpectation], timeout: 1.0)
@@ -137,7 +134,7 @@ final class CrashReportManagerTests: XCTestCase {
             crashReportPersistence: CrashReportPersistenceMock.self,
             logger: LoggerMock(),
             uploader: uploader,
-            sessionProvider: { Mock.session },
+            session: Mock.sessionProvider,
             intervalProvider: { expectedErrorStart }
         )
 
@@ -170,7 +167,7 @@ final class CrashReportManagerTests: XCTestCase {
             crashReportPersistence: CrashReportPersistenceMock.self,
             logger: LoggerMock(),
             uploader: uploader,
-            sessionProvider: { Mock.session },
+            session: Mock.sessionProvider,
             intervalProvider: { expectedErrorStart }
         )
 

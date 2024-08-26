@@ -32,7 +32,7 @@ final public class BlueTriangle: NSObject {
 #endif
     }
     
-    private static let sessionManager = SessionManager()
+    internal static let sessionManager = SessionManager()
     
     internal static func removeActiveTimer(_ timer : BTTimer){
         
@@ -55,17 +55,19 @@ final public class BlueTriangle: NSObject {
         return timer
     }
     
-   /* private static var session: Session {
-        configuration.makeSession()
-    }*/
-    
-    internal static func updateSession(_ sessionId : Identifier){
-        configuration.updateSession(sessionId)
-        BTTWebViewTracker.restitchWebView()
+    internal static func updateSessionID(_ sessionId : Identifier){
+            _session.sessionID = sessionId
+#if os(iOS)
+            BTTWebViewTracker.reStitchWebView(sessionId)
+#endif
     }
     
+    private static var _session: Session = {
+        configuration.makeSession()
+    }()
+    
     internal static func session() -> Session {
-        return configuration.makeSession()
+        return _session
     }
     
     private static var logger: Logging = {
@@ -131,7 +133,7 @@ final public class BlueTriangle: NSObject {
     private static let anrWatchDog : ANRWatchDog = {
         ANRWatchDog(
             mainThreadObserver: MainThreadObserver.live,
-            session: session,
+            session: {session()},
             uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
                 file: .requests,
                 logger: logger)),
@@ -141,7 +143,7 @@ final public class BlueTriangle: NSObject {
     //ANR components
     private static let memoryWarningWatchDog : MemoryWarningWatchDog = {
         MemoryWarningWatchDog(
-            session: session,
+            session: {session()},
             uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
                 file: .requests,
                 logger: logger)),
@@ -165,12 +167,6 @@ final public class BlueTriangle: NSObject {
         get {
             lock.sync { session().sessionID }
         }
-        set {
-            lock.sync {
-                var newSession = session()
-                 newSession.sessionID = newValue
-            }
-        }
     }
 
     /// Boolean value indicating whether user is a returning visitor.
@@ -179,9 +175,7 @@ final public class BlueTriangle: NSObject {
             lock.sync { session().isReturningVisitor }
         }
         set {
-            lock.sync { 
-                 var newSession = session()
-                 newSession.isReturningVisitor = newValue }
+            lock.sync {_session.isReturningVisitor = newValue }
         }
     }
 
@@ -191,8 +185,7 @@ final public class BlueTriangle: NSObject {
             lock.sync { session().abTestID }
         }
         set {
-            lock.sync { var newSession = session()
-                newSession.abTestID = newValue }
+            lock.sync { _session.abTestID = newValue }
         }
     }
 
@@ -203,8 +196,7 @@ final public class BlueTriangle: NSObject {
             lock.sync { session().campaign }
         }
         set {
-            lock.sync { var newSession = session()
-                newSession.campaign = newValue}
+            lock.sync { _session.campaign = newValue}
         }
     }
 
@@ -214,8 +206,7 @@ final public class BlueTriangle: NSObject {
             lock.sync { session().campaignMedium }
         }
         set {
-            lock.sync {  var newSession = session()
-                newSession.campaignMedium = newValue}
+            lock.sync { _session.campaignMedium = newValue}
         }
     }
 
@@ -225,8 +216,7 @@ final public class BlueTriangle: NSObject {
             lock.sync { session().campaignName }
         }
         set {
-            lock.sync { var newSession = session()
-                newSession.campaignName = newValue }
+            lock.sync { _session.campaignName = newValue }
         }
     }
 
@@ -236,8 +226,7 @@ final public class BlueTriangle: NSObject {
             lock.sync { session().campaignSource }
         }
         set {
-            lock.sync { var newSession = session()
-                newSession.campaignSource = newValue}
+            lock.sync { _session.campaignSource = newValue}
         }
     }
 
@@ -247,8 +236,7 @@ final public class BlueTriangle: NSObject {
             lock.sync { session().dataCenter }
         }
         set {
-            lock.sync { var newSession = session()
-                newSession.dataCenter = newValue }
+            lock.sync { _session.dataCenter = newValue }
         }
     }
 
@@ -258,8 +246,7 @@ final public class BlueTriangle: NSObject {
             lock.sync { session().trafficSegmentName }
         }
         set {
-            lock.sync { var newSession = session()
-                newSession.trafficSegmentName = newValue }
+            lock.sync { _session.trafficSegmentName = newValue }
         }
     }
 }
@@ -274,7 +261,7 @@ extension BlueTriangle {
             precondition(!Self.initialized, "BlueTriangle can only be initialized once.")
             initialized.toggle()
             configure(configuration)
-            sessionManager.start()
+            configureSession(with: configuration.sessionExpiryDuration)
             if let crashConfig = configuration.crashTracking.configuration {
                 DispatchQueue.global(qos: .utility).async {
                     configureCrashTracking(with: crashConfig)
@@ -302,12 +289,13 @@ extension BlueTriangle {
         internalTimerFactory: (() -> InternalTimer)? = nil,
         requestCollector: CapturedRequestCollecting? = nil
     ) {
+        
         lock.sync {
+            
             self.configuration = configuration
             initialized = true
             if let session = session {
-                //self.session = session
-                self.updateSession(session.sessionID)
+                self._session = session
             }
             if let logger = logger {
                 self.logger = logger
@@ -476,7 +464,7 @@ extension BlueTriangle {
         crashReportManager = CrashReportManager(crashReportPersistence: CrashReportPersistence.self,
                                                 logger: logger,
                                                 uploader: uploader,
-                                                session: session)
+                                                session: {session()})
     
         CrashReportPersistence.configureCrashHandling(configuration: crashConfiguration)
     }
@@ -494,7 +482,7 @@ extension BlueTriangle {
         SignalHandler.enableCrashTracking(withApp_version: Version.number, debug_log: debugLog, bttSessionID: "\(sessionID)")
         btcrashReport = BTSignalCrashReporter(directory: SignalHandler.reportsFolderPath(), logger: logger,
                                               uploader: uploader, 
-                                              session: session)
+                                              session: {session()})
         btcrashReport?.configureSignalCrashHandling(configuration: crashConfiguration)
     }
 
@@ -557,7 +545,7 @@ extension BlueTriangle{
         if enabled {
 
             let launchMonitor = LaunchTimeMonitor(logger: logger)
-            launchTimeReporter = LaunchTimeReporter(using: session,
+            launchTimeReporter = LaunchTimeReporter(using: {session()},
                                                     uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
                                                         file: .requests,
                                                         logger: logger)),
@@ -578,6 +566,15 @@ extension BlueTriangle{
             self.memoryWarningWatchDog.start()
 #endif
         }
+    }
+}
+
+//MARK: - Session Expiry
+extension BlueTriangle{
+    static func configureSession(with expiry: Millisecond){
+#if os(iOS)
+        self.sessionManager.start(with: expiry)
+#endif
     }
 }
 

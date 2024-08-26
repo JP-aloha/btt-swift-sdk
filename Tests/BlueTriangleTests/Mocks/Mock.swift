@@ -224,6 +224,10 @@ extension Mock {
         campaignSource: "MY_CAMPAIGN_SOURCE",
         dataCenter: "MY_DATA_CENTER",
         trafficSegmentName: "MY_SEGMENT_NAME")
+    
+    internal static func sessionProvider() -> Session {
+        return session
+    }
 
     static var timerInterval = PageTimeInterval(
         startTime: 2000,
