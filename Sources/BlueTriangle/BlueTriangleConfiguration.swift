@@ -190,6 +190,6 @@ extension BlueTriangleConfiguration {
     }
     
     private static var currentSessionId : Identifier {
-        return BlueTriangle.sessionManager.currentSessionId()
+        return BlueTriangle.sessionManager.getSessionId()
     }
 }

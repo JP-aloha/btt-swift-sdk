@@ -26,7 +26,6 @@ class SessionData: Codable {
 
 class SessionStore {
     
-    private let lock = NSLock()
     private let sessionKey = "SAVED_SESSION_DATA"
     
     func saveSession(_ session: SessionData) {
@@ -36,7 +35,6 @@ class SessionStore {
     }
     
     func retrieveSessionData() -> SessionData? {
-        
         if let savedSession = UserDefaults.standard.object(forKey: sessionKey) as? Data {
             if let decodedSession = try? JSONDecoder().decode(SessionData.self, from: savedSession) {
                 return decodedSession
@@ -83,7 +81,7 @@ class SessionManager {
         }
 
         NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: notificationQueue) { notification in
-            self.appOnScreen()
+            self.onLaunch()
         }
 #endif
 
@@ -97,7 +95,7 @@ class SessionManager {
         }
     }
     
-    private func appOnScreen(){
+    private func onLaunch(){
         self.updateSession()
     }
     
@@ -115,21 +113,22 @@ class SessionManager {
     }
     
     private func updateSession(){
-        BlueTriangle.updateSessionID(self.currentSessionId())
+        BlueTriangle.updateSessionID(self.getSessionId())
     }
 
-    private func generateSessionID()-> Identifier {
-        return Identifier.random()
-    }
-    
-    public func currentSessionId() -> Identifier {
+    public func getSessionId() -> Identifier {
         lock.sync {
             let updatedSession = self.invalidateSession()
             return updatedSession.sessionID
         }
     }
-        
-    internal func expiryDuration()-> Millisecond {
+     
+    
+    private func generateSessionID()-> Identifier {
+        return Identifier.random()
+    }
+    
+    private func expiryDuration()-> Millisecond {
         let expiry = Int64(Date().timeIntervalSince1970) * 1000 + expirationDurationInMS
         return expiry
     }

@@ -23,19 +23,11 @@ public class BTTWebViewTracker {
         tracker.injectVersionOnWebView(webView)
     }
     
-    public static func reStitchWebView(_ sessionID : Identifier) {
+    public static func updateSessionId(_ sessionID : Identifier){
         tracker.cleanUpWebViews()
         for web in tracker.webViews {
             if let webView = web.weekWebView{
-                self.hasBttTag(webView) { hasBtt in
-                    if (hasBtt) {
-                        let sessionId = "\(sessionID)"
-                        tracker.injectSessionIdOnWebView(webView)
-                        tracker.injectWCDCollectionOnWebView(webView)
-                        tracker.injectVersionOnWebView(webView)
-                        BTTWebViewTracker.logger?.info("BlueTriangle: Session re-stitching was successfull with session \(sessionId)")
-                    }
-                }
+                self.restitchWebView(webView, sessionID: sessionID)
             }
         }
     }
@@ -191,6 +183,18 @@ extension BTTWebViewTracker {
                 } else {
                     completion(hasTag)
                 }
+            }
+        }
+    }
+    
+    private static func restitchWebView(_ webView : WKWebView, sessionID : Identifier) {
+        self.hasBttTag(webView) { hasBtt in
+            if (hasBtt) {
+                let sessionId = "\(sessionID)"
+                tracker.injectSessionIdOnWebView(webView)
+                tracker.injectWCDCollectionOnWebView(webView)
+                tracker.injectVersionOnWebView(webView)
+                BTTWebViewTracker.logger?.info("BlueTriangle: Session re-stitching was successfull with session \(sessionId)")
             }
         }
     }

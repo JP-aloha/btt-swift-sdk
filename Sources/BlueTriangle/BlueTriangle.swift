@@ -58,7 +58,7 @@ final public class BlueTriangle: NSObject {
     internal static func updateSessionID(_ sessionId : Identifier){
             _session.sessionID = sessionId
 #if os(iOS)
-            BTTWebViewTracker.reStitchWebView(sessionId)
+            BTTWebViewTracker.updateSessionId(sessionId)
 #endif
     }
     
