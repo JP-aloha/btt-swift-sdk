@@ -78,7 +78,7 @@ extension Mock {
     static func configureBlueTriangle(configuration config: BlueTriangleConfiguration) {
         config.siteID = session.siteID
         config.globalUserID = session.globalUserID
-        config.sessionID = session.sessionID
+       // config.sessionID = session.sessionID
         config.isReturningVisitor = session.isReturningVisitor
         config.abTestID = session.abTestID
         config.campaignMedium = session.campaignMedium
