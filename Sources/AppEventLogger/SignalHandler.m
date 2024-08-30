@@ -41,8 +41,9 @@ int sig_reg_status[SIG_COUNT] = {0};
 static bool __debug_log = false;
 static char* __app_version = "unknown";
 static char* __report_folder_path = NULL;
-static char* __btt_session_id = "unknown";
+//static char* __btt_session_id = "unknown";
 static NSString* __current_page_name = @"";
+static NSString* __btt_session_id = @"unknown";
 static int __max_cache_files = 5;
 static bool __is_register = false;
 
@@ -328,6 +329,14 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
             btt_pageName = "";
     }
     
+    const char* btt_sessionid = "";
+    NSString *bttsessionid = __btt_session_id;
+    if(__btt_session_id != nil){
+        btt_sessionid = [bttsessionid cStringUsingEncoding:NSASCIIStringEncoding];
+        if (btt_sessionid == NULL)
+            btt_sessionid = "";
+    }
+    
     unsigned long size_of_values = (sizeof(int) * 4) + strlen(sig_name) + sizeof(time_t) + strlen(crash_title);
     unsigned long bufferSize = strlen(report_templet) + (size_of_values * 3); //take size of values 3 times more just for safety
     char* report = calloc( bufferSize, sizeof(char));
@@ -340,7 +349,7 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
                               sinfo->si_status,
                               crash_time,
                               __app_version,
-                              __btt_session_id,
+                              btt_sessionid,
                               btt_pageName);
 
     if (actual_len > bufferSize)
@@ -386,10 +395,11 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
     __debug_log = debug_log;
 
     //Copy sessionID
-    unsigned int session_id_size = (unsigned int)session_id.length + 1; //including last \0
+   /* unsigned int session_id_size = (unsigned int)session_id.length + 1; //including last \0
     char *buff_session_id = calloc(session_id_size, sizeof(char));
     [session_id getCString:buff_session_id maxLength:session_id_size encoding:NSASCIIStringEncoding];
-    __btt_session_id = buff_session_id;
+    __btt_session_id = buff_session_id;*/
+    __btt_session_id =  session_id;
 
 #if TARGET_OS_IOS
     if (__is_register) {
@@ -402,7 +412,7 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
     
     __is_register = true;
     
-    [self debug_log:[NSString stringWithFormat:@"Signal registration successful session %s, version %s", __btt_session_id, __app_version]];
+    [self debug_log:[NSString stringWithFormat:@"Signal registration successful session %@, version %s", __btt_session_id, __app_version]];
 #endif
     
 }
@@ -524,6 +534,10 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
 
 + (void) setCurrentPageName:(NSString*) page_name{
     __current_page_name = page_name;
+}
+
++ (void) updateSessionID:(NSString*) session_id{
+    __btt_session_id = session_id;
 }
 
 + (void) debug_log:(NSString *)msg{

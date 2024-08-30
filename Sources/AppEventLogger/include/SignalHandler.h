@@ -22,6 +22,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void) setCurrentPageName:(NSString*) page_name;
 
++ (void) updateSessionID:(NSString*) session_id;
+
 + (void) debug_log:(NSString *)msg;
 
 @end

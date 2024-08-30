@@ -60,6 +60,7 @@ final public class BlueTriangle: NSObject {
 #if os(iOS)
             BTTWebViewTracker.updateSessionId(sessionId)
 #endif
+        SignalHandler.updateSessionID("\(sessionId)")
     }
     
     private static var _session: Session = {
