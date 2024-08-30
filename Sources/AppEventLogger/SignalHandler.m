@@ -41,7 +41,6 @@ int sig_reg_status[SIG_COUNT] = {0};
 static bool __debug_log = false;
 static char* __app_version = "unknown";
 static char* __report_folder_path = NULL;
-//static char* __btt_session_id = "unknown";
 static NSString* __current_page_name = @"";
 static NSString* __btt_session_id = @"unknown";
 static int __max_cache_files = 5;
@@ -395,10 +394,6 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
     __debug_log = debug_log;
 
     //Copy sessionID
-   /* unsigned int session_id_size = (unsigned int)session_id.length + 1; //including last \0
-    char *buff_session_id = calloc(session_id_size, sizeof(char));
-    [session_id getCString:buff_session_id maxLength:session_id_size encoding:NSASCIIStringEncoding];
-    __btt_session_id = buff_session_id;*/
     __btt_session_id =  session_id;
 
 #if TARGET_OS_IOS
