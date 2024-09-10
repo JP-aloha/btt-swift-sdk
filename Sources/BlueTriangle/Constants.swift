@@ -44,5 +44,10 @@ enum Constants {
     static let LAUNCH_TIME_PAGE_GROUP = "LaunchTime"
     static let LAUNCH_TIME_TRAFFIC_SEGMENT = "LaunchTime"
     static let SCREEN_TRACKING_TRAFFIC_SEGMENT = "ScreenTracker"
+    
+    //Dynamic Config
+    
+    static let configBaseURL: URL = "http://3.221.132.81/"
+    static let BTT_SAVED_REMOTE_CONFIG_KEY  = "BTTSavedRemoteConfigKey"
 
 }

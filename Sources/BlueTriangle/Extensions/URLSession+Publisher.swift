@@ -53,6 +53,20 @@ struct HTTPResponse<T> {
 }
 
 extension HTTPResponse {
+    init(_ tuple: (T?, URLResponse?, Error?)) throws {
+        if let error = tuple.2{
+            throw NetworkError.network(error: error)
+        }else{
+            guard let httpResponse = tuple.1 as? HTTPURLResponse, let value = tuple.0 else {
+                throw NetworkError.invalidResponse(tuple.1)
+            }
+            self.value = value
+            self.response = httpResponse
+        }
+    }
+}
+
+extension HTTPResponse {
     func validateStatus() throws {
         switch response.statusCode {
         // Success
@@ -63,6 +77,30 @@ extension HTTPResponse {
         case (500..<600): throw NetworkError.serverError(response)
         default: throw NetworkError.unknown(message: "Unrecognized status code: \(response.statusCode)")
         }
+    }
+    
+    func validate() throws -> Self {
+        switch response.statusCode {
+        // Informational
+        case (100..<200): return self
+        // Success
+        case (200..<300): return self
+        // Redirection
+        case (300..<400): return self
+        // Client Error
+        case (400..<500): throw NetworkError.clientError(response)
+        // Server Error
+        case (500..<600): throw NetworkError.serverError(response)
+        default: throw NetworkError.unknown(message: "Unrecognized status code: \(response.statusCode)")
+        }
+    }
+    
+    // Decode method for when T is Data
+    func decode<S: Decodable>(with decoder: JSONDecoder = .init()) throws -> S {
+        guard let data = value as? Data else {
+            throw NetworkError.decoding(error: NSError(domain: "Expected value to be of type Data.", code: 1001))
+        }
+        return try decoder.decode(S.self, from: data)
     }
 }
 

@@ -33,6 +33,7 @@ final public class BlueTriangle: NSObject {
     }
     
     internal static let sessionManager = SessionManager()
+    internal static let remoteConfig = BTTRemoteConfigConnector()
     
     internal static func removeActiveTimer(_ timer : BTTimer){
         
@@ -97,6 +98,13 @@ final public class BlueTriangle: NSObject {
     private static var shouldCaptureRequests: Bool = {
         .random(probability: configuration.networkSampleRate)
     }()
+    
+    
+    internal static func updateNetworkSampleRate(_ rate : Double){
+        configuration.networkSampleRate = rate
+        shouldCaptureRequests = .random(probability: configuration.networkSampleRate)
+        BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
+    }
 
     /// A Boolean value indicating whether the SDK has been initialized.
     public private(set) static var initialized = false
@@ -263,6 +271,7 @@ extension BlueTriangle {
             initialized.toggle()
             configure(configuration)
             configureSession(with: configuration.sessionExpiryDuration)
+            configureRemoteConfig()
             if let crashConfig = configuration.crashTracking.configuration {
                 DispatchQueue.global(qos: .utility).async {
                     configureCrashTracking(with: crashConfig)
@@ -575,6 +584,15 @@ extension BlueTriangle{
     static func configureSession(with expiry: Millisecond){
 #if os(iOS)
         self.sessionManager.start(with: expiry)
+#endif
+    }
+}
+
+//MARK: - Session Expiry
+extension BlueTriangle{
+    static func configureRemoteConfig(){
+#if os(iOS)
+        self.remoteConfig.start()
 #endif
     }
 }

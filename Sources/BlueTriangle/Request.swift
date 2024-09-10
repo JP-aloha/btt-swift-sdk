@@ -24,6 +24,10 @@ struct Request: Codable, URLRequestConvertible {
     let headers: Headers?
     /// The data sent as the message body of a request, such as for an HTTP POST request.
     let body: Data?
+    
+    let accept: ContentType?
+        
+    let contentType: ContentType?
 
     /// The `URLQueryItem`s derived from ``parameters``.
     var queryItems: [URLQueryItem]? {
@@ -37,12 +41,14 @@ struct Request: Codable, URLRequestConvertible {
     ///   - parameters: The query items for the request URL.
     ///   - headers: The HTTP header fields for the request.
     ///   - body: The data for the request body.
-    init(method: HTTPMethod, url: URL, parameters: Parameters? = nil, headers: Headers? = nil, body: Data? = nil) {
+    init(method: HTTPMethod, url: URL, parameters: Parameters? = nil, headers: Headers? = nil, body: Data? = nil, accept : ContentType? = nil, contentType : ContentType? = nil) {
         self.method = method
         self.url = url
         self.parameters = parameters
         self.headers = headers
         self.body = body
+        self.accept = accept
+        self.contentType = contentType
     }
 
     /// Returns a ``URLRequest`` created from this request.
@@ -57,6 +63,14 @@ struct Request: Codable, URLRequestConvertible {
             urlRequest = URLRequest(url: url)
         }
 
+        if let accept {
+            urlRequest.setValue(accept.rawValue, forHTTPHeaderField: "Accept")
+        }
+
+        if let contentType {
+            urlRequest.setValue(contentType.rawValue, forHTTPHeaderField: "Content-Type")
+        }
+        
         urlRequest.httpMethod = method.rawValue
 
         urlRequest.allHTTPHeaderFields = headers
@@ -90,6 +104,19 @@ extension Request {
     }
 }
 
+extension Request {
+        
+    init(url: URL,
+        body: Data? = nil,
+        parameters: Parameters? = nil,
+        headers: Headers? = nil,
+        accept: ContentType? = nil,
+        contentType: ContentType? = nil
+    ) {
+        self.init(method: .get, url: url, parameters: parameters, headers: headers, body: body,accept: accept, contentType: contentType)
+    }
+}
+
 // MARK: - Supporting Types
 extension Request {
     /// The HTTP Method.
@@ -99,6 +126,11 @@ extension Request {
         case put = "PUT"
         case patch = "PATCH"
         case delete = "DELETE"
+    }
+    
+    enum ContentType: String, Codable {
+        case json = "application/json"
+        case urlencoded = "application/x-www-form-urlencoded"
     }
 }
 
