@@ -99,11 +99,11 @@ final public class BlueTriangle: NSObject {
         .random(probability: configuration.networkSampleRate)
     }()
     
-    
     internal static func updateNetworkSampleRate(_ rate : Double){
         configuration.networkSampleRate = rate
         shouldCaptureRequests = .random(probability: configuration.networkSampleRate)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
+        NSLog("BlueTriangle sample Rate : %.2f - value : %@", rate , shouldCaptureRequests ? "true" : "false")
     }
 
     /// A Boolean value indicating whether the SDK has been initialized.

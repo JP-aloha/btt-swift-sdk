@@ -31,7 +31,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         super.tearDown()
     }
     
-    func testNoUpdateNeeded() {
+    func testNoUpdateNeededWithinUpdatePeriod() {
         
         let savedConfig = BTTRemoteConfig(errorSamplePercent: 10,
                                           wcdSamplePercent: 20)
@@ -46,7 +46,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertNil(mockFetcher.configToReturn)
         XCTAssertEqual(mockRepo.get()?.wcdSamplePercent, savedConfig.wcdSamplePercent)
-        XCTAssertNil(mockHandler.updatedSampleRate)
+        XCTAssertNil(mockHandler.remoteConfig?.wcdSamplePercent)
     }
     
     func testUpdateNeededWhenNoConfigExist() {
@@ -62,7 +62,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(mockRepo.get()?.wcdSamplePercent, 50)
-        XCTAssertEqual(mockHandler.updatedSampleRate, 50)
+        XCTAssertEqual(mockHandler.remoteConfig?.wcdSamplePercent, 50)
     }
     
     func testUpdateNeededWhenAllReadyOldConfigExist() {
@@ -85,10 +85,10 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(mockRepo.get()?.wcdSamplePercent, 50)
-        XCTAssertEqual(mockHandler.updatedSampleRate, 50)
+        XCTAssertEqual(mockHandler.remoteConfig?.wcdSamplePercent, 50)
     }
     
-    func testWhenNewConfigIsSameAsOldConfig() {
+    func testNoUpdateNeededWhenNewConfigIsSameAsOldConfig() {
         
         let savedConfig = BTTRemoteConfig(errorSamplePercent: 10,
                                           wcdSamplePercent: 20)
@@ -108,7 +108,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(mockRepo.get()?.wcdSamplePercent, 20)
-        XCTAssertNil(mockHandler.updatedSampleRate)
+        XCTAssertNil(mockHandler.remoteConfig?.wcdSamplePercent)
     }
     
 }

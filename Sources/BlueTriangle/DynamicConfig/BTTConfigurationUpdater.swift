@@ -37,9 +37,11 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         
         configFetcher.fetch {  config in
             if let newConfig = config, self.hasUpdated(newConfig){
-                print("Updating saved config with new config")
+                print("Updating by updater saved config with new config \(Double(newConfig.wcdSamplePercent) / 100.0)")
                 self.configRepo.save(newConfig)
-                self.configHandler.updateSampleRate(newConfig.wcdSamplePercent)
+                self.configHandler.updateRemoteConfig(newConfig)
+            }else{
+                print("Found same config as old saved config or unable to fetch")
             }
             completion()
         }

@@ -8,12 +8,17 @@
 import Foundation
 
 protocol RemoteConfigHandler {
-    func updateSampleRate(_ value : Int)
+    func updateRemoteConfig(_ config : BTTRemoteConfig)
 }
 
 class BTTRemoteConfigHandler : RemoteConfigHandler{
 
-    func updateSampleRate(_ value : Int){
+    func updateRemoteConfig(_ config : BTTRemoteConfig){
+        //update sample rate
+        updateSampleRate(config.wcdSamplePercent)
+    }
+    
+    private func updateSampleRate(_ value : Int){
         let rate = Double(value) / 100.0
         BlueTriangle.updateNetworkSampleRate(rate)
     }

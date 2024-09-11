@@ -13,7 +13,7 @@ final class CaptureRateProbabilityTest: XCTestCase {
     func testShouldCaptureRequestsProbability() {
         
         let testCases: [(givenProbability: Double, expectedMinProbability: Double, expectedMaxProbability: Double)] = [
-            (80, 70, 90), // 70% - 90%
+            (75, 65, 85), // 70% - 90%
             (50, 40, 60), // 40% - 60%
             (25, 15, 35)  // 15% - 35%
         ]

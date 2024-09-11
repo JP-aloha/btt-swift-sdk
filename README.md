@@ -98,7 +98,15 @@ Replace `<BTT_SITE_ID>` with your **site ID**. You can find instructions on how 
 
 ### Native View Performance Tracking- Mandatory
 
-All UIKit UIViewControllers view counts will be tracked automatically. You can see each view controller name with their count on our dashboard.
+All UIKit UIViewControllers view counts will be tracked automatically. You can see each view controller name with their count on our dashboard. If you want to ignore a specific view controller (i.e., do not want to track that screen), you can exclude it using the 'ignoreViewControllers' configuration property as follows.
+
+
+```swift
+BlueTriangle.configure { config in
+         ...
+         config.ignoreViewControllers = ["UIViewController"]
+ }
+```
 
 SwiftUI views are not captured automatically. You need to call bttTrackScreen() modifier on each view which you want to track. Below example show usage of "bttTrackScreen(_ screenName: String)" to track About Us screen.
 

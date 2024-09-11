@@ -23,8 +23,8 @@ class BTTRemoteConfigConnector {
     private let configHandler = BTTRemoteConfigHandler()
     
     public func start(){
-        
 #if os(iOS)
+        self.updateSavedValue()
         NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: notificationQueue) { notification in
             self.onLaunch()
         }
@@ -33,6 +33,14 @@ class BTTRemoteConfigConnector {
     
     private func onLaunch(){
         self.updateConfiguration()
+    }
+
+    
+    private func updateSavedValue(){
+        if let config = configRepo.get(){
+            NSLog("Update Saved sample Rate : %.2f", Double(config.wcdSamplePercent) / 100.0)
+            configHandler.updateRemoteConfig(config)
+        }
     }
     
     private func updateConfiguration(){
