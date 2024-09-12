@@ -47,7 +47,7 @@ enum Constants {
     
     //Dynamic Config
     
-    static let configBaseURL: URL = "http://localhost:5005/" //"http://3.221.132.81/"
+    static let configBaseURL: URL = "http://3.221.132.81/" //"http://localhost:5005/"
     static let BTT_SAVED_REMOTE_CONFIG_KEY  = "BTTSavedRemoteConfigKey"
 
 }
