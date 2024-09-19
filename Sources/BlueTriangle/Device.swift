@@ -59,6 +59,22 @@ enum Device {
     static var userAgentToken: String {
         "\(os)/\(osVersion) (\(name))"
     }
+    
+    /// Returns device model name.
+    static var model : String {
+       var systemInfo = utsname()
+       uname(&systemInfo)
+       
+       let modelIdentifier = withUnsafePointer(to: &systemInfo.machine) {
+           $0.withMemoryRebound(to: CChar.self, capacity: 1) {
+               String(validatingUTF8: $0)
+           }
+       }
+       
+       guard let model = modelIdentifier else { return "Unknown" }
+       
+       return model
+   }
 
     /// Returns device name.
     private static func platform() -> String {

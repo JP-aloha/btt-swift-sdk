@@ -42,6 +42,7 @@ struct NativeAppProperties: Equatable {
     var err: String?
     var type : String = NativeAppType.Regular.description
     var netState: String = BlueTriangle.monitorNetwork?.state.value?.rawValue.lowercased() ?? ""
+    var deviceModel : String = Device.model
 }
 
 extension NativeAppProperties: Codable{
@@ -106,6 +107,8 @@ extension NativeAppProperties: Codable{
         if nstString.count > 0{
             try con.encode(nstString, forKey: .netState)
         }
+        
+        try con.encode(deviceModel, forKey: .deviceModel)
     }
     
     init(from decoder: Decoder) throws {
@@ -121,6 +124,7 @@ extension NativeAppProperties: Codable{
         self.other = try container.decodeIfPresent(Millisecond.self, forKey: .other) ?? 0
         self.netState = try container.decodeIfPresent(String.self, forKey: .netState) ?? ""
         self.type = try container.decodeIfPresent(String.self, forKey: .type) ?? NativeAppType.NST.description
+        self.deviceModel = try container.decodeIfPresent(String.self, forKey: .deviceModel) ?? Device.model
     }
     
     enum CodingKeys: String, CodingKey {
@@ -137,6 +141,7 @@ extension NativeAppProperties: Codable{
         case other
         case type
         case err
+        case deviceModel
     }
 }
 
@@ -193,6 +198,7 @@ extension NativeAppProperties {
             ethernet: self.ethernet,
             other: self.other,
             type: type.description,
-            netState: self.netState)
+            netState: self.netState,
+            deviceModel: self.deviceModel)
     }
 }

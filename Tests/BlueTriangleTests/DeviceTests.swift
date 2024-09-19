@@ -27,4 +27,11 @@ final class DeviceTests: XCTestCase {
         XCTAssertFalse(osVersion.isEmpty)
         XCTAssertFalse(name.isEmpty)
     }
+    
+    func testDeviceModel() {
+        let model = Device.model
+        
+        let expectedModel = "x86_64"  //Simulator
+        XCTAssertEqual(model, expectedModel, "The device model should match the expected model.")
+    }
 }
