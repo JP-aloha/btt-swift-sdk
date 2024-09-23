@@ -62,19 +62,21 @@ enum Device {
     
     /// Returns device model name.
     static var model : String {
-       var systemInfo = utsname()
-       uname(&systemInfo)
-       
-       let modelIdentifier = withUnsafePointer(to: &systemInfo.machine) {
-           $0.withMemoryRebound(to: CChar.self, capacity: 1) {
-               String(validatingUTF8: $0)
-           }
-       }
-       
-       guard let model = modelIdentifier else { return "Unknown" }
-       
-       return model
+       #if os(macOS)
+        return  platform()
+       #else
+        return  deviceModel()
+       #endif
    }
+    
+    /// Returns device model.
+    private static func deviceModel() -> String {
+        var size = 0
+        sysctlbyname("hw.machine", nil, &size, nil, 0)
+        var machine = [CChar](repeating: 0,  count: Int(size))
+        sysctlbyname("hw.machine", &machine, &size, nil, 0)
+        return String(cString: machine)
+    }
 
     /// Returns device name.
     private static func platform() -> String {
