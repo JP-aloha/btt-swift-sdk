@@ -78,6 +78,7 @@ enum Device {
         return String(cString: machine)
     }
 
+
     /// Returns device name.
     private static func platform() -> String {
         var size = 0
