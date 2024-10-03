@@ -63,7 +63,7 @@ class NetworkStateMonitor : NetworkStateMonitorProtocol{
                 self.lastPath = path
                 let networkState = self.extractState(path: path)
                 if networkState !=  self.state.value{
-                    self.state.send(networkState)
+                    self.updateNetworkState(networkState, path: path)
                     self.logger.debug("Network state changed to \(networkState.description.lowercased())")
                 }
             }
@@ -75,18 +75,18 @@ class NetworkStateMonitor : NetworkStateMonitorProtocol{
         self.logger.debug("Network state monitoring started.")
     }
     
-    private func updateNetworkSource(path: NWPath){
+    private func updateNetworkState(_ state : NetworkState, path: NWPath){
         if path.usesInterfaceType(.cellular){
             let technology = telephony.getNetworkTechnology()
             self.networkSource.send(technology)
         }else{
             self.networkSource.send(nil)
         }
+        
+        self.state.send(state)
     }
     
     private func extractState(path: NWPath) -> NetworkState{
-        
-        self.updateNetworkSource(path: path)
         
         if path.status != .satisfied{
             return  .Offline
@@ -111,7 +111,8 @@ class NetworkStateMonitor : NetworkStateMonitorProtocol{
             if let path = self.lastPath{
                 let networkState = self.extractState(path: path)
                 if networkState !=  self.state.value{
-                    self.state.send(networkState)                }
+                    self.updateNetworkState(networkState, path: path)
+                }
             }
         }
     }
