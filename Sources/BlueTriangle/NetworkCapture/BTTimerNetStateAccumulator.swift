@@ -94,26 +94,29 @@ class BTTimerNetStateAccumulator  : BTTimerNetStateAccumulatorProtocol {
         let maxNetUsed = max(wifi, totalCellulerUsed, ethernet, offline, other)
         let maxCellulerUsedTechnology = max(cellular5G, cellular4G, cellular3G, cellular2G, cellularUnknown)
         
-        if maxNetUsed == wifi{
-            nstString = NetworkState.Wifi.description.lowercased()
-        }else if maxNetUsed == totalCellulerUsed{
-            if maxCellulerUsedTechnology == cellular5G{
-                nstString = NetworkState.Cellular(._5G).description.lowercased()
-            }else if maxCellulerUsedTechnology == cellular4G{
-                nstString = NetworkState.Cellular(._4G).description.lowercased()
-            }else if maxCellulerUsedTechnology == cellular3G{
-                nstString = NetworkState.Cellular(._3G).description.lowercased()
-            }else if maxCellulerUsedTechnology == cellular2G{
-                nstString = NetworkState.Cellular(._2G).description.lowercased()
+        if maxNetUsed > 0{
+            
+            if maxNetUsed == wifi{
+                nstString = NetworkState.Wifi.description.lowercased()
+            }else if maxNetUsed == totalCellulerUsed{
+                if maxCellulerUsedTechnology == cellular5G{
+                    nstString = NetworkState.Cellular(._5G).description.lowercased()
+                }else if maxCellulerUsedTechnology == cellular4G{
+                    nstString = NetworkState.Cellular(._4G).description.lowercased()
+                }else if maxCellulerUsedTechnology == cellular3G{
+                    nstString = NetworkState.Cellular(._3G).description.lowercased()
+                }else if maxCellulerUsedTechnology == cellular2G{
+                    nstString = NetworkState.Cellular(._2G).description.lowercased()
+                }else{
+                    nstString = NetworkState.Cellular(._Unknown).description.lowercased()
+                }
+            }else if maxNetUsed == ethernet{
+                nstString = NetworkState.Ethernet.description.lowercased()
+            }else if maxNetUsed == offline{
+                nstString = NetworkState.Offline.description.lowercased()
             }else{
-                nstString = NetworkState.Cellular(._Unknown).description.lowercased()
+                nstString = NetworkState.Other.description.lowercased()
             }
-        }else if maxNetUsed == ethernet{
-            nstString = NetworkState.Ethernet.description.lowercased()
-        }else if maxNetUsed == offline{
-            nstString = NetworkState.Offline.description.lowercased()
-        }else{
-            nstString = NetworkState.Other.description.lowercased()
         }
                
         return (totalCellulerUsed, nstString)
