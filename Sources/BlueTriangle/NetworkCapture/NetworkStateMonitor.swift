@@ -8,7 +8,6 @@
 import Network
 import Foundation
 import Combine
-import CoreTelephony
 
 indirect enum NetworkState : CustomStringConvertible, Equatable{
     case Wifi
