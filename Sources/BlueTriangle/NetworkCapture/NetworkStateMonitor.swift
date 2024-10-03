@@ -8,19 +8,35 @@
 import Network
 import Foundation
 import Combine
+import CoreTelephony
 
-enum NetworkState : String{
-   case Wifi
-   case Cellular
-   case Ethernet
-   case Other
-   case Offline
+indirect enum NetworkState : CustomStringConvertible, Equatable{
+    case Wifi
+    case Cellular(NetworkType)
+    case Ethernet
+    case Other
+    case Offline
+    
+    var description: String {
+        switch self {
+        case .Wifi:
+            return "WiFi"
+        case .Cellular(let type):
+            return type.description
+        case .Ethernet:
+            return "Ethernet"
+        case .Other:
+            return "Other"
+        case .Offline:
+            return "Offline"
+        }
+    }
 }
 
 protocol NetworkStateMonitorProtocol{
     var state : CurrentValueSubject<NetworkState?, Never> { get}
+    var networkSource : CurrentValueSubject<String?, Never> { get}
 }
-
 
 protocol NetworkPathMonitorProtocol{
     var pathUpdateHandler: (@Sendable (_ newPath: NWPath) -> Void)? { get set}
@@ -32,35 +48,53 @@ extension NWPathMonitor : NetworkPathMonitorProtocol{}
 
 class NetworkStateMonitor : NetworkStateMonitorProtocol{
     var state: CurrentValueSubject<NetworkState?, Never> = .init(nil)
+    var networkSource: CurrentValueSubject<String?, Never> = .init(nil)
     private var monitor : NetworkPathMonitorProtocol
     private let logger : Logging
+    private let telephony : NetworkTelephonyProtocol
+    private var lastPath: NWPath?
     
-    init(_ logger : Logging, _ monitor : NetworkPathMonitorProtocol = NWPathMonitor()) {
+    init(_ logger : Logging, _ monitor : NetworkPathMonitorProtocol = NWPathMonitor(),_ telephony : NetworkTelephonyProtocol = NetworkTelephonyHandler()) {
         
         self.logger = logger
         self.monitor = monitor
+        self.telephony = telephony
         self.monitor.pathUpdateHandler = { [weak self] path  in
             if let self = self{
+                self.lastPath = path
                 let networkState = self.extractState(path: path)
                 if networkState !=  self.state.value{
                     self.state.send(networkState)
-                    self.logger.debug("Network state changed to \(networkState.rawValue.lowercased())")
+                    self.logger.debug("Network state changed to \(networkState.description.lowercased())")
                 }
             }
         }
         
+        self.observeNetworkType()
         self.monitor.start(queue: DispatchQueue.global(qos: .default))
         
         self.logger.debug("Network state monitoring started.")
     }
     
+    private func updateNetworkSource(path: NWPath){
+        if path.usesInterfaceType(.cellular){
+            let technology = telephony.getNetworkTechnology()
+            self.networkSource.send(technology)
+        }else{
+            self.networkSource.send(nil)
+        }
+    }
+    
     private func extractState(path: NWPath) -> NetworkState{
+        
+        self.updateNetworkSource(path: path)
         
         if path.status != .satisfied{
             return  .Offline
         }
         else if path.usesInterfaceType(.cellular) {
-            return  .Cellular
+            let networkType = telephony.getNetworkType()
+            return  .Cellular(networkType)
         }
         else if path.usesInterfaceType(.wifi) {
             return  .Wifi
@@ -72,7 +106,17 @@ class NetworkStateMonitor : NetworkStateMonitorProtocol{
             return  .Other
         }
     }
-
+    
+    private func observeNetworkType(){
+        self.telephony.observeNetworkType { source in
+            if let path = self.lastPath{
+                let networkState = self.extractState(path: path)
+                if networkState !=  self.state.value{
+                    self.state.send(networkState)                }
+            }
+        }
+    }
+    
     deinit {
         monitor.cancel()
     }
