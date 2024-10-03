@@ -5,7 +5,10 @@
 //  Created by Ashok Singh on 26/09/24.
 //
 
+#if canImport(CoreTelephony)
 import CoreTelephony
+#endif
+import Foundation
 
 enum NetworkType: CustomStringConvertible {
     case _5G
@@ -36,14 +39,24 @@ protocol NetworkTelephonyProtocol{
 }
 
 class NetworkTelephonyHandler : NetworkTelephonyProtocol {
-
-    private let telephony : CTTelephonyNetworkInfo
     
+#if os(iOS)
+    private let telephony: CTTelephonyNetworkInfo
+#endif
+    
+    // iOS-specific initializer
+#if os(iOS)
     init(_ telephony : CTTelephonyNetworkInfo = CTTelephonyNetworkInfo()) {
         self.telephony = telephony
     }
+#else
+    init() {}
+#endif
+    
+
     
     func observeNetworkType(_ completion :@escaping (String?)->()){
+#if os(iOS)
         NotificationCenter
             .default
             .addObserver(forName: NSNotification.Name.CTServiceRadioAccessTechnologyDidChange,
@@ -53,14 +66,21 @@ class NetworkTelephonyHandler : NetworkTelephonyProtocol {
                completion(technology)
             }
         }
+#else
+        completion(nil)
+#endif
     }
     
     func getNetworkTechnology() -> String? {
+        
+#if os(iOS)
         guard let technology = telephony.serviceCurrentRadioAccessTechnology?.values.first else {
             return nil
         }
-        
         return technology
+#else
+        return nil
+#endif
     }
     
     func getNetworkType() -> NetworkType {
@@ -68,10 +88,11 @@ class NetworkTelephonyHandler : NetworkTelephonyProtocol {
             return ._Unknown
         }
         
+#if os(iOS)
         if #available(iOS 14.1, *) {
             
             switch technology {
-            
+                
             case CTRadioAccessTechnologyNRNSA, CTRadioAccessTechnologyNR:
                 return ._5G
             case CTRadioAccessTechnologyLTE:
@@ -103,14 +124,17 @@ class NetworkTelephonyHandler : NetworkTelephonyProtocol {
             CTRadioAccessTechnologyGPRS:
                 return ._2G
             case CTRadioAccessTechnologyCDMA1x,
-                 CTRadioAccessTechnologyCDMAEVDORev0,
-                 CTRadioAccessTechnologyCDMAEVDORevA,
-                 CTRadioAccessTechnologyCDMAEVDORevB:
+                CTRadioAccessTechnologyCDMAEVDORev0,
+                CTRadioAccessTechnologyCDMAEVDORevA,
+            CTRadioAccessTechnologyCDMAEVDORevB:
                 return ._2G
             default:
                 return ._Unknown
             }
         }
+#else
+        return ._Unknown
+#endif
     }
     
     deinit {
