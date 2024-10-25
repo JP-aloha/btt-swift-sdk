@@ -56,20 +56,50 @@ final public class BlueTriangle: NSObject {
         return timer
     }
     
-    internal static func updateSessionID(_ sessionId : Identifier){
-            _session.sessionID = sessionId
+    internal static func updateSession(_ session : SessionData){
+    
+        _session.sessionID = session.sessionID
 #if os(iOS)
-            BTTWebViewTracker.updateSessionId(sessionId)
+        BTTWebViewTracker.updateSessionId(session.sessionID)
 #endif
-        SignalHandler.updateSessionID("\(sessionId)")
+        SignalHandler.updateSessionID("\(session.sessionID)")
     }
     
+    internal static func updateNetworkSampleRate(_ rate : Double){
+        
+        configuration.networkSampleRate = rate
+        sessionManager.refreshSession()
+        
+        shouldCaptureRequests = sessionManager.getSessionData().shouldNetworkCapture
+        capturedRequestCollector = makeCapturedRequestCollector()
+        BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
+        
+        NSLog("BlueTriangle sample Rate : %.2f - value : %@ ", rate , shouldCaptureRequests ? "true" : "false")
+    }
+
     private static var _session: Session = {
         configuration.makeSession()
     }()
     
     internal static func session() -> Session {
         return _session
+    }
+    
+    internal static func makeCapturedRequestCollector() -> CapturedRequestCollecting? {
+        if shouldCaptureRequests {
+            let collector = configuration.capturedRequestCollectorConfiguration.makeRequestCollector(
+                logger: logger,
+                networkCaptureConfiguration: .standard,
+                requestBuilder: CapturedRequestBuilder.makeBuilder { session() },
+                uploader: uploader)
+
+            Task {
+                await collector.configure()
+            }
+            return collector
+        } else {
+            return nil
+        }
     }
     
     private static var logger: Logging = {
@@ -99,13 +129,6 @@ final public class BlueTriangle: NSObject {
         .random(probability: configuration.networkSampleRate)
     }()
     
-    internal static func updateNetworkSampleRate(_ rate : Double){
-        configuration.networkSampleRate = rate
-        shouldCaptureRequests = .random(probability: configuration.networkSampleRate)
-        BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
-        NSLog("BlueTriangle sample Rate : %.2f - value : %@", rate , shouldCaptureRequests ? "true" : "false")
-    }
-
     /// A Boolean value indicating whether the SDK has been initialized.
     public private(set) static var initialized = false
 
@@ -114,20 +137,7 @@ final public class BlueTriangle: NSObject {
     static var monitorNetwork: NetworkStateMonitorProtocol?
     
     private static var capturedRequestCollector: CapturedRequestCollecting? = {
-        if shouldCaptureRequests {
-            let collector = configuration.capturedRequestCollectorConfiguration.makeRequestCollector(
-                logger: logger,
-                networkCaptureConfiguration: .standard,
-                requestBuilder: CapturedRequestBuilder.makeBuilder { session() },
-                uploader: uploader)
-
-            Task {
-                await collector.configure()
-            }
-            return collector
-        } else {
-            return nil
-        }
+        return makeCapturedRequestCollector()
     }()
 
     private static var appEventObserver: AppEventObserver?

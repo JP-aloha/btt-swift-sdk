@@ -10,20 +10,16 @@ import XCTest
 
 class MockBTTConfigurationRepo: ConfigurationRepo {
     
-    var savedConfig: BTTSavedRemoteConfig?
+    var store = [String: BTTSavedRemoteConfig]()
     
-    func get() -> BTTSavedRemoteConfig? {
-        return savedConfig
+    func get(_ key: String) -> BTTSavedRemoteConfig? {
+        return store[key]
     }
     
-    func save(_ config: BTTRemoteConfig) {
+    func save(_ config: BTTRemoteConfig, key: String) {
         let newConfig = BTTSavedRemoteConfig(errorSamplePercent: config.errorSamplePercent,
-                                             wcdSamplePercent: config.wcdSamplePercent,
-                                             dateSaved: Date().timeIntervalSince1970.milliseconds)
-        savedConfig = newConfig
-    }
-    
-    func clear() {
-        savedConfig = nil
+                                                    wcdSamplePercent: config.wcdSamplePercent,
+                                                    dateSaved: Date().timeIntervalSince1970.milliseconds)
+        store[key] = newConfig
     }
 }

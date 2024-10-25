@@ -8,19 +8,17 @@
 import Foundation
 
 protocol ConfigurationRepo {
-    func get() -> BTTSavedRemoteConfig?
-    func save(_ config: BTTRemoteConfig)
-    func clear()
+    func get(_ key : String) -> BTTSavedRemoteConfig?
+    func save(_ config: BTTRemoteConfig,  key : String)
 }
 
 class BTTConfigurationRepo : ConfigurationRepo{
     
-    private let SavedRemoteConfigKey = Constants.BTT_SAVED_REMOTE_CONFIG_KEY
     private let userDefault = UserDefaults.standard
     
     
-    func get() -> BTTSavedRemoteConfig? {
-        if let data = userDefault.data(forKey: SavedRemoteConfigKey) {
+    func get(_ key : String) -> BTTSavedRemoteConfig? {
+        if let data = userDefault.data(forKey: key) {
             do {
                 let savedConfig = try JSONDecoder().decode(BTTSavedRemoteConfig.self, from: data)
                 return savedConfig
@@ -32,21 +30,16 @@ class BTTConfigurationRepo : ConfigurationRepo{
         return nil
     }
     
-    func save(_ config: BTTRemoteConfig) {
+    func save(_ config: BTTRemoteConfig,  key : String) {
         let newConfig = BTTSavedRemoteConfig(errorSamplePercent: config.errorSamplePercent,
                                              wcdSamplePercent: config.wcdSamplePercent,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         do {
             let data = try JSONEncoder().encode(newConfig)
-            userDefault.set(data, forKey: SavedRemoteConfigKey)
+            userDefault.set(data, forKey: key)
             userDefault.synchronize()
         } catch {
             print("Failed to encode and save config to UserDefaults: \(error)")
         }
-    }
-    
-    func clear(){
-        userDefault.removeObject(forKey: SavedRemoteConfigKey)
-        userDefault.synchronize()
     }
 }

@@ -17,10 +17,19 @@ import SwiftUI
 class SessionData: Codable {
     var sessionID: Identifier
     var expiration: Millisecond
+    var isNewSession: Bool
+    var shouldNetworkCapture: Bool
 
-    init(sessionID: Identifier, expiration: Millisecond) {
-        self.sessionID = sessionID
+    init(expiration: Millisecond) {
         self.expiration = expiration
+        self.sessionID =  SessionData.generateSessionID()
+        self.isNewSession = true
+        self.shouldNetworkCapture = .random(probability: BlueTriangle.configuration.networkSampleRate)
+    }
+    
+    private static func generateSessionID()-> Identifier {
+        let sessionID = Identifier.random()
+        return sessionID
     }
 }
 
@@ -85,47 +94,60 @@ class SessionManager {
         }
 #endif
 
-        self.updateSession()
+        self.onSessionUpdate()
     }
     
     private func appOffScreen(){
         if let session = currentSession {
             session.expiration = expiryDuration()
+            session.isNewSession = false
+            currentSession = session
             sessionStore.saveSession(session)
         }
     }
     
     private func onLaunch(){
-        self.updateSession()
+        self.onSessionUpdate()
     }
     
     private func invalidateSession() -> SessionData{
         
         if sessionStore.isExpired(){
-            let session = SessionData(sessionID: generateSessionID(), expiration: expiryDuration())
+            let session = SessionData(expiration: expiryDuration())
             currentSession = session
+            session.isNewSession = true
             sessionStore.saveSession(session)
             return session
         }else{
-            let session = sessionStore.retrieveSessionData()
-            return session!
+            guard let session = currentSession else {
+                let session = sessionStore.retrieveSessionData()
+                session!.isNewSession = false
+                currentSession = session
+                sessionStore.saveSession(session!)
+                return session!
+            }
+            return session
         }
     }
     
-    private func updateSession(){
-        BlueTriangle.updateSessionID(self.getSessionId())
+    private func onSessionUpdate(){
+        BlueTriangle.updateSession(getSessionData())
+    }
+    
+    public func refreshSession(){
+        let session = getSessionData()
+        if session.isNewSession {
+            session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
+            sessionStore.saveSession(session)
+            print("Recalculate shouldNetworkCapture on new session")
+        }
     }
 
-    public func getSessionId() -> Identifier {
+    public func getSessionData() -> SessionData {
         lock.sync {
             let updatedSession = self.invalidateSession()
-            return updatedSession.sessionID
+            return updatedSession
         }
-    }
-     
-    
-    private func generateSessionID()-> Identifier {
-        return Identifier.random()
     }
     
     private func expiryDuration()-> Millisecond {

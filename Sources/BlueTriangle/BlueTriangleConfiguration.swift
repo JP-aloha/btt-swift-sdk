@@ -82,7 +82,7 @@ final public class BlueTriangleConfiguration: NSObject {
     @objc public var cacheMemoryLimit: UInt = 30 * 1024 * 1024
     
    // Session storage expiry duration 2 * 60 * 1000 millisecond
-    internal var sessionExpiryDuration: Millisecond = 30 * 60 * 1000
+    internal var sessionExpiryDuration: Millisecond = 1 * 60 * 1000
 
     /// When enabled tasks running on main thread are monitored for there run duration time.
     ///
@@ -190,6 +190,6 @@ extension BlueTriangleConfiguration {
     }
     
     private static var currentSessionId : Identifier {
-        return BlueTriangle.sessionManager.getSessionId()
+        return BlueTriangle.sessionManager.getSessionData().sessionID
     }
 }

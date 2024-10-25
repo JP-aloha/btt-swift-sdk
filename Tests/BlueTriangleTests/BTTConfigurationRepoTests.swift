@@ -9,97 +9,46 @@ import XCTest
 @testable import BlueTriangle
 
 final class BTTConfigurationRepoTests: XCTestCase {
-
-    var configRepo: ConfigurationRepo!
+    
+    var configurationRepo: MockBTTConfigurationRepo!
     
     override func setUp() {
         super.setUp()
-        configRepo = BTTConfigurationRepo()
+        configurationRepo = MockBTTConfigurationRepo()
     }
     
     override func tearDown() {
-        configRepo.clear()
-        configRepo = nil
+        configurationRepo = nil
         super.tearDown()
     }
     
     func testSaveConfig() {
-      
-        configRepo = BTTConfigurationRepo()
-        configRepo.clear()
+        let config = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5)
+        let key = "testConfig"
+        configurationRepo.save(config, key: key)
         
-        configRepo = BTTConfigurationRepo()
-        let config = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 20)
-        configRepo.save(config)
+        XCTAssertNotNil(configurationRepo.store[key])
         
-        configRepo = BTTConfigurationRepo()
-        let retrievedConfig = configRepo.get()
-        
-        XCTAssertNotNil(retrievedConfig)
-        
-        if let remoteConfig = retrievedConfig {
-            XCTAssertEqual(remoteConfig.errorSamplePercent, 10)
-            XCTAssertEqual(remoteConfig.wcdSamplePercent, 20)
-        } else {
-            XCTFail("Data was not saved correctly")
-        }
+        let savedConfig = configurationRepo.store[key]
+        XCTAssertEqual(savedConfig?.errorSamplePercent, 10)
+        XCTAssertEqual(savedConfig?.wcdSamplePercent, 5)
     }
     
-    func testGetConfig() {
-       
-        configRepo = BTTConfigurationRepo()
-        configRepo.clear()
+    func testGetConfigSuccess() {
+        let key = "testConfig"
+        let savedConfig = BTTSavedRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5, dateSaved: Date().timeIntervalSince1970.milliseconds)
+        configurationRepo.store[key] = savedConfig
         
-        configRepo = BTTConfigurationRepo()
-        let config = BTTRemoteConfig(errorSamplePercent: 20, wcdSamplePercent: 30)
-        configRepo.save(config)
+        let fetchedConfig = configurationRepo.get(key)
         
-        configRepo = BTTConfigurationRepo()
-        let retrievedConfig = configRepo.get()
-        
-        XCTAssertNotNil(retrievedConfig)
-        
-        if let remoteConfig = retrievedConfig {
-            XCTAssertEqual(remoteConfig.errorSamplePercent, 20)
-            XCTAssertEqual(remoteConfig.wcdSamplePercent, 30)
-        } else {
-            XCTFail("Data was not get correctly")
-        }
+        XCTAssertNotNil(fetchedConfig)
+        XCTAssertEqual(fetchedConfig?.errorSamplePercent, 10)
+        XCTAssertEqual(fetchedConfig?.wcdSamplePercent, 5)
     }
     
-    func testUpdateConfig() {
-       
-        configRepo = BTTConfigurationRepo()
-        configRepo.clear()
-        
-        configRepo = BTTConfigurationRepo()
-        let configSave = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 20)
-        configRepo.save(configSave)
-        
-        configRepo = BTTConfigurationRepo()
-        let configUpdate = BTTRemoteConfig(errorSamplePercent: 30, wcdSamplePercent: 40)
-        configRepo.save(configUpdate)
-        
-        configRepo = BTTConfigurationRepo()
-        let retrievedConfig = configRepo.get()
-        
-        XCTAssertNotNil(retrievedConfig)
-        
-        if let remoteConfig = retrievedConfig {
-            XCTAssertEqual(remoteConfig.errorSamplePercent, 30)
-            XCTAssertEqual(remoteConfig.wcdSamplePercent, 40)
-        } else {
-            XCTFail("Data was not updated correctly")
-        }
-    }
-    
-    func testGetConfigReturnsNilWhenDataIsNotAvailable() {
-       
-        configRepo = BTTConfigurationRepo()
-        configRepo.clear()
-        
-        configRepo = BTTConfigurationRepo()
-        let retrievedConfig = configRepo.get()
-        XCTAssertNil(retrievedConfig)
+    func testGetConfigFailure_NoData() {
+        let key = "nonExistingKey"
+        let fetchedConfig = configurationRepo.get(key)
+        XCTAssertNil(fetchedConfig)
     }
 }

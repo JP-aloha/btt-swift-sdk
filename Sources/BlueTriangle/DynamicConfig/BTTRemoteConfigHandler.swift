@@ -14,7 +14,6 @@ protocol RemoteConfigHandler {
 class BTTRemoteConfigHandler : RemoteConfigHandler{
 
     func updateRemoteConfig(_ config : BTTRemoteConfig){
-        //update sample rate
         updateSampleRate(config.wcdSamplePercent)
     }
     
@@ -22,4 +21,5 @@ class BTTRemoteConfigHandler : RemoteConfigHandler{
         let rate = Double(value) / 100.0
         BlueTriangle.updateNetworkSampleRate(rate)
     }
+    
 }
