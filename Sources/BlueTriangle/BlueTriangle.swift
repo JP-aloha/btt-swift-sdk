@@ -126,7 +126,7 @@ final public class BlueTriangle: NSObject {
     }()
 
     private static var shouldCaptureRequests: Bool = {
-        .random(probability: configuration.networkSampleRate)
+        sessionManager.getSessionData().shouldNetworkCapture
     }()
     
     /// A Boolean value indicating whether the SDK has been initialized.

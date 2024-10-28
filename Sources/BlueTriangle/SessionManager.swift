@@ -140,9 +140,11 @@ class SessionManager {
     public func refreshSession(){
         if let session = currentSession {
             if session.isNewSession {
+                NSLog("BlueTriangle sample rate before refresh: \(BlueTriangle.configuration.networkSampleRate)")
                 remoteConfigRepo.refreshConfiguration()
                 session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
                 sessionStore.saveSession(session)
+                NSLog("BlueTriangle sample rate after refresh: \(BlueTriangle.configuration.networkSampleRate)")
             }
         }
     }
