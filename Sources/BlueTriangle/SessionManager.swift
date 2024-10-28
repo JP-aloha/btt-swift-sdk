@@ -24,7 +24,7 @@ class SessionData: Codable {
         self.expiration = expiration
         self.sessionID =  SessionData.generateSessionID()
         self.isNewSession = true
-        self.shouldNetworkCapture = .random(probability: BlueTriangle.configuration.networkSampleRate)
+        self.shouldNetworkCapture = true
     }
     
     private static func generateSessionID()-> Identifier {
@@ -79,6 +79,8 @@ class SessionManager {
     private let  sessionStore = SessionStore()
     private var currentSession : SessionData?
     private let notificationQueue = OperationQueue()
+    private let remoteConfigRepo = BTTConfigurationRepo()
+
     
     public func start(with  expiry : Millisecond){
         
@@ -114,8 +116,9 @@ class SessionManager {
         
         if sessionStore.isExpired(){
             let session = SessionData(expiration: expiryDuration())
-            currentSession = session
             session.isNewSession = true
+            currentSession = session
+            self.refreshSession()
             sessionStore.saveSession(session)
             return session
         }else{
@@ -135,11 +138,12 @@ class SessionManager {
     }
     
     public func refreshSession(){
-        let session = getSessionData()
-        if session.isNewSession {
-            session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
-            sessionStore.saveSession(session)
-            print("Recalculate shouldNetworkCapture on new session")
+        if let session = currentSession {
+            if session.isNewSession {
+                remoteConfigRepo.refreshConfiguration()
+                session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
+                sessionStore.saveSession(session)
+            }
         }
     }
 

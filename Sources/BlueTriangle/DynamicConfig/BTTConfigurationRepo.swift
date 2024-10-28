@@ -10,6 +10,7 @@ import Foundation
 protocol ConfigurationRepo {
     func get(_ key : String) -> BTTSavedRemoteConfig?
     func save(_ config: BTTRemoteConfig,  key : String)
+    func refreshConfiguration()
 }
 
 class BTTConfigurationRepo : ConfigurationRepo{
@@ -40,6 +41,13 @@ class BTTConfigurationRepo : ConfigurationRepo{
             userDefault.synchronize()
         } catch {
             print("Failed to encode and save config to UserDefaults: \(error)")
+        }
+    }
+    
+    func refreshConfiguration(){
+        if let currentConfig = self.get(Constants.BTT_CURRENT_REMOTE_CONFIG_KEY){
+            let networkSampleRate = Double(currentConfig.wcdSamplePercent) / 100.0
+            BlueTriangle.configuration.networkSampleRate = networkSampleRate
         }
     }
 }

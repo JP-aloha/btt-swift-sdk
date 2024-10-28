@@ -41,4 +41,12 @@ class BTTRemoteConfigConnector {
             }
         }
     }
+    
+    
+    func updateSampleRate(){
+        if let currentConfig = self.configRepo.get(Constants.BTT_CURRENT_REMOTE_CONFIG_KEY){
+            let networkSampleRate = Double(currentConfig.wcdSamplePercent) / 100.0
+            BlueTriangle.configuration.networkSampleRate = networkSampleRate
+        }
+    }
 }

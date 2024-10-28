@@ -17,10 +17,17 @@ extension Bool {
     }
 
     static func random(probability: Double) -> Self {
-        guard probability <= 1.0 else {
+        
+        var prob = probability
+        
+        if CommandLine.arguments.contains("-FullSampleRate") {
+            prob = 1.0
+        }
+        
+        guard prob <= 1.0 else {
             return true
         }
-        return Double.random(in: 0...1) <= probability
+        return Double.random(in: 0...1) <= prob
     }
 
     init?(_ int: Int) {

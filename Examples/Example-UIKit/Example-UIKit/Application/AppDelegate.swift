@@ -29,7 +29,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             config.enableScreenTracking = true
             config.enableTrackingNetworkState = true
             config.enableMemoryWarning = true
-            config.networkSampleRate = 1
             config.isPerformanceMonitorEnabled = true
             config.cacheMemoryLimit = 5 * 1024
             config.cacheExpiryDuration = 2 * 60 * 1000

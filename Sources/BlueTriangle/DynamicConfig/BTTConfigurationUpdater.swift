@@ -44,6 +44,8 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         if let savedConfig = configRepo.get(Constants.BTT_CURRENT_REMOTE_CONFIG_KEY){
             let currentTime = Date().timeIntervalSince1970.milliseconds
             let timeSinceLastUpdate =  currentTime - savedConfig.dateSaved
+            
+            // Perform remote config update only if it's a new session or the update period has elapsed
             if timeSinceLastUpdate < updatePeriod &&  !isNewSession {
                 print("No need to update")
                 completion()
