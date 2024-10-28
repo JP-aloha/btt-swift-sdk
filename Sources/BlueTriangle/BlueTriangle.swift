@@ -66,15 +66,15 @@ final public class BlueTriangle: NSObject {
     }
     
     internal static func updateNetworkSampleRate(_ rate : Double){
-        
         configuration.networkSampleRate = rate
+    }
+    
+    internal static func refreshCaptureRequests(){
         sessionManager.refreshSession()
-        
         shouldCaptureRequests = sessionManager.getSessionData().shouldNetworkCapture
         capturedRequestCollector = makeCapturedRequestCollector()
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
-        
-        NSLog("BlueTriangle sample Rate : %.2f - value : %@ ", rate , shouldCaptureRequests ? "true" : "false")
+        NSLog("BlueTriangle sample Rate : %.2f - value : %@ ", configuration.networkSampleRate , shouldCaptureRequests ? "true" : "false")
     }
 
     private static var _session: Session = {

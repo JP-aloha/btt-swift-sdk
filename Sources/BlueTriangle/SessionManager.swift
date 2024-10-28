@@ -79,7 +79,7 @@ class SessionManager {
     private let  sessionStore = SessionStore()
     private var currentSession : SessionData?
     private let notificationQueue = OperationQueue()
-    private let remoteConfigRepo = BTTConfigurationRepo()
+    private let remoteRepo = BTTConfigurationRepo()
 
     
     public func start(with  expiry : Millisecond){
@@ -112,6 +112,10 @@ class SessionManager {
         self.onSessionUpdate()
     }
     
+    private func onSessionUpdate(){
+        BlueTriangle.updateSession(getSessionData())
+    }
+    
     private func invalidateSession() -> SessionData{
         
         if sessionStore.isExpired(){
@@ -133,18 +137,16 @@ class SessionManager {
         }
     }
     
-    private func onSessionUpdate(){
-        BlueTriangle.updateSession(getSessionData())
-    }
-    
     public func refreshSession(){
         if let session = currentSession {
             if session.isNewSession {
                 NSLog("BlueTriangle sample rate before refresh: \(BlueTriangle.configuration.networkSampleRate)")
-                remoteConfigRepo.refreshConfiguration()
+                remoteRepo.synchronize(Constants.BTT_BUFFER_REMOTE_CONFIG_KEY)
                 session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
                 sessionStore.saveSession(session)
                 NSLog("BlueTriangle sample rate after refresh: \(BlueTriangle.configuration.networkSampleRate)")
+            }else{
+                remoteRepo.synchronize(Constants.BTT_CURRENT_REMOTE_CONFIG_KEY)
             }
         }
     }

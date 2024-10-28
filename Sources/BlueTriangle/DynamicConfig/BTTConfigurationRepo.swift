@@ -10,7 +10,7 @@ import Foundation
 protocol ConfigurationRepo {
     func get(_ key : String) -> BTTSavedRemoteConfig?
     func save(_ config: BTTRemoteConfig,  key : String)
-    func refreshConfiguration()
+    func synchronize(_ key : String)
 }
 
 class BTTConfigurationRepo : ConfigurationRepo{
@@ -44,10 +44,10 @@ class BTTConfigurationRepo : ConfigurationRepo{
         }
     }
     
-    func refreshConfiguration(){
-        if let currentConfig = self.get(Constants.BTT_CURRENT_REMOTE_CONFIG_KEY){
-            let networkSampleRate = Double(currentConfig.wcdSamplePercent) / 100.0
-            BlueTriangle.configuration.networkSampleRate = networkSampleRate
+    func synchronize(_ key : String){
+        if let config = self.get(key){
+            let rate = Double(config.wcdSamplePercent) / 100.0
+            BlueTriangle.updateNetworkSampleRate(rate)
         }
     }
 }

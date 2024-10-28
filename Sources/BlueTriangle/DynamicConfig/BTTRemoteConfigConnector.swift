@@ -19,7 +19,6 @@ class BTTRemoteConfigConnector {
 
     private let configFetcher = BTTConfigurationFetcher(session: URLSession.config, cancellable: Set<AnyCancellable>())
     private let configRepo = BTTConfigurationRepo()
-    private let configHandler = BTTRemoteConfigHandler()
     private let queue = DispatchQueue(label: "com.bluetriangle.connector", qos: .userInitiated, autoreleaseFrequency: .workItem)
     lazy var updater = BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo)
     
@@ -34,19 +33,9 @@ class BTTRemoteConfigConnector {
     func onAppLaunch(){
         queue.async {
             let isNewSession = BlueTriangle.sessionManager.getSessionData().isNewSession
-            self.updater.update(isNewSession) { remoteConfig in
-                if let config = remoteConfig{
-                    self.configHandler.updateRemoteConfig(config)
-                }
+            self.updater.update(isNewSession) {
+                BlueTriangle.refreshCaptureRequests()
             }
-        }
-    }
-    
-    
-    func updateSampleRate(){
-        if let currentConfig = self.configRepo.get(Constants.BTT_CURRENT_REMOTE_CONFIG_KEY){
-            let networkSampleRate = Double(currentConfig.wcdSamplePercent) / 100.0
-            BlueTriangle.configuration.networkSampleRate = networkSampleRate
         }
     }
 }

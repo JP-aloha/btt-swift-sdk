@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 protocol ConfigurationUpdater {
-    func update(_ isNewSession : Bool, completion: @escaping (BTTRemoteConfig?) -> Void)
+    func update(_ isNewSession : Bool, completion: @escaping () -> Void)
 }
 
 class BTTConfigurationUpdater : ConfigurationUpdater {
@@ -23,24 +23,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         self.configRepo = configRepo
     }
     
-    func update(_ isNewSession : Bool, completion: @escaping (BTTRemoteConfig?) -> Void) {
-        self.update(isNewSession) {
-            var remoteConfig : BTTSavedRemoteConfig?
-            if isNewSession {
-                if let bufferConfig = self.configRepo.get(Constants.BTT_BUFFER_REMOTE_CONFIG_KEY){
-                    remoteConfig = bufferConfig
-                }
-            }
-            else{
-                if let currentConfig = self.configRepo.get(Constants.BTT_CURRENT_REMOTE_CONFIG_KEY){
-                    remoteConfig = currentConfig
-                }
-            }
-            completion(remoteConfig)
-        }
-    }
-    
-    private func update(_ isNewSession : Bool, completion: @escaping () -> Void) {
+    func update(_ isNewSession : Bool, completion: @escaping () -> Void) {
         if let savedConfig = configRepo.get(Constants.BTT_CURRENT_REMOTE_CONFIG_KEY){
             let currentTime = Date().timeIntervalSince1970.milliseconds
             let timeSinceLastUpdate =  currentTime - savedConfig.dateSaved
