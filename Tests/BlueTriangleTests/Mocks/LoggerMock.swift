@@ -12,17 +12,20 @@ class LoggerMock: Logging {
     var enableDebug: Bool
     var onDebug: (String) -> Void
     var onInfo: (String) -> Void
+    var onDefault: (String) -> Void
     var onError: (String) -> Void
 
     init(
         enableDebug: Bool = false,
         onDebug: @escaping (String) -> Void = { _ in },
         onInfo: @escaping (String) -> Void = { _ in },
+        onDefault: @escaping (String) -> Void = { _ in },
         onError: @escaping (String) -> Void = { _ in }
     ) {
         self.enableDebug = enableDebug
         self.onDebug = onDebug
         self.onInfo = onInfo
+        self.onDefault = onDefault
         self.onError = onError
     }
 
@@ -34,6 +37,10 @@ class LoggerMock: Logging {
 
     func logInfo(_ message: @autoclosure () -> String, file: StaticString, function: StaticString, line: UInt) {
         onInfo(message())
+    }
+
+    func logDefault(_ message: @autoclosure () -> String, file: StaticString, function: StaticString, line: UInt) {
+        onDefault(message())
     }
 
     func logError(_ message: @autoclosure () -> String, file: StaticString, function: StaticString, line: UInt) {

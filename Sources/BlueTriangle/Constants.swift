@@ -35,6 +35,10 @@ enum Constants {
     static let startupDelay: TimeInterval = 10
     static let minPgTm : Millisecond = 15
 
+    // Custom Metrics
+    static let metricsCharacterLimit = 1024
+    static let metricsSizeLimit = 3_000_000
+
     // Logging
     static let loggingSubsystem = "com.bluetriangle.sdk"
     static let loggingCategory = "tracker"

@@ -24,6 +24,13 @@ protocol Logging {
         line: UInt
     )
 
+    func logDefault(
+        _ message: @escaping () -> String,
+        file: StaticString,
+        function: StaticString,
+        line: UInt
+    )
+
     func logError(
         _ message: @escaping () -> String,
         file: StaticString,
@@ -49,6 +56,15 @@ extension Logging {
         line: UInt = #line
     ) {
         logInfo(message, file: file, function: function, line: line)
+    }
+
+    func log(
+        _ message: @autoclosure @escaping () -> String,
+        file: StaticString = #fileID,
+        function: StaticString = #function,
+        line: UInt = #line
+    ) {
+        logDefault(message, file: file, function: function, line: line)
     }
 
     func error(

@@ -80,6 +80,26 @@
     NSMutableURLRequest *urlRequest = [[NSMutableURLRequest alloc] initWithURL:url];
     [urlRequest setHTTPMethod:@"GET"];
     NSURLSessionDataTask *taskWithRequest = [session btDataTaskWithRequest:urlRequest completionHandler:^(NSData *data, NSURLResponse *response, NSError *error){}];
-}
 
+    // Custom metrics
+    NSNumber *expectedNumber = [NSNumber numberWithDouble:9.99];
+    NSString *numberKey = @"number";
+
+    NSString *expectedString = @"string_value";
+    NSString *stringKey = @"string";
+
+    [BlueTriangle setCustomVariable:numberKey numValue:expectedNumber];
+    [BlueTriangle setCustomVariable:stringKey strValue:expectedString];
+
+    NSString *actualNumber = [BlueTriangle getCustomVariable:numberKey];
+    NSString *number = [expectedNumber stringValue];
+    XCTAssertEqual(actualNumber, number);
+
+    NSString *actualString = [BlueTriangle getCustomVariable:stringKey];
+    XCTAssertEqual(actualString, expectedString);
+
+    [BlueTriangle clearAllCustomVariables];
+    NSDictionary *actualMetrics = [BlueTriangle getCustomVariables];
+    XCTAssertEqual(actualMetrics.count , 0);
+}
 @end

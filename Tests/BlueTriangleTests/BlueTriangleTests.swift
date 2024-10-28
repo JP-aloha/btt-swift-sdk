@@ -92,6 +92,7 @@ final class BlueTriangleTests: XCTestCase {
 
     override func tearDown() {
         super.tearDown()
+        Self.timeIntervals = []
         Self.onMakeTimer = { _, _ in }
         Self.onBuildRequest = { _, _, _ in }
         Self.onSendRequest = { _ in }
@@ -121,12 +122,7 @@ extension BlueTriangleTests {
         // Performance Monitor
         let performanceStartExpectation = expectation(description: "Performance monitoring started")
         let performanceEndExpectation = expectation(description: "Performance monitoring ended")
-        let expectedReport = PerformanceReport(minCPU: 1.0,
-                                               maxCPU: 100.0,
-                                               avgCPU: 50.0,
-                                               minMemory: 10000000,
-                                               maxMemory: 100000000,
-                                               avgMemory: 50000000)
+        let expectedReport = Mock.performanceReport
 
         Self.performanceMonitor.report = expectedReport
         Self.performanceMonitor.onStart = { performanceStartExpectation.fulfill() }
@@ -541,6 +537,101 @@ extension BlueTriangleTests {
     }
 }
 
+// MARK: - Custom Metrics
+extension BlueTriangleTests {
+    func testSetNewMetricsValue() {
+        let expectedMetrics: [String: String] = [
+            "string": "String",
+            "double": "9.99",
+            "newKey" : "NewValue"
+        ]
+
+        var session = Mock.session
+        
+        session.metrics = [
+            "string": "String",
+            "double": 9.99
+        ]
+        
+        BlueTriangle.reconfigure(session: session)
+
+        BlueTriangle.setCustomVariable("newKey", value: "NewValue")
+
+        let actualMetrics = BlueTriangle.getCustomVariables()
+        XCTAssertEqual(actualMetrics, expectedMetrics)
+    }
+
+    func testRemoveMetricsValue() {
+        let expectedMetrics: [String: String] = [
+            "string": "String",
+            "double": "9.99"
+        ]
+
+        var session = Mock.session
+        session.metrics = [
+            "string": "String",
+            "double": 9.99,
+            "newKey" : "NewValue"
+        ]
+        BlueTriangle.reconfigure(session: session)
+
+        BlueTriangle.clearCustomVariable("newKey")
+
+        let actualMetrics = BlueTriangle.getCustomVariables()
+        XCTAssertEqual(actualMetrics, expectedMetrics)
+    }
+
+    func testSetAnyValue() {
+        let key = "key"
+        let value = "value"
+        let expectedValue: [String: AnyCodable] = [key: .string(value)]
+
+        BlueTriangle.reconfigure(session: Mock.session)
+
+        BlueTriangle.setCustomVariable(key, value: value)
+        let actualValue = BlueTriangle.getCustomVariable(key)
+
+        XCTAssertEqual(actualValue, value)
+    }
+
+    func testSetNSNumber() {
+        let key = "key"
+        let double = 9.99
+        let value = NSNumber(value: double)
+        let expectedMetrics: [String: AnyCodable] = [key: .double(double)]
+
+        BlueTriangle.reconfigure(session: Mock.session)
+
+        BlueTriangle.setCustomVariable(key, value: value)
+        let actualValue = BlueTriangle.getCustomVariable(key)
+        
+        XCTAssertEqual(actualValue, value.stringValue)
+    }
+
+    func testGetAny() {
+        let key = "key"
+        let expectedValue = 5
+        let value = NSNumber(value: expectedValue)
+
+        var session = Mock.session
+        session.metrics = [key: .int(expectedValue)]
+        BlueTriangle.reconfigure(session: session)
+
+        let actualValue = BlueTriangle.getCustomVariable(key)
+        XCTAssertEqual(actualValue, value.stringValue)
+    }
+
+    func testClearMetrics() {
+        var session = Mock.session
+        session.metrics = ["key": .int(5)]
+        BlueTriangle.reconfigure(session: session)
+
+        BlueTriangle.clearAllCustomVariables()
+        let variables = BlueTriangle.getCustomVariables()
+        XCTAssertEqual(variables, [:])
+    }
+}
+
 #if os(iOS) || os(tvOS)
 extension BlueTriangleTests {
     @available(iOS 14.0, tvOS 14.0, *)
@@ -597,7 +688,6 @@ extension BlueTriangleTests {
         waitForExpectations(timeout: 10.0)
 
         XCTAssertNotNil(finishedTimer)
-        print(performanceMonitor.measurements)
 
         let base64Decoded = Data(base64Encoded: request.body!)!
         let performanceReport = try JSONDecoder().decode(TimerRequest.self, from: base64Decoded).performanceReport!

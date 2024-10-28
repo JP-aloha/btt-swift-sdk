@@ -191,7 +191,7 @@ final class UploaderTests: XCTestCase {
 
         waitForExpectations(timeout: 0.1)
     }
-
+    
     func testUploaderSubscriptionRemoval() throws {
         let requestCount: Int = 10
         let expectation = self.expectation(description: "Requests finished")

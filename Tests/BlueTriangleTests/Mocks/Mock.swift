@@ -242,12 +242,12 @@ extension Mock {
         performanceReport: nil)
 
     static var performanceReport = PerformanceReport(
-        minCPU: 0.0,
-        maxCPU: 0.0,
-        avgCPU: 0.0,
-        minMemory: 0,
-        maxMemory: 0,
-        avgMemory: 0)
+        minCPU: 1.0,
+        maxCPU: 100.0,
+        avgCPU: 50.0,
+        minMemory: 10000000,
+        maxMemory: 100000000,
+        avgMemory: 50000000)
 
     static let capturedRequestURLString = "https://d33wubrfki0l68.cloudfront.net/f50c058607f066d0231c1fe6753eac79f17ea447/e6748/static/logo-cw.f6eaf6dc.png"
 
@@ -274,15 +274,15 @@ extension Mock {
 extension Mock {
     static var capturedRequestJSON = "[{\"d\":1000,\"dmn\":\"example.com\",\"dz\":-1,\"e\":\"resource\",\"ez\":0,\"f\":\"foo.json\",\"h\":\"example\",\"i\":\"other\",\"rCd\":\"200\",\"rE\":3000,\"sT\":2000,\"URL\":\"https:\\/\\/example.com\\/foo.json\"}]"
 
-    static func makeTimerRequestJSON(appVersion: String, os: String, osVersion: String, sdkVersion: String) -> String {
+    static func makeTimerRequestJSON(appVersion: String, os: String, osVersion: String, sdkVersion: String, deviceName : String, coreCount : Int32) -> String {
         """
-         {\"AB\":\"MY_AB_TEST_ID\",\"avgCPU\":50,\"avgMemory\":50000000,\"browser\":\"Native App\",\"bv\":0.51,\"bvzn\":\"Native App-\(appVersion)-\(os) \(osVersion)\",\"campaign\":null,\"CmpM\":\"MY_CAMPAIGN_MEDIUM\",\"CmpN\":\"MY_CAMPAIGN_NAME\",\"CmpS\":\"MY_CAMPAIGN_SOURCE\",\"CN1\":1.11,\"CN2\":2.22,\"CN3\":3.33,\"CN4\":4.44,\"CN5\":5.55,\"CN6\":6.66,\"CN7\":7.77,\"CN8\":8.88,\"CN9\":9.99,\"CN10\":10.1,\"CN11\":11.11,\"CN12\":12.12,\"CN13\":13.13,\"CN14\":14.14,\"CN15\":15.15,\"CN16\":16.16,\"CN17\":17.17,\"CN18\":18.18,\"CN19\":19.19,\"CN20\":20.2,\"CV1\":\"CV1\",\"CV2\":\"CV2\",\"CV3\":\"CV3\",\"CV4\":\"CV4\",\"CV5\":\"CV5\",\"CV6\":\"CV6\",\"CV7\":\"CV7\",\"CV8\":\"CV8\",\"CV9\":\"CV9\",\"CV10\":\"CV10\",\"CV11\":\"CV11\",\"CV12\":\"CV12\",\"CV13\":\"CV13\",\"CV14\":\"CV14\",\"CV15\":\"CV15\",\"DCTR\":\"MY_DATA_CENTER\",\"device\":\"Mobile\",\"domInteractive\":1000000,\"EUOS\":\"\(os)\",\"eventType\":9,\"gID\":888888888888888888,\"maxCPU\":100,\"maxMemory\":100000000,\"minCPU\":1,\"minMemory\":10000000,\"NAflg\":1,\"navigationType\":9,\"nst\":0,\"os\":\"iOS\",\"pageName\":\"MY_PAGE_NAME\",\"pageType\":\"MY_PAGE_TYPE\",\"pgTm\":2000000,\"RefURL\":\"MY_REFERRING_URL\",\"RV\":1,\"sID\":999999999999999999,\"siteID\":\"MY_SITE_ID\",\"thisURL\":\"MY_URL\",\"txnName\":\"MY_SEGMENT_NAME\",\"unloadEventStart\":0,\"VER\":\"\(sdkVersion)\",\"wcd\":1}
+         {\"AB\":\"MY_AB_TEST_ID\",\"avgCPU\":50,\"avgMemory\":50000000,\"browser\":\"Native App\",\"bv\":0.51,\"bvzn\":\"Native App-\(appVersion)-\(os) \(osVersion)\",\"campaign\":null,\"CmpM\":\"MY_CAMPAIGN_MEDIUM\",\"CmpN\":\"MY_CAMPAIGN_NAME\",\"CmpS\":\"MY_CAMPAIGN_SOURCE\",\"CN1\":1.11,\"CN2\":2.22,\"CN3\":3.33,\"CN4\":4.44,\"CN5\":5.55,\"CN6\":6.66,\"CN7\":7.77,\"CN8\":8.88,\"CN9\":9.99,\"CN10\":10.1,\"CN11\":11.11,\"CN12\":12.12,\"CN13\":13.13,\"CN14\":14.14,\"CN15\":15.15,\"CN16\":16.16,\"CN17\":17.17,\"CN18\":18.18,\"CN19\":19.19,\"CN20\":20.2,\"CV1\":\"CV1\",\"CV2\":\"CV2\",\"CV3\":\"CV3\",\"CV4\":\"CV4\",\"CV5\":\"CV5\",\"CV6\":\"CV6\",\"CV7\":\"CV7\",\"CV8\":\"CV8\",\"CV9\":\"CV9\",\"CV10\":\"CV10\",\"CV11\":\"CV11\",\"CV12\":\"CV12\",\"CV13\":\"CV13\",\"CV14\":\"CV14\",\"CV15\":\"CV15\",\"DCTR\":\"MY_DATA_CENTER\",\"device\":\"Mobile\",\"domInteractive\":1000000,\"EUOS\":\"\(os)\",\"eventType\":9,\"gID\":888888888888888888,\"maxCPU\":100,\"maxMemory\":100000000,\"minCPU\":1,\"minMemory\":10000000,\"NAflg\":1,\"NATIVEAPP\":{\"deviceModel\":\"\(deviceName)\",\"maxMainThreadUsage\":0,\"numberOfCPUCores\":\(coreCount)},\"navigationType\":9,\"nst\":0,\"os\":\"iOS\",\"pageName\":\"MY_PAGE_NAME\",\"pageType\":\"MY_PAGE_TYPE\",\"pgTm\":2000000,\"RefURL\":\"MY_REFERRING_URL\",\"RV\":1,\"sID\":999999999999999999,\"siteID\":\"MY_SITE_ID\",\"thisURL\":\"MY_URL\",\"txnName\":\"MY_SEGMENT_NAME\",\"unloadEventStart\":0,\"VER\":\"\(sdkVersion)\",\"wcd\":1}
          """
     }
     
-    static func makeTimerRequestJSONOlder(appVersion: String, os: String, osVersion: String, sdkVersion: String) -> String {
+    static func makeTimerRequestJSONOlder(appVersion: String, os: String, osVersion: String, sdkVersion: String, deviceName : String, coreCount : Int32) -> String {
                """
-               {\"AB\":\"MY_AB_TEST_ID\",\"avgCPU\":50,\"avgMemory\":50000000,\"browser\":\"Native App\",\"bv\":0.51,\"bvzn\":\"Native App-\(appVersion)-\(os) \(osVersion)\",\"campaign\":null,\"CmpM\":\"MY_CAMPAIGN_MEDIUM\",\"CmpN\":\"MY_CAMPAIGN_NAME\",\"CmpS\":\"MY_CAMPAIGN_SOURCE\",\"CN1\":1.1100000000000001,\"CN2\":2.2200000000000002,\"CN3\":3.3300000000000001,\"CN4\":4.4400000000000004,\"CN5\":5.5499999999999998,\"CN6\":6.6600000000000001,\"CN7\":7.7699999999999996,\"CN8\":8.8800000000000008,\"CN9\":9.9900000000000002,\"CN10\":10.1,\"CN11\":11.109999999999999,\"CN12\":12.119999999999999,\"CN13\":13.130000000000001,\"CN14\":14.140000000000001,\"CN15\":15.15,\"CN16\":16.16,\"CN17\":17.170000000000002,\"CN18\":18.18,\"CN19\":19.190000000000001,\"CN20\":20.199999999999999,\"CV1\":\"CV1\",\"CV2\":\"CV2\",\"CV3\":\"CV3\",\"CV4\":\"CV4\",\"CV5\":\"CV5\",\"CV6\":\"CV6\",\"CV7\":\"CV7\",\"CV8\":\"CV8\",\"CV9\":\"CV9\",\"CV10\":\"CV10\",\"CV11\":\"CV11\",\"CV12\":\"CV12\",\"CV13\":\"CV13\",\"CV14\":\"CV14\",\"CV15\":\"CV15\",\"DCTR\":\"MY_DATA_CENTER\",\"device\":\"Mobile\",\"domInteractive\":1000000,\"EUOS\":\"\(os)\",\"eventType\":9,\"gID\":888888888888888888,\"maxCPU\":100,\"maxMemory\":100000000,\"minCPU\":1,\"minMemory\":10000000,\"NAflg\":1,\"navigationType\":9,\"nst\":0,\"os\":\"iOS\",\"pageName\":\"MY_PAGE_NAME\",\"pageType\":\"MY_PAGE_TYPE\",\"pgTm\":2000000,\"RefURL\":\"MY_REFERRING_URL\",\"RV\":1,\"sID\":999999999999999999,\"siteID\":\"MY_SITE_ID\",\"thisURL\":\"MY_URL\",\"txnName\":\"MY_SEGMENT_NAME\",\"unloadEventStart\":0,\"VER\":\"\(sdkVersion)\",\"wcd\":1}
+               {\"AB\":\"MY_AB_TEST_ID\",\"avgCPU\":50,\"avgMemory\":50000000,\"browser\":\"Native App\",\"bv\":0.51,\"bvzn\":\"Native App-\(appVersion)-\(os) \(osVersion)\",\"campaign\":null,\"CmpM\":\"MY_CAMPAIGN_MEDIUM\",\"CmpN\":\"MY_CAMPAIGN_NAME\",\"CmpS\":\"MY_CAMPAIGN_SOURCE\",\"CN1\":1.1100000000000001,\"CN2\":2.2200000000000002,\"CN3\":3.3300000000000001,\"CN4\":4.4400000000000004,\"CN5\":5.5499999999999998,\"CN6\":6.6600000000000001,\"CN7\":7.7699999999999996,\"CN8\":8.8800000000000008,\"CN9\":9.9900000000000002,\"CN10\":10.1,\"CN11\":11.109999999999999,\"CN12\":12.119999999999999,\"CN13\":13.130000000000001,\"CN14\":14.140000000000001,\"CN15\":15.15,\"CN16\":16.16,\"CN17\":17.170000000000002,\"CN18\":18.18,\"CN19\":19.190000000000001,\"CN20\":20.199999999999999,\"CV1\":\"CV1\",\"CV2\":\"CV2\",\"CV3\":\"CV3\",\"CV4\":\"CV4\",\"CV5\":\"CV5\",\"CV6\":\"CV6\",\"CV7\":\"CV7\",\"CV8\":\"CV8\",\"CV9\":\"CV9\",\"CV10\":\"CV10\",\"CV11\":\"CV11\",\"CV12\":\"CV12\",\"CV13\":\"CV13\",\"CV14\":\"CV14\",\"CV15\":\"CV15\",\"DCTR\":\"MY_DATA_CENTER\",\"device\":\"Mobile\",\"domInteractive\":1000000,\"EUOS\":\"\(os)\",\"eventType\":9,\"gID\":888888888888888888,\"maxCPU\":100,\"maxMemory\":100000000,\"minCPU\":1,\"minMemory\":10000000,\"NAflg\":1,\"NATIVEAPP\":{\"deviceModel\":\"\(deviceName)\",\"maxMainThreadUsage\":0,\"numberOfCPUCores\":\(coreCount)},\"navigationType\":9,\"nst\":0,\"os\":\"iOS\",\"pageName\":\"MY_PAGE_NAME\",\"pageType\":\"MY_PAGE_TYPE\",\"pgTm\":2000000,\"RefURL\":\"MY_REFERRING_URL\",\"RV\":1,\"sID\":999999999999999999,\"siteID\":\"MY_SITE_ID\",\"thisURL\":\"MY_URL\",\"txnName\":\"MY_SEGMENT_NAME\",\"unloadEventStart\":0,\"VER\":\"\(sdkVersion)\",\"wcd\":1}
                """
     }
 }

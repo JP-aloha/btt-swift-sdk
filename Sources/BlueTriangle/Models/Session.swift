@@ -46,4 +46,7 @@ struct Session: Equatable {
 
     /// Traffic segment.
     var trafficSegmentName: String
+
+    /// Custom metrics.
+    var metrics: [String: AnyCodable]?
 }

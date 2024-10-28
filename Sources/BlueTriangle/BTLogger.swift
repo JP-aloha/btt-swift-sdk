@@ -95,6 +95,15 @@ final class BTLogger: Logging {
         logger.log(level: .info, message: message, file: file, function: function, line: line)
     }
 
+    func logDefault(
+        _ message: @escaping () -> String,
+        file: StaticString,
+        function: StaticString,
+        line: UInt
+    ) {
+        logger.log(level: .default, message: message, file: file, function: function, line: line)
+    }
+
     func logError(
         _ message: @escaping () -> String,
         file: StaticString,

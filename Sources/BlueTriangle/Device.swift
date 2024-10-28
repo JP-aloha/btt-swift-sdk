@@ -59,6 +59,25 @@ enum Device {
     static var userAgentToken: String {
         "\(os)/\(osVersion) (\(name))"
     }
+    
+    /// Returns device model name.
+    static var model : String {
+       #if os(macOS)
+        return  platform()
+       #else
+        return  deviceModel()
+       #endif
+   }
+    
+    /// Returns device model.
+    private static func deviceModel() -> String {
+        var size = 0
+        sysctlbyname("hw.machine", nil, &size, nil, 0)
+        var machine = [CChar](repeating: 0,  count: Int(size))
+        sysctlbyname("hw.machine", &machine, &size, nil, 0)
+        return String(cString: machine)
+    }
+
 
     /// Returns device name.
     private static func platform() -> String {

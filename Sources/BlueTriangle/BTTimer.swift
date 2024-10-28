@@ -102,7 +102,9 @@ final public class BTTimer: NSObject {
                     wifi: networkReport?.wifi ?? 0,
                     cellular: networkReport?.cellular ?? 0,
                     ethernet: networkReport?.ethernet ?? 0,
-                    other: networkReport?.other ?? 0)
+                    other: networkReport?.other ?? 0,
+                    netState: networkReport?.netState ?? "",
+                    netStateSource: networkReport?.netSource ?? "")
             }
             
             return nativeAppProp

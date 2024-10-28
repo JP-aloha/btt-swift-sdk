@@ -656,6 +656,43 @@ BlueTriangle.configure { config in
 If by any reason you cant configure bluetriangle before your crash tracking tool configuration. You can use BlueTriangle.startCrashTracking(), this function allows bluetriangle to start crash tracking before configuring bluetriangle sdk. This helps in scenarios where you want to configure blue triangle sdk later after your another crash tracking tool is configured.
 
 
+### Custom Variables
+
+It is a developer-defined property introduced into the BTT SDK payload that developers can include to collect and track extra information specific to their application needs.
+
+To introduce a custom variable, the developer first needs to create it on the BlueTriangle portal by following the instructions on the [**Custom Variables Page.**](https://help.bluetriangle.com/hc/en-us/articles/15629245281171-RUM-Custom-Variables-Page)
+
+Then developer need to set custom variable using the below function:
+
+```swift
+   BlueTriangle.setCustomVariable(<VARIABLE NAME>, value: <VALUE>)
+```
+
+In order to get the custom variable value, call the following with the variable name:
+
+```swift
+   let value = BlueTriangle.getCustomVariable(<VARIABLE NAME>)
+```
+
+To remove a custom variable value, call the following function with the variable name:
+
+```swift
+   BlueTriangle.clearCustomVariable(<VARIABLE NAME>)
+```
+
+To remove all custom variable values, call the following function:
+
+```swift
+   BlueTriangle.clearAllCustomVariables()
+```
+
+where &lt;VARIABLE NAME&gt; is the variable name of the custom variable that the user added to the portal while creating the custom variable e.g. CV1, CV2, etc, and <VALUE> is whatever the developer wants to set in these fields.
+
+Once the value is set, it will be sent with each page view until it is cleared by calling any of the above clear methods.
+
+To view one of the values on the portal, navigate to the path 'Menu > Native App Monitoring > Native App Performance Detail' or go to the Session Lookup Page. Then, search by session ID and see the Performance Measurement Details for the specific page.
+[**for more detail**](https://help.bluetriangle.com/hc/en-us/articles/12299711775635-Where-can-I-see-Custom-Variables)
+
 
 ## How to Test your iOS SDK Integration
 

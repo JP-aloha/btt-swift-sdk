@@ -200,6 +200,7 @@ class TimerMapActivity {
             
             let networkReport = timer.networkReport
             
+            
             timer.nativeAppProperties = NativeAppProperties(
                 fullTime: disapearTime.milliseconds - loadTime.milliseconds,
                 loadTime: calculatedLoadTime,
@@ -209,10 +210,12 @@ class TimerMapActivity {
                 wifi: networkReport?.wifi  ?? 0,
                 cellular: networkReport?.cellular  ?? 0,
                 ethernet: networkReport?.ethernet  ?? 0,
-                other: networkReport?.other  ?? 0)
+                other: networkReport?.other  ?? 0,
+                netState: networkReport?.netState ?? "",
+                netStateSource: networkReport?.netSource ?? "")
             
             BlueTriangle.endTimer(timer)
-            
+                        
             let pageInfoMessage = "View tracker timer submited for screen :\(self.pageName)"
             self.logger?.info(pageInfoMessage)
         }

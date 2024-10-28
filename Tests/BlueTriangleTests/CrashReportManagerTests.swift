@@ -23,7 +23,7 @@ final class CrashReportManagerTests: XCTestCase {
         cellular:  0,
         ethernet:  0,
         other:  0, 
-        netState: NetworkState.Other.rawValue),
+        netState: NetworkState.Other.description),
         eTp: BT_ErrorType.NativeAppCrash.rawValue,
                                        message: "crash_message",
                                        line: 1, column: 2,

@@ -134,10 +134,11 @@ final public class BlueTriangleConfiguration: NSObject {
 
     var capturedRequestCollectorConfiguration: CapturedRequestCollector.Configuration = .live
 
-    var requestBuilder: TimerRequestBuilder = .live
-
     var performanceMonitorBuilder: PerformanceMonitorBuilder = .live
-    
+
+    lazy var requestBuilder: TimerRequestBuilder = {
+        TimerRequestBuilder.live(logger: makeLogger())
+    }()
 }
 
 // MARK: - Supporting Types

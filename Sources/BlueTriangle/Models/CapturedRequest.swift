@@ -333,9 +333,7 @@ extension CapturedRequest {
         try con.encode(initiatorType, forKey: .initiatorType)
         try con.encode(decodedBodySize, forKey: .decodedBodySize)
         try con.encode(encodedBodySize, forKey: .encodedBodySize)
-        if nativeAppProperty.netState.count > 0{
-            try con.encode(nativeAppProperty, forKey: .nativeAppProperty)
-        }
+        try con.encode(nativeAppProperty, forKey: .nativeAppProperty)
     }
 }
 
