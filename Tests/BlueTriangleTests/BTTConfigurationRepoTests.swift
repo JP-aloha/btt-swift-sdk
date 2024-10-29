@@ -21,7 +21,7 @@ final class BTTConfigurationRepoTests: XCTestCase {
         configurationRepo = nil
         super.tearDown()
     }
-    
+
     func testSaveConfig() {
         let config = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5)
         let key = "testConfig"
@@ -46,9 +46,19 @@ final class BTTConfigurationRepoTests: XCTestCase {
         XCTAssertEqual(fetchedConfig?.wcdSamplePercent, 5)
     }
     
-    func testGetConfigFailure_NoData() {
-        let key = "nonExistingKey"
-        let fetchedConfig = configurationRepo.get(key)
-        XCTAssertNil(fetchedConfig)
+    func testSaveAndRetrieveNilConfig() {
+        let retrievedConfig = configurationRepo.get("nonExistentKey")
+        XCTAssertNil(retrievedConfig)
+    }
+    
+    func testSynchronizeUpdatesNetworkSampleRate() {
+        // Save the config
+        let key = "SynchronizeKey"
+        let config = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5)
+        configurationRepo.save(config, key: key)
+        configurationRepo.synchronize(key)
+        
+        let expectedSampleRate = Double(config.wcdSamplePercent) / 100.0
+        XCTAssertEqual(configurationRepo.sampleRate, expectedSampleRate, accuracy: 0.001)
     }
 }

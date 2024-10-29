@@ -73,7 +73,9 @@ final public class BlueTriangle: NSObject {
         sessionManager.refreshSession()
         shouldCaptureRequests = sessionManager.getSessionData().shouldNetworkCapture
         capturedRequestCollector = makeCapturedRequestCollector()
+#if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
+#endif
         NSLog("BlueTriangle sample Rate : %.2f - value : %@ ", configuration.networkSampleRate , shouldCaptureRequests ? "true" : "false")
     }
 

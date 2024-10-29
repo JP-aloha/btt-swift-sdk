@@ -10,76 +10,91 @@ import XCTest
 
 final class BTTConfigurationUpdaterTests: XCTestCase {
     
-    var mockConfigFetcher: MockBTTConfigurationFetcher!
-    var mockConfigRepo: MockBTTConfigurationRepo!
-    var configurationUpdater: BTTConfigurationUpdater!
+    
+    var configUpdater: BTTConfigurationUpdater!
+    var mockFetcher: MockBTTConfigurationFetcher!
+    var mockRepo: MockBTTConfigurationRepo!
+    
+    let testConfigKey = Constants.BTT_CURRENT_REMOTE_CONFIG_KEY
+    let bufferConfigKey = Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
     
     override func setUp() {
         super.setUp()
-        mockConfigFetcher = MockBTTConfigurationFetcher()
-        mockConfigRepo = MockBTTConfigurationRepo()
-        configurationUpdater = BTTConfigurationUpdater(configFetcher: mockConfigFetcher, configRepo: mockConfigRepo)
+        mockFetcher = MockBTTConfigurationFetcher()
+        mockRepo = MockBTTConfigurationRepo()
+        configUpdater = BTTConfigurationUpdater(configFetcher: mockFetcher, configRepo: mockRepo)
     }
     
     override func tearDown() {
-        mockConfigFetcher = nil
-        mockConfigRepo = nil
-        configurationUpdater = nil
+        mockFetcher = nil
+        mockRepo = nil
+        configUpdater = nil
         super.tearDown()
     }
-    
-    func testUpdateNewSessionUsesBufferConfig() {
-        let bufferConfig = BTTSavedRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5, dateSaved: Date().timeIntervalSince1970.milliseconds)
-        mockConfigRepo.store[Constants.BTT_BUFFER_REMOTE_CONFIG_KEY] = bufferConfig
+
+    func testUpdatePerformsFetchIfNewSession() {
+
+        let config = BTTRemoteConfig(errorSamplePercent: 60, wcdSamplePercent: 75)
+        mockFetcher.configToReturn = config
         
-        let expectation = self.expectation(description: "completion called")
+        let expectation = XCTestExpectation(description: "Completion handler called")
         
-        configurationUpdater.update(true) { config in
-            XCTAssertNotNil(config)
-            XCTAssertEqual(config?.errorSamplePercent, 10)
-            XCTAssertEqual(config?.wcdSamplePercent, 5)
-            XCTAssertTrue(self.mockConfigFetcher.fetchCalled)
+        configUpdater.update(true) {
+            
+            let currentConfig = self.mockRepo.get(self.testConfigKey)
+            let bufferConfig = self.mockRepo.get(self.bufferConfigKey)
+            
+            XCTAssertTrue(self.mockFetcher.fetchCalled, "Fetch should be called in a new session")
+        
+            XCTAssertEqual(currentConfig?.wcdSamplePercent, config.wcdSamplePercent, "New config should be saved")
+            XCTAssertEqual(bufferConfig?.wcdSamplePercent, config.wcdSamplePercent, "New config should be saved")
             expectation.fulfill()
         }
         
-        waitForExpectations(timeout: 1, handler: nil)
+        wait(for: [expectation], timeout: 1.0)
     }
     
-    func testUpdateNotNewSessionUsesCurrentConfig() {
-        let currentConfig = BTTSavedRemoteConfig(errorSamplePercent: 15, wcdSamplePercent: 20, dateSaved: Date().timeIntervalSince1970.milliseconds)
-        mockConfigRepo.store[Constants.BTT_CURRENT_REMOTE_CONFIG_KEY] = currentConfig
+    func testUpdateSkipsFetchIfNotNewSessionAndWithinUpdatePeriod() {
         
-        let expectation = self.expectation(description: "completion called")
+        let config = BTTRemoteConfig(errorSamplePercent: 60, wcdSamplePercent: 75)
+        mockRepo.save(config, key: testConfigKey)
         
-        configurationUpdater.update(false) { config in
-            XCTAssertNotNil(config)
-            XCTAssertEqual(config?.errorSamplePercent, 15)
-            XCTAssertEqual(config?.wcdSamplePercent, 20)
-            XCTAssertFalse(self.mockConfigFetcher.fetchCalled)
+        let expectation = XCTestExpectation(description: "Completion handler called")
+        
+        configUpdater.update(false) {
+            XCTAssertFalse(self.mockFetcher.fetchCalled, "Fetch should not be called if within update period")
             expectation.fulfill()
         }
         
-        waitForExpectations(timeout: 1, handler: nil)
+        wait(for: [expectation], timeout: 1.0)
     }
     
-    func testUpdateFetchNewConfigAndSave() {
-        let oldTime = Date().timeIntervalSince1970.milliseconds - (2 * .hour) // force an update by simulating old config
-        let oldConfig = BTTSavedRemoteConfig(errorSamplePercent: 15, wcdSamplePercent: 20, dateSaved: oldTime)
-        mockConfigRepo.store[Constants.BTT_CURRENT_REMOTE_CONFIG_KEY] = oldConfig
+    func testUpdatePerformsFetchIfNotNewSessionAndUpdatePeriodElapsed() {
         
-        let newConfig = BTTRemoteConfig(errorSamplePercent: 50, wcdSamplePercent: 60)
-        mockConfigFetcher.configToReturn = newConfig
+        let apiConfig = BTTRemoteConfig(errorSamplePercent: 60, wcdSamplePercent: 75)
+        mockFetcher.configToReturn = apiConfig
         
-        let expectation = self.expectation(description: "completion called")
         
-        configurationUpdater.update(false) { config in
-            XCTAssertEqual(self.mockConfigRepo.store[Constants.BTT_BUFFER_REMOTE_CONFIG_KEY]?.errorSamplePercent, 50)
-            XCTAssertEqual(self.mockConfigRepo.store[Constants.BTT_BUFFER_REMOTE_CONFIG_KEY]?.wcdSamplePercent, 60)
-            XCTAssertTrue(self.mockConfigFetcher.fetchCalled)
+        let currentTime = Date().timeIntervalSince1970.milliseconds
+        let storeConfig = BTTSavedRemoteConfig(errorSamplePercent: 50, wcdSamplePercent: 70, dateSaved: currentTime - Millisecond.hour * 2)
+        mockRepo.store[testConfigKey] = storeConfig
+        
+        let expectation = XCTestExpectation(description: "Completion handler called")
+        
+        configUpdater.update(false) {
+            
+            let currentConfig = self.mockRepo.get(self.testConfigKey)
+            let bufferConfig = self.mockRepo.get(self.bufferConfigKey)
+            
+            XCTAssertTrue(self.mockFetcher.fetchCalled, "Fetch should be called in a new session")
+        
+            XCTAssertEqual(currentConfig?.wcdSamplePercent, storeConfig.wcdSamplePercent, "Current config is not updated")
+            XCTAssertEqual(bufferConfig?.wcdSamplePercent, apiConfig.wcdSamplePercent, "Bufferd config updated")
+            
             expectation.fulfill()
         }
         
-        waitForExpectations(timeout: 1, handler: nil)
+        wait(for: [expectation], timeout: 1.0)
     }
 }
 
