@@ -33,7 +33,6 @@ final public class BlueTriangle: NSObject {
     }
     
     internal static let sessionManager = SessionManager()
-    internal static let remoteConfig = BTTRemoteConfigConnector()
     
     internal static func removeActiveTimer(_ timer : BTTimer){
         
@@ -70,13 +69,12 @@ final public class BlueTriangle: NSObject {
     }
     
     internal static func refreshCaptureRequests(){
-        sessionManager.refreshSession()
-        shouldCaptureRequests = sessionManager.getSessionData().shouldNetworkCapture
+        shouldCaptureRequests = sessionManager.getSessionData().remoteConfig.shouldNetworkCapture
         capturedRequestCollector = makeCapturedRequestCollector()
 #if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
 #endif
-        NSLog("BlueTriangle sample Rate : %.2f - value : %@ ", configuration.networkSampleRate , shouldCaptureRequests ? "true" : "false")
+        NSLog("BlueTriangle sample rate : %.2f - value : %@ ", configuration.networkSampleRate , shouldCaptureRequests ? "true" : "false")
     }
 
     private static var _session: Session = {
@@ -128,7 +126,7 @@ final public class BlueTriangle: NSObject {
     }()
 
     private static var shouldCaptureRequests: Bool = {
-        sessionManager.getSessionData().shouldNetworkCapture
+        sessionManager.getSessionData().remoteConfig.shouldNetworkCapture
     }()
     
     /// A Boolean value indicating whether the SDK has been initialized.
@@ -293,7 +291,6 @@ extension BlueTriangle {
             initialized.toggle()
             configure(configuration)
             configureSession(with: configuration.sessionExpiryDuration)
-            configureRemoteConfig()
             if let crashConfig = configuration.crashTracking.configuration {
                 DispatchQueue.global(qos: .utility).async {
                     configureCrashTracking(with: crashConfig)
@@ -757,15 +754,6 @@ extension BlueTriangle{
     static func configureSession(with expiry: Millisecond){
 #if os(iOS)
         self.sessionManager.start(with: expiry)
-#endif
-    }
-}
-
-//MARK: - Session Expiry
-extension BlueTriangle{
-    static func configureRemoteConfig(){
-#if os(iOS)
-        self.remoteConfig.start()
 #endif
     }
 }

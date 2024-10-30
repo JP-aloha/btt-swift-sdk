@@ -17,12 +17,4 @@ extension URLSession {
         let session = URLSession(configuration: configuration)
         return session.dataTaskPublisher
     }()
-    
-    static let config : URLSession = {
-        let config = URLSessionConfiguration.default
-        config.requestCachePolicy = .reloadIgnoringLocalCacheData
-        config.urlCache = nil
-        let session = URLSession(configuration: config)
-        return session
-    }()
 }

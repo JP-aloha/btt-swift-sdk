@@ -14,40 +14,33 @@ protocol ConfigurationFetcher {
 
 class BTTConfigurationFetcher : ConfigurationFetcher {
 
-    private var cancellables: Set<AnyCancellable>
-    private let sessionConfig :  URLSession
-    
+    private let decoder: JSONDecoder = .decoder
     private var queue = DispatchQueue(label: "com.bluetriangle.fetcher",
                      qos: .userInitiated,
                      autoreleaseFrequency: .workItem)
     
-    init(session : URLSession, cancellable : Set<AnyCancellable>) {
-        self.sessionConfig = session
-        self.cancellables = cancellable
-    }
+    private let rootUrl :  URL
+    private var networking :  Networking
+    private var cancellables: Set<AnyCancellable>
     
-        
+    init(rootUrl : URL = Constants.configBaseURL,
+         cancellable : Set<AnyCancellable> = Set<AnyCancellable>(),
+         networking : @escaping Networking = URLSession.live){
+        self.rootUrl = rootUrl
+        self.cancellables = cancellable
+        self.networking = networking
+    }
+  
     func fetch(completion: @escaping (BTTRemoteConfig?) -> Void) {
-        
-        let session = sessionConfig
-        let parameters = [
-            "siteID": BlueTriangle.siteID
-        ]
-        
-        let service = BTTService.init(
-            baseURL: Constants.configBaseURL,
-            networking: { request in
-                session.dataTaskPublisher(for: request)
-            })
-        
-        service.fetch(parameters)
+        self.fetchRemoteConfig()
             .subscribe(on: queue)
             .sink(
                 receiveCompletion: { completionResult in
                     switch completionResult {
                     case .finished:
                         break
-                    case .failure(_):
+                    case .failure( let error):
+                        print("Error while fetching : \(error.localizedDescription)")
                         completion(nil)
                     }
                 },
@@ -56,5 +49,18 @@ class BTTConfigurationFetcher : ConfigurationFetcher {
                 }
             )
             .store(in: &cancellables)
+    }
+    
+    private func fetchRemoteConfig() -> AnyPublisher<BTTRemoteConfig, Error> {
+        let parameters = [
+            "siteID": BlueTriangle.siteID
+        ]
+        let request = Request(url: rootUrl, parameters: parameters, accept: .json)
+        return networking(request)
+            .tryMap { httpResponse in
+                return try httpResponse.validate()
+                    .decode(with: self.decoder)
+            }
+            .eraseToAnyPublisher()
     }
 }

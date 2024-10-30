@@ -8,17 +8,17 @@
 import Foundation
 
 protocol ConfigurationRepo {
-    func get(_ key : String) -> BTTSavedRemoteConfig?
-    func save(_ config: BTTRemoteConfig,  key : String)
-    func synchronize(_ key : String)
+    func get() -> BTTSavedRemoteConfig?
+    func save(_ config: BTTRemoteConfig)
+    func synchronize()
 }
 
 class BTTConfigurationRepo : ConfigurationRepo{
     
     private let userDefault = UserDefaults.standard
+    private let key = Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
     
-    
-    func get(_ key : String) -> BTTSavedRemoteConfig? {
+    func get() -> BTTSavedRemoteConfig? {
         if let data = userDefault.data(forKey: key) {
             do {
                 let savedConfig = try JSONDecoder().decode(BTTSavedRemoteConfig.self, from: data)
@@ -31,7 +31,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
         return nil
     }
     
-    func save(_ config: BTTRemoteConfig,  key : String) {
+    func save(_ config: BTTRemoteConfig) {
         let newConfig = BTTSavedRemoteConfig(errorSamplePercent: config.errorSamplePercent,
                                              wcdSamplePercent: config.wcdSamplePercent,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
@@ -44,8 +44,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
         }
     }
     
-    func synchronize(_ key : String){
-        if let config = self.get(key){
+    func synchronize(){
+        if let config = self.get(){
             let rate = Double(config.wcdSamplePercent) / 100.0
             BlueTriangle.updateNetworkSampleRate(rate)
         }

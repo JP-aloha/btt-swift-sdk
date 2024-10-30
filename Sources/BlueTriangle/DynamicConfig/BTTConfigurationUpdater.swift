@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 protocol ConfigurationUpdater {
-    func update(_ isNewSession : Bool, completion: @escaping () -> Void)
+    func update(_ isNewSession : Bool, completion: @escaping (_ hasChanged : Bool) -> Void)
 }
 
 class BTTConfigurationUpdater : ConfigurationUpdater {
@@ -23,29 +23,37 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         self.configRepo = configRepo
     }
     
-    func update(_ isNewSession : Bool, completion: @escaping () -> Void) {
-        if let savedConfig = configRepo.get(Constants.BTT_CURRENT_REMOTE_CONFIG_KEY){
+    func update(_ isNewSession : Bool, completion: @escaping (_ hasChanged : Bool) -> Void) {
+       
+        var hasConfigChanged = false
+        
+        if let savedConfig = configRepo.get(){
+           
             let currentTime = Date().timeIntervalSince1970.milliseconds
-            let timeSinceLastUpdate =  currentTime - savedConfig.dateSaved
+            let timeIntervalSinceLastUpdate =  currentTime - savedConfig.dateSaved
             
             // Perform remote config update only if it's a new session or the update period has elapsed
-            if timeSinceLastUpdate < updatePeriod &&  !isNewSession {
+            if timeIntervalSinceLastUpdate < updatePeriod &&  !isNewSession {
                 print("No need to update")
-                completion()
+                completion(hasConfigChanged)
                 return
             }
         }
         
         configFetcher.fetch {  config in
             if let newConfig = config{
-                if isNewSession {
-                    self.configRepo.save(newConfig, key: Constants.BTT_CURRENT_REMOTE_CONFIG_KEY)
-                    self.configRepo.save(newConfig, key: Constants.BTT_BUFFER_REMOTE_CONFIG_KEY)
+               
+                if let oldConfig = self.configRepo.get(){
+                    hasConfigChanged = newConfig == oldConfig ? false : true
                 }else{
-                    self.configRepo.save(newConfig, key: Constants.BTT_BUFFER_REMOTE_CONFIG_KEY)
+                    hasConfigChanged = true
                 }
+                
+                self.configRepo.save(newConfig)
+                
             }
-            completion()
+            
+            completion(hasConfigChanged)
         }
     }
 }
