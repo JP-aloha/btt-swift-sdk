@@ -17,6 +17,7 @@ import SwiftUI
 class SessionManager {
    
     private let lock = NSLock()
+    private var logger: Logging?
     private var expirationDurationInMS: Millisecond = 30 * 60 * 1000
     private let  sessionStore = SessionStore()
     private var currentSession : SessionData?
@@ -27,9 +28,10 @@ class SessionManager {
     lazy var updater = BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo)
 
     
-    public func start(with  expiry : Millisecond){
+    public func start(with  expiry : Millisecond, logger: Logging){
         
-        expirationDurationInMS = expiry
+        self.logger = logger
+        self.expirationDurationInMS = expiry
         
 #if os(iOS)
         NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
@@ -66,9 +68,10 @@ class SessionManager {
     private func updateRemoteConfig(){
         queue.async {
             if let isNewSession = self.currentSession?.isNewSession {
-                self.updater.update(isNewSession) { hasChanged in
-                    if hasChanged{
-                        self.reloadSession()
+                self.updater.update(isNewSession) { [weak self] hasChanged in
+                    if let weakSelf = self, hasChanged{
+                        weakSelf.logger?.info("Remote config has changed")
+                        weakSelf.reloadSession()
                         BlueTriangle.refreshCaptureRequests()
                     }
                 }
@@ -84,7 +87,8 @@ class SessionManager {
             currentSession = session
             reloadSession()
             sessionStore.saveSession(session)
-           
+            logger?.info("New session \(session.sessionID) has created")
+            
             return session
         }
         else{
@@ -111,11 +115,11 @@ class SessionManager {
                 session.remoteConfig.networkSampleRate = BlueTriangle.configuration.networkSampleRate
                 session.remoteConfig.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
                 sessionStore.saveSession(session)
-                print("BlueTriangle sample rate on change : \(session.remoteConfig.networkSampleRate)")
+                logger?.info("Sync new session remote config with configuration")
             }
             else{
                 BlueTriangle.updateNetworkSampleRate(session.remoteConfig.networkSampleRate)
-                print("BlueTriangle sample rate on old value : \(session.remoteConfig.networkSampleRate)")
+                logger?.info("Sync old session remote config with configuration")
             }
         }
     }

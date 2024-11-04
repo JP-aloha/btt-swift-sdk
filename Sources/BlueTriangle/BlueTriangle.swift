@@ -753,7 +753,7 @@ extension BlueTriangle{
 extension BlueTriangle{
     static func configureSession(with expiry: Millisecond){
 #if os(iOS)
-        self.sessionManager.start(with: expiry)
+        self.sessionManager.start(with: expiry, logger: logger)
 #endif
     }
 }
