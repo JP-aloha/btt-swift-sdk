@@ -45,6 +45,12 @@ class BTTConfigurationRepo : ConfigurationRepo{
     }
     
     func synchronize(){
+        
+        if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
+            BlueTriangle.updateNetworkSampleRate(1.0)
+            return
+        }
+        
         if let config = self.get(){
             let rate = Double(config.wcdSamplePercent) / 100.0
             BlueTriangle.updateNetworkSampleRate(rate)

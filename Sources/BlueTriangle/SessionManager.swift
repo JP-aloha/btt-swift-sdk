@@ -80,8 +80,19 @@ class SessionManager {
     }
     
     private func invalidateSession() -> SessionData{
+       
+        var hasExpired = sessionStore.isExpired()
         
-        if sessionStore.isExpired(){
+        if CommandLine.arguments.contains(Constants.NEW_SESSION_ON_LAUNCH_ARGUMENT) {
+            
+            if let currentSession = self.currentSession{
+                return currentSession
+            }
+            
+            hasExpired = true
+        }
+        
+        if hasExpired {
             let session = SessionData(expiration: expiryDuration())
             session.isNewSession = true
             currentSession = session
