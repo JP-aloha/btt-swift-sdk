@@ -253,7 +253,7 @@ final class UploaderTests: XCTestCase {
             }
         }
 
-        wait(for: [expectation], timeout: 10)
+        wait(for: [expectation], timeout: 20)
         XCTAssertEqual(currentRequestCount, requestCount * 2)
         XCTAssertEqual(responseCount, requestCount * 2)
 

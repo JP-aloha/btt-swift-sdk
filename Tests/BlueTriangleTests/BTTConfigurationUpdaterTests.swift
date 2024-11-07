@@ -15,8 +15,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     var mockFetcher: MockBTTConfigurationFetcher!
     var mockRepo: MockBTTConfigurationRepo!
     
-    let testConfigKey = Constants.BTT_CURRENT_REMOTE_CONFIG_KEY
-    let bufferConfigKey = Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
+    let key = Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
     
     override func setUp() {
         super.setUp()
@@ -39,15 +38,13 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         
         let expectation = XCTestExpectation(description: "Completion handler called")
         
-        configUpdater.update(true) {
+        configUpdater.update(true) { hasChanged in
             
-            let currentConfig = self.mockRepo.get(self.testConfigKey)
-            let bufferConfig = self.mockRepo.get(self.bufferConfigKey)
+            let currentConfig = self.mockRepo.get()
             
+            XCTAssertTrue(hasChanged, "Remote config has changed")
             XCTAssertTrue(self.mockFetcher.fetchCalled, "Fetch should be called in a new session")
-        
             XCTAssertEqual(currentConfig?.wcdSamplePercent, config.wcdSamplePercent, "New config should be saved")
-            XCTAssertEqual(bufferConfig?.wcdSamplePercent, config.wcdSamplePercent, "New config should be saved")
             expectation.fulfill()
         }
         
@@ -57,11 +54,12 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     func testUpdateSkipsFetchIfNotNewSessionAndWithinUpdatePeriod() {
         
         let config = BTTRemoteConfig(errorSamplePercent: 60, wcdSamplePercent: 75)
-        mockRepo.save(config, key: testConfigKey)
+        mockRepo.save(config)
         
         let expectation = XCTestExpectation(description: "Completion handler called")
         
-        configUpdater.update(false) {
+        configUpdater.update(false) { hasChanged in
+            XCTAssertFalse(hasChanged, "Remote config has not changed")
             XCTAssertFalse(self.mockFetcher.fetchCalled, "Fetch should not be called if within update period")
             expectation.fulfill()
         }
@@ -77,19 +75,17 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         
         let currentTime = Date().timeIntervalSince1970.milliseconds
         let storeConfig = BTTSavedRemoteConfig(errorSamplePercent: 50, wcdSamplePercent: 70, dateSaved: currentTime - Millisecond.hour * 2)
-        mockRepo.store[testConfigKey] = storeConfig
+        mockRepo.store[key] = storeConfig
         
         let expectation = XCTestExpectation(description: "Completion handler called")
         
-        configUpdater.update(false) {
+        configUpdater.update(false) { hasChanged in
             
-            let currentConfig = self.mockRepo.get(self.testConfigKey)
-            let bufferConfig = self.mockRepo.get(self.bufferConfigKey)
+            let currentConfig = self.mockRepo.get()
             
+            XCTAssertTrue(hasChanged, "Remote config has changed")
             XCTAssertTrue(self.mockFetcher.fetchCalled, "Fetch should be called in a new session")
-        
-            XCTAssertEqual(currentConfig?.wcdSamplePercent, storeConfig.wcdSamplePercent, "Current config is not updated")
-            XCTAssertEqual(bufferConfig?.wcdSamplePercent, apiConfig.wcdSamplePercent, "Bufferd config updated")
+            XCTAssertEqual(currentConfig?.wcdSamplePercent, apiConfig.wcdSamplePercent, "Current config is not updated")
             
             expectation.fulfill()
         }

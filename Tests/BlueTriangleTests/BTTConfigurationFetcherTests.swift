@@ -13,67 +13,74 @@ final class BTTConfigurationFetcherTests: XCTestCase {
 
     var configurationFetcher: ConfigurationFetcher!
     var cancellables: Set<AnyCancellable>!
-    var sessionMock: URLSession!
     
     override func setUp() {
         super.setUp()
         cancellables = Set<AnyCancellable>()
-        
-        let config = URLSessionConfiguration.default
-        config.protocolClasses = [MockRemoteConfigURL.self]
-        sessionMock = URLSession(configuration: config)
-        
-        configurationFetcher = BTTConfigurationFetcher(session: sessionMock, cancellable: cancellables)
+        configurationFetcher = BTTConfigurationFetcher()
     }
 
     override func tearDown() {
         configurationFetcher = nil
         cancellables = nil
-        sessionMock = nil
         super.tearDown()
     }
-
+    
     func testFetchConfigurationSuccess() {
-        let mockConfig = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 20)
-        let mockData = try! JSONEncoder().encode(mockConfig)
-        
-        MockRemoteConfigURL.requestHandler = { request in
-            let response = HTTPURLResponse(url: request.url!,
+
+        let mockNetworking: Networking = { request in
+            let mockConfig = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 20)
+            let mockData = try! JSONEncoder().encode(mockConfig)
+            
+            let response = HTTPURLResponse(url: request.url,
                                            statusCode: 200,
                                            httpVersion: nil,
                                            headerFields: nil)!
-            return (response, mockData)
+            let httpResponse = HTTPResponse(value: mockData, response: response)
+            
+            return Just(httpResponse)
+                .setFailureType(to: NetworkError.self)
+                .eraseToAnyPublisher()
         }
-
-        let expectation = self.expectation(description: "Completion handler called for success configuration")
-
+        
+        configurationFetcher = BTTConfigurationFetcher(
+            rootUrl: Constants.configBaseURL,
+            cancellable: cancellables,
+            networking: mockNetworking
+        )
+        
+        let expectation = self.expectation(description: "Completion handler called for successful configuration fetch")
+        
         configurationFetcher.fetch { config in
-            // Assert
-            XCTAssertNotNil(config)
-            XCTAssertEqual(config?.errorSamplePercent, 10)
-            XCTAssertEqual(config?.wcdSamplePercent, 20)
+            XCTAssertNotNil(config, "Config should not be nil on success")
+            XCTAssertEqual(config?.errorSamplePercent, 10, "Error sample percent should be 10")
+            XCTAssertEqual(config?.wcdSamplePercent, 20, "WCD sample percent should be 20")
             expectation.fulfill()
         }
-
+        
         waitForExpectations(timeout: 5, handler: nil)
     }
 
     func testFetchConfigurationFailure() {
-        MockRemoteConfigURL.requestHandler = { request in
-            let response = HTTPURLResponse(url: request.url!,
-                                           statusCode: 500,
-                                           httpVersion: nil,
-                                           headerFields: nil)!
-            return (response, Data())
+        // Mock networking to return a failure response
+        let mockNetworking: Networking = { request in
+            return Fail<HTTPResponse<Data>, NetworkError>(error: .noData)
+                .eraseToAnyPublisher()
         }
-
-        let expectation = self.expectation(description: "Completion handler called for failure configuration")
-
+        
+        configurationFetcher = BTTConfigurationFetcher(
+            rootUrl: Constants.configBaseURL,
+            cancellable: Set<AnyCancellable>(),
+            networking: mockNetworking
+        )
+        
+        let expectation = self.expectation(description: "Completion handler called for failed configuration fetch")
+        
         configurationFetcher.fetch { config in
-            XCTAssertNil(config)
+            XCTAssertNil(config, "Config should be nil on failure")
             expectation.fulfill()
         }
-
+        
         waitForExpectations(timeout: 5, handler: nil)
     }
 }

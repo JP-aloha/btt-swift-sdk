@@ -11,6 +11,7 @@ import XCTest
 final class BTTConfigurationRepoTests: XCTestCase {
     
     var configurationRepo: MockBTTConfigurationRepo!
+    let key = Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
     
     override func setUp() {
         super.setUp()
@@ -24,8 +25,7 @@ final class BTTConfigurationRepoTests: XCTestCase {
 
     func testSaveConfig() {
         let config = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5)
-        let key = "testConfig"
-        configurationRepo.save(config, key: key)
+        configurationRepo.save(config)
         
         XCTAssertNotNil(configurationRepo.store[key])
         
@@ -35,11 +35,11 @@ final class BTTConfigurationRepoTests: XCTestCase {
     }
     
     func testGetConfigSuccess() {
-        let key = "testConfig"
+        
         let savedConfig = BTTSavedRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5, dateSaved: Date().timeIntervalSince1970.milliseconds)
         configurationRepo.store[key] = savedConfig
         
-        let fetchedConfig = configurationRepo.get(key)
+        let fetchedConfig = configurationRepo.get()
         
         XCTAssertNotNil(fetchedConfig)
         XCTAssertEqual(fetchedConfig?.errorSamplePercent, 10)
@@ -47,16 +47,15 @@ final class BTTConfigurationRepoTests: XCTestCase {
     }
     
     func testSaveAndRetrieveNilConfig() {
-        let retrievedConfig = configurationRepo.get("nonExistentKey")
+        let retrievedConfig = configurationRepo.get()
         XCTAssertNil(retrievedConfig)
     }
     
     func testSynchronizeUpdatesNetworkSampleRate() {
         // Save the config
-        let key = "SynchronizeKey"
         let config = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5)
-        configurationRepo.save(config, key: key)
-        configurationRepo.synchronize(key)
+        configurationRepo.save(config)
+        configurationRepo.synchronize()
         
         let expectedSampleRate = Double(config.wcdSamplePercent) / 100.0
         XCTAssertEqual(configurationRepo.sampleRate, expectedSampleRate, accuracy: 0.001)
