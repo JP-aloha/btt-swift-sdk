@@ -3,6 +3,7 @@
 //  
 //
 //  Created by Ashok Singh on 19/08/24.
+//  Copyright © 2021 Blue Triangle. All rights reserved.
 //
 
 import Foundation
@@ -14,6 +15,8 @@ import UIKit
 import SwiftUI
 #endif
 
+import Combine
+
 class SessionManager {
    
     private let lock = NSLock()
@@ -23,10 +26,15 @@ class SessionManager {
     private var currentSession : SessionData?
    
     private let queue = DispatchQueue(label: "com.bluetriangle.remote", qos: .userInitiated, autoreleaseFrequency: .workItem)
-    private let configFetcher = BTTConfigurationFetcher()
-    private let configRepo = BTTConfigurationRepo()
-    lazy var updater = BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo)
-
+    private let configFetcher: BTTConfigurationFetcher
+    private let configRepo: BTTConfigurationRepo
+    private var cancellables = Set<AnyCancellable>()
+    lazy var updater = BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger)
+    
+    init(_ configRepo : BTTConfigurationRepo = BTTConfigurationRepo(BTTRemoteConfig.defaultConfig),_ fetcher : BTTConfigurationFetcher =  BTTConfigurationFetcher()) {
+        self.configRepo = configRepo
+        self.configFetcher = fetcher
+    }
     
     public func start(with  expiry : Millisecond, logger: Logging){
         
@@ -42,8 +50,15 @@ class SessionManager {
             self.onLaunch()
         }
 #endif
-
+        self.observeRemoteConfig()
         self.updateSession()
+    }
+    
+    public func getSessionData() -> SessionData {
+        lock.sync {
+            let updatedSession = self.invalidateSession()
+            return updatedSession
+        }
     }
     
     private func appOffScreen(){
@@ -59,22 +74,28 @@ class SessionManager {
         self.updateSession()
         self.updateRemoteConfig()
     }
-    
+        
+    private func observeRemoteConfig(){
+
+        configRepo.$currentConfig
+            .sink { changedConfig in
+                if let config = changedConfig{
+                    self.logger?.info("Remote config has changed")
+                    self.reloadSession()
+                    print("Current config changed: \(String(describing: config.wcdSamplePercent))")
+                }
+            }
+            .store(in: &cancellables)
+    }
     
     private func updateSession(){
         BlueTriangle.updateSession(getSessionData())
     }
     
     private func updateRemoteConfig(){
-        queue.async {
-            if let isNewSession = self.currentSession?.isNewSession {
-                self.updater.update(isNewSession) { [weak self] hasChanged in
-                    if let weakSelf = self, hasChanged{
-                        weakSelf.logger?.info("Remote config has changed")
-                        weakSelf.reloadSession()
-                        BlueTriangle.refreshCaptureRequests()
-                    }
-                }
+        queue.async { [weak self] in
+            if let isNewSession = self?.currentSession?.isNewSession {
+                self?.updater.update(isNewSession) {}
             }
         }
     }
@@ -110,7 +131,6 @@ class SessionManager {
                 currentSession = session
                 reloadSession()
                 sessionStore.saveSession(session!)
-               
                 return session!
             }
             
@@ -119,26 +139,36 @@ class SessionManager {
     }
     
     private func reloadSession(){
-        
+                
         if let session = currentSession {
             if session.isNewSession{
-                configRepo.synchronize()
-                session.remoteConfig.networkSampleRate = BlueTriangle.configuration.networkSampleRate
-                session.remoteConfig.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
+                self.syncConfig()
+                session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
+                session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
                 sessionStore.saveSession(session)
-                logger?.info("Sync new session remote config with configuration")
-            }
-            else{
-                BlueTriangle.updateNetworkSampleRate(session.remoteConfig.networkSampleRate)
-                logger?.info("Sync old session remote config with configuration")
+                BlueTriangle.refreshCaptureRequests()
+                logger?.info("Sync new session remote config with configuration \(BlueTriangle.configuration.networkSampleRate)")
+            }else{
+                BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
+                logger?.info("Sync old session remote config with configuration \(BlueTriangle.configuration.networkSampleRate)")
             }
         }
     }
-
-    public func getSessionData() -> SessionData {
-        lock.sync {
-            let updatedSession = self.invalidateSession()
-            return updatedSession
+    
+    private func syncConfig(){
+        do{
+            if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
+                BlueTriangle.updateNetworkSampleRate(1.0)
+                return
+            }
+            
+            if let config = try configRepo.get(){
+                let rate = Double(config.wcdSamplePercent) / 100.0
+                BlueTriangle.updateNetworkSampleRate(rate)
+            }
+        }
+        catch {
+            logger?.error("Error syncing remote config: \(error)")
         }
     }
     
@@ -148,66 +178,3 @@ class SessionManager {
     }
 }
 
-
-class SessionData: Codable {
-    var sessionID: Identifier
-    var expiration: Millisecond
-    var isNewSession: Bool
-    var remoteConfig : RemoteConfigData
-
-    init(expiration: Millisecond) {
-        self.expiration = expiration
-        self.sessionID =  SessionData.generateSessionID()
-        self.isNewSession = true
-        self.remoteConfig = RemoteConfigData()
-    }
-    
-    private static func generateSessionID()-> Identifier {
-        let sessionID = Identifier.random()
-        return sessionID
-    }
-}
-
-class RemoteConfigData : Codable{
-    var shouldNetworkCapture: Bool = false
-    var networkSampleRate: Double = BlueTriangle.configuration.networkSampleRate
-}
-
-class SessionStore {
-    
-    private let sessionKey = "SAVED_SESSION_DATA"
-    
-    func saveSession(_ session: SessionData) {
-        if let encoded = try? JSONEncoder().encode(session) {
-            UserDefaults.standard.set(encoded, forKey: sessionKey)
-        }
-    }
-    
-    func retrieveSessionData() -> SessionData? {
-        if let savedSession = UserDefaults.standard.object(forKey: sessionKey) as? Data {
-            if let decodedSession = try? JSONDecoder().decode(SessionData.self, from: savedSession) {
-                return decodedSession
-            }
-        }
-        
-        return nil
-    }
-    
-    func isExpired() -> Bool{
-        
-        var isExpired : Bool = true
-        
-        if let session = retrieveSessionData(){
-            let currentTime = Int64(Date().timeIntervalSince1970) * 1000
-            if  currentTime > session.expiration{
-                isExpired = true
-            }else{
-                isExpired = false
-            }
-        }else{
-            isExpired = true
-        }
-        
-        return isExpired
-    }
-}

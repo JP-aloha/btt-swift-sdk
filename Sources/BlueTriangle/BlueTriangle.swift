@@ -69,7 +69,7 @@ final public class BlueTriangle: NSObject {
     }
     
     internal static func refreshCaptureRequests(){
-        shouldCaptureRequests = sessionManager.getSessionData().remoteConfig.shouldNetworkCapture
+        shouldCaptureRequests = sessionManager.getSessionData().shouldNetworkCapture
         capturedRequestCollector = makeCapturedRequestCollector()
 #if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
@@ -126,7 +126,7 @@ final public class BlueTriangle: NSObject {
     }()
 
     private static var shouldCaptureRequests: Bool = {
-        sessionManager.getSessionData().remoteConfig.shouldNetworkCapture
+        sessionManager.getSessionData().shouldNetworkCapture
     }()
     
     /// A Boolean value indicating whether the SDK has been initialized.

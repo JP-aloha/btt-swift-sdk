@@ -26,6 +26,7 @@ enum Constants {
     static let capturedRequestEndpoint: URL = "https://d.btttag.com/wcdv02.rcv"
     static let errorEndpoint: URL = "https://d.btttag.com/err.rcv"
     static let timerEndpoint: URL = "https://d.btttag.com/analytics.rcv"
+    static let connfigEndPoint: URL = /*"http://3.221.132.81/config.js" */ "http://localhost:5005/config.js"
 
     // Crash Tracking
     static let crashID = "iOS Crash"
@@ -50,9 +51,7 @@ enum Constants {
     static let SCREEN_TRACKING_TRAFFIC_SEGMENT = "ScreenTracker"
     
     //Dynamic Config
-    static let configBaseURL: URL = /*"http://3.221.132.81/config.js" */ "http://localhost:5005/config.js"
     static let BTT_BUFFER_REMOTE_CONFIG_KEY  = "BTTBufferRemoteConfigKey"
-    
     static let FULL_SAMPLE_RATE_ARGUMENT  = "-FullSampleRate"
     static let NEW_SESSION_ON_LAUNCH_ARGUMENT  = "-NewSessionOnLaunch"
 

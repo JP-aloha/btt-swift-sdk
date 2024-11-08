@@ -3,57 +3,72 @@
 //  
 //
 //  Created by Ashok Singh on 05/09/24.
+//  Copyright © 2021 Blue Triangle. All rights reserved.
 //
 
 import Foundation
 
 protocol ConfigurationRepo {
-    func get() -> BTTSavedRemoteConfig?
-    func save(_ config: BTTRemoteConfig)
-    func synchronize()
+    func get() throws -> BTTSavedRemoteConfig?
+    func save(_ config: BTTRemoteConfig) throws
 }
 
 class BTTConfigurationRepo : ConfigurationRepo{
     
-    private let userDefault = UserDefaults.standard
     private let key = Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
+    private let queue = DispatchQueue(label: "com.bluetriangle.configurationRepo", attributes: .concurrent)
+    private let defaultConfig : BTTRemoteConfig
+    private let lock = NSLock()
+
+    @Published private(set) var currentConfig: BTTSavedRemoteConfig?
     
-    func get() -> BTTSavedRemoteConfig? {
-        if let data = userDefault.data(forKey: key) {
-            do {
-                let savedConfig = try JSONDecoder().decode(BTTSavedRemoteConfig.self, from: data)
-                return savedConfig
-            } catch {
-                print("Failed to decode config from UserDefaults: \(error)")
-                return nil
-            }
+    init(_ defaultConfig : BTTRemoteConfig){
+        self.defaultConfig = defaultConfig
+        self.loadConfig()
+    }
+    
+    func get() throws -> BTTSavedRemoteConfig? {
+        
+        if let data = UserDefaults.standard.data(forKey: key) {
+            return try JSONDecoder().decode(BTTSavedRemoteConfig.self, from: data)
         }
+        
         return nil
     }
     
-    func save(_ config: BTTRemoteConfig) {
+    func save(_ config: BTTRemoteConfig) throws {
         let newConfig = BTTSavedRemoteConfig(errorSamplePercent: config.errorSamplePercent,
                                              wcdSamplePercent: config.wcdSamplePercent,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
-        do {
-            let data = try JSONEncoder().encode(newConfig)
-            userDefault.set(data, forKey: key)
-            userDefault.synchronize()
-        } catch {
-            print("Failed to encode and save config to UserDefaults: \(error)")
+        
+        try queue.sync(flags: .barrier) {
+            do {
+                let data = try JSONEncoder().encode(newConfig)
+                UserDefaults.standard.set(data, forKey: key)
+                
+                print("Save data")
+
+                if newConfig != currentConfig {
+                    self.currentConfig = newConfig
+                    print("Save changed")
+                }
+            }
         }
     }
     
-    func synchronize(){
-        
-        if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
-            BlueTriangle.updateNetworkSampleRate(1.0)
-            return
+    private func loadConfig(){
+        do{
+            guard let config = try get() else {
+                print("Save default")
+                try self.save(defaultConfig)
+                return
+            }
+
+            self.currentConfig = config
+            print("Load changed")
         }
-        
-        if let config = self.get(){
-            let rate = Double(config.wcdSamplePercent) / 100.0
-            BlueTriangle.updateNetworkSampleRate(rate)
+        catch{
+            print("Fail to load remote changed")
         }
     }
 }

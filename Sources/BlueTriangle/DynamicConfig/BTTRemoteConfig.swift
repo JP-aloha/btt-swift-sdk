@@ -3,6 +3,7 @@
 //  
 //
 //  Created by Ashok Singh on 05/09/24.
+//  Copyright © 2021 Blue Triangle. All rights reserved.
 //
 
 import Foundation
@@ -25,5 +26,10 @@ class BTTRemoteConfig: Codable, Equatable {
         return lhs.errorSamplePercent == rhs.errorSamplePercent &&
         lhs.wcdSamplePercent == rhs.wcdSamplePercent &&
         lhs.sessionDuration == rhs.sessionDuration
+    }
+    
+    public static var defaultConfig: BTTRemoteConfig {
+        BTTRemoteConfig(errorSamplePercent: 0,
+                          wcdSamplePercent: Int(BlueTriangle.configuration.networkSampleRate * 100))
     }
 }
