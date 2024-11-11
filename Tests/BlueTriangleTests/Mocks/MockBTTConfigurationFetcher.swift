@@ -9,11 +9,12 @@ import XCTest
 @testable import BlueTriangle
 
 class MockBTTConfigurationFetcher: ConfigurationFetcher {
+ 
     var fetchCalled = false
     var configToReturn: BTTRemoteConfig?
     
-    func fetch(completion: @escaping (BTTRemoteConfig?) -> Void) {
+    func fetch(completion: @escaping (BTTRemoteConfig?, Error?) -> Void) {
         fetchCalled = true
-        completion(configToReturn)
+        completion(configToReturn, nil)
     }
 }

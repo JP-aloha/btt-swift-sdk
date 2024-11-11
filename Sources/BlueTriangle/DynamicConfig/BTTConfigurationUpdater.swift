@@ -47,8 +47,8 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         configFetcher.fetch {  config, error  in
             if let newConfig = config{
                 do{
-                    self.logger?.info("Fetched remote config from end point")
                     try  self.configRepo.save(newConfig)
+                    self.logger?.info("Fetched remote config from end point")
                 }
                 catch{
                     self.logger?.error("Fail to save remote config: \(error)")

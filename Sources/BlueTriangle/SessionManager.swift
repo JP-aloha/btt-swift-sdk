@@ -82,6 +82,7 @@ class SessionManager {
                 if let config = changedConfig{
                     self.logger?.info("Remote config has changed")
                     self.reloadSession()
+                    BlueTriangle.refreshCaptureRequests()
                     print("Current config changed: \(String(describing: config.wcdSamplePercent))")
                 }
             }
@@ -95,7 +96,9 @@ class SessionManager {
     private func updateRemoteConfig(){
         queue.async { [weak self] in
             if let isNewSession = self?.currentSession?.isNewSession {
-                self?.updater.update(isNewSession) {}
+                self?.updater.update(isNewSession) {
+                    self?.logger?.info("updated remote config")
+                }
             }
         }
     }
@@ -142,11 +145,10 @@ class SessionManager {
                 
         if let session = currentSession {
             if session.isNewSession{
-                self.syncConfig()
+                self.syncConfiguration()
                 session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
                 session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
                 sessionStore.saveSession(session)
-                BlueTriangle.refreshCaptureRequests()
                 logger?.info("Sync new session remote config with configuration \(BlueTriangle.configuration.networkSampleRate)")
             }else{
                 BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
@@ -155,7 +157,7 @@ class SessionManager {
         }
     }
     
-    private func syncConfig(){
+    private func syncConfiguration(){
         do{
             if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
                 BlueTriangle.updateNetworkSampleRate(1.0)

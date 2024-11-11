@@ -44,14 +44,14 @@ final class BTTConfigurationFetcherTests: XCTestCase {
         }
         
         configurationFetcher = BTTConfigurationFetcher(
-            rootUrl: Constants.configBaseURL,
+            rootUrl: Constants.connfigEndPoint,
             cancellable: cancellables,
             networking: mockNetworking
         )
         
         let expectation = self.expectation(description: "Completion handler called for successful configuration fetch")
         
-        configurationFetcher.fetch { config in
+        configurationFetcher.fetch { config , error in
             XCTAssertNotNil(config, "Config should not be nil on success")
             XCTAssertEqual(config?.errorSamplePercent, 10, "Error sample percent should be 10")
             XCTAssertEqual(config?.wcdSamplePercent, 20, "WCD sample percent should be 20")
@@ -69,14 +69,14 @@ final class BTTConfigurationFetcherTests: XCTestCase {
         }
         
         configurationFetcher = BTTConfigurationFetcher(
-            rootUrl: Constants.configBaseURL,
+            rootUrl: Constants.connfigEndPoint,
             cancellable: Set<AnyCancellable>(),
             networking: mockNetworking
         )
         
         let expectation = self.expectation(description: "Completion handler called for failed configuration fetch")
         
-        configurationFetcher.fetch { config in
+        configurationFetcher.fetch { config, error  in
             XCTAssertNil(config, "Config should be nil on failure")
             expectation.fulfill()
         }

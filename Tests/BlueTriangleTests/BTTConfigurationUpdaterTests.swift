@@ -21,7 +21,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         super.setUp()
         mockFetcher = MockBTTConfigurationFetcher()
         mockRepo = MockBTTConfigurationRepo()
-        configUpdater = BTTConfigurationUpdater(configFetcher: mockFetcher, configRepo: mockRepo)
+        configUpdater = BTTConfigurationUpdater(configFetcher: mockFetcher, configRepo: mockRepo, logger: nil)
     }
     
     override func tearDown() {
@@ -38,11 +38,8 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         
         let expectation = XCTestExpectation(description: "Completion handler called")
         
-        configUpdater.update(true) { hasChanged in
-            
+        configUpdater.update(true) {
             let currentConfig = self.mockRepo.get()
-            
-            XCTAssertTrue(hasChanged, "Remote config has changed")
             XCTAssertTrue(self.mockFetcher.fetchCalled, "Fetch should be called in a new session")
             XCTAssertEqual(currentConfig?.wcdSamplePercent, config.wcdSamplePercent, "New config should be saved")
             expectation.fulfill()
@@ -57,9 +54,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         mockRepo.save(config)
         
         let expectation = XCTestExpectation(description: "Completion handler called")
-        
-        configUpdater.update(false) { hasChanged in
-            XCTAssertFalse(hasChanged, "Remote config has not changed")
+        configUpdater.update(false) {
             XCTAssertFalse(self.mockFetcher.fetchCalled, "Fetch should not be called if within update period")
             expectation.fulfill()
         }
@@ -79,11 +74,8 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         
         let expectation = XCTestExpectation(description: "Completion handler called")
         
-        configUpdater.update(false) { hasChanged in
-            
+        configUpdater.update(false) {
             let currentConfig = self.mockRepo.get()
-            
-            XCTAssertTrue(hasChanged, "Remote config has changed")
             XCTAssertTrue(self.mockFetcher.fetchCalled, "Fetch should be called in a new session")
             XCTAssertEqual(currentConfig?.wcdSamplePercent, apiConfig.wcdSamplePercent, "Current config is not updated")
             
