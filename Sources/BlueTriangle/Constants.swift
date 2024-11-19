@@ -26,7 +26,7 @@ enum Constants {
     static let capturedRequestEndpoint: URL = "https://d.btttag.com/wcdv02.rcv"
     static let errorEndpoint: URL = "https://d.btttag.com/err.rcv"
     static let timerEndpoint: URL = "https://d.btttag.com/analytics.rcv"
-    static let connfigEndPoint: URL = /*"http://3.221.132.81/config.js" */ "http://localhost:5005/config.js"
+    static let connfigEndPoint: URL = "https://d.tags11.com/config.php" //"http://localhost:5005/config.js"
 
     // Crash Tracking
     static let crashID = "iOS Crash"

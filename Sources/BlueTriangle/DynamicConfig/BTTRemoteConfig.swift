@@ -9,27 +9,17 @@
 import Foundation
 
 class BTTRemoteConfig: Codable, Equatable {
-    var errorSamplePercent: Int
-    var wcdSamplePercent: Int
-    var sessionDuration: Int?
+    var networkSampleRateSDK: Int?
     
-    init(errorSamplePercent: Int,
-         wcdSamplePercent: Int,
-         sessionDuration: Int? = nil) {
-       
-        self.errorSamplePercent = errorSamplePercent
-        self.wcdSamplePercent = wcdSamplePercent
-        self.sessionDuration = sessionDuration
+    init(networkSampleRateSDK: Int?) {
+        self.networkSampleRateSDK = networkSampleRateSDK
     }
     
     static func == (lhs: BTTRemoteConfig, rhs: BTTRemoteConfig) -> Bool {
-        return lhs.errorSamplePercent == rhs.errorSamplePercent &&
-        lhs.wcdSamplePercent == rhs.wcdSamplePercent &&
-        lhs.sessionDuration == rhs.sessionDuration
+        return lhs.networkSampleRateSDK == rhs.networkSampleRateSDK
     }
     
     public static var defaultConfig: BTTRemoteConfig {
-        BTTRemoteConfig(errorSamplePercent: 0,
-                          wcdSamplePercent: Int(BlueTriangle.configuration.networkSampleRate * 100))
+        BTTRemoteConfig(networkSampleRateSDK: Int(BlueTriangle.configuration.networkSampleRate * 100))
     }
 }

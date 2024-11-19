@@ -33,7 +33,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
 
     func testUpdatePerformsFetchIfNewSession() {
 
-        let config = BTTRemoteConfig(errorSamplePercent: 60, wcdSamplePercent: 75)
+        let config = BTTRemoteConfig(networkSampleRateSDK: 75)
         mockFetcher.configToReturn = config
         
         let expectation = XCTestExpectation(description: "Completion handler called")
@@ -41,7 +41,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         configUpdater.update(true) {
             let currentConfig = self.mockRepo.get()
             XCTAssertTrue(self.mockFetcher.fetchCalled, "Fetch should be called in a new session")
-            XCTAssertEqual(currentConfig?.wcdSamplePercent, config.wcdSamplePercent, "New config should be saved")
+            XCTAssertEqual(currentConfig?.networkSampleRateSDK, config.networkSampleRateSDK, "New config should be saved")
             expectation.fulfill()
         }
         
@@ -50,7 +50,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     
     func testUpdateSkipsFetchIfNotNewSessionAndWithinUpdatePeriod() {
         
-        let config = BTTRemoteConfig(errorSamplePercent: 60, wcdSamplePercent: 75)
+        let config = BTTRemoteConfig(networkSampleRateSDK: 75)
         mockRepo.save(config)
         
         let expectation = XCTestExpectation(description: "Completion handler called")
@@ -64,12 +64,12 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     
     func testUpdatePerformsFetchIfNotNewSessionAndUpdatePeriodElapsed() {
         
-        let apiConfig = BTTRemoteConfig(errorSamplePercent: 60, wcdSamplePercent: 75)
+        let apiConfig = BTTRemoteConfig(networkSampleRateSDK: 75)
         mockFetcher.configToReturn = apiConfig
         
         
         let currentTime = Date().timeIntervalSince1970.milliseconds
-        let storeConfig = BTTSavedRemoteConfig(errorSamplePercent: 50, wcdSamplePercent: 70, dateSaved: currentTime - Millisecond.hour * 2)
+        let storeConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 70, dateSaved: currentTime - Millisecond.hour * 2)
         mockRepo.store[key] = storeConfig
         
         let expectation = XCTestExpectation(description: "Completion handler called")
@@ -77,7 +77,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         configUpdater.update(false) {
             let currentConfig = self.mockRepo.get()
             XCTAssertTrue(self.mockFetcher.fetchCalled, "Fetch should be called in a new session")
-            XCTAssertEqual(currentConfig?.wcdSamplePercent, apiConfig.wcdSamplePercent, "Current config is not updated")
+            XCTAssertEqual(currentConfig?.networkSampleRateSDK, apiConfig.networkSampleRateSDK, "Current config is not updated")
             
             expectation.fulfill()
         }

@@ -469,7 +469,8 @@ let timer = BlueTriangle.startTimer( page: Page( pageName: "SignUp", brandValue:
 BlueTriangle.endTimer(timer)
 ```
 
-Cart Value, Cart Count, Cart Count Checkout, Order Number, Order Time
+Cart Value, Cart Count, Cart Count Checkout, Order Number
+
 ```swift
 let timer = BlueTriangle.startTimer( 
     page: Page( 
@@ -482,6 +483,10 @@ BlueTriangle.endTimer(
         cartCountCheckout : 2,
         orderNumber: "ORD-123345"))
 ```
+
+Order Time
+
+The PurchaseConfirmation includes an order time, which is automatically set to the end time of the time.
 
 ## Optional Configuration Steps
 

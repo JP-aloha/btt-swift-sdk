@@ -83,7 +83,7 @@ class SessionManager {
                     self.logger?.info("Remote config has changed")
                     self.reloadSession()
                     BlueTriangle.refreshCaptureRequests()
-                    print("Current config changed: \(String(describing: config.wcdSamplePercent))")
+                    print("Current config changed: \(String(describing: config.networkSampleRateSDK))")
                 }
             }
             .store(in: &cancellables)
@@ -165,8 +165,9 @@ class SessionManager {
             }
             
             if let config = try configRepo.get(){
-                let rate = Double(config.wcdSamplePercent) / 100.0
-                BlueTriangle.updateNetworkSampleRate(rate)
+                if let rate = config.networkSampleRateSDK{
+                    BlueTriangle.updateNetworkSampleRate(Double(rate) / 100.0)
+                }
             }
         }
         catch {

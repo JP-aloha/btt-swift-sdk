@@ -24,26 +24,24 @@ final class BTTConfigurationRepoTests: XCTestCase {
     }
 
     func testSaveConfig() {
-        let config = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5)
+        let config = BTTRemoteConfig(networkSampleRateSDK: 5)
         configurationRepo.save(config)
         
         XCTAssertNotNil(configurationRepo.store[key])
         
         let savedConfig = configurationRepo.store[key]
-        XCTAssertEqual(savedConfig?.errorSamplePercent, 10)
-        XCTAssertEqual(savedConfig?.wcdSamplePercent, 5)
+        XCTAssertEqual(savedConfig?.networkSampleRateSDK, 5)
     }
     
     func testGetConfigSuccess() {
         
-        let savedConfig = BTTSavedRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5, dateSaved: Date().timeIntervalSince1970.milliseconds)
+        let savedConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 5, dateSaved: Date().timeIntervalSince1970.milliseconds)
         configurationRepo.store[key] = savedConfig
         
         let fetchedConfig = configurationRepo.get()
         
         XCTAssertNotNil(fetchedConfig)
-        XCTAssertEqual(fetchedConfig?.errorSamplePercent, 10)
-        XCTAssertEqual(fetchedConfig?.wcdSamplePercent, 5)
+        XCTAssertEqual(fetchedConfig?.networkSampleRateSDK, 5)
     }
     
     func testSaveAndRetrieveNilConfig() {
@@ -53,11 +51,13 @@ final class BTTConfigurationRepoTests: XCTestCase {
     
     func testSynchronizeUpdatesNetworkSampleRate() {
         // Save the config
-        let config = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 5)
+        let config = BTTRemoteConfig(networkSampleRateSDK: 5)
         configurationRepo.save(config)
         configurationRepo.synchronize()
         
-        let expectedSampleRate = Double(config.wcdSamplePercent) / 100.0
-        XCTAssertEqual(configurationRepo.sampleRate, expectedSampleRate, accuracy: 0.001)
+        if let networkSampleRateSDK = config.networkSampleRateSDK{
+            let expectedSampleRate = Double(networkSampleRateSDK) / 100.0
+            XCTAssertEqual(configurationRepo.sampleRate, expectedSampleRate, accuracy: 0.001)
+        }
     }
 }

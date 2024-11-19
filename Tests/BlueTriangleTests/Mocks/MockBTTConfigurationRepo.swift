@@ -19,14 +19,13 @@ class MockBTTConfigurationRepo: ConfigurationRepo {
     }
     
     func save(_ config: BTTRemoteConfig) {
-        let newConfig = BTTSavedRemoteConfig(errorSamplePercent: config.errorSamplePercent,
-                                                    wcdSamplePercent: config.wcdSamplePercent,
+        let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
                                                     dateSaved: Date().timeIntervalSince1970.milliseconds)
         store[key] = newConfig
     }
     
     func synchronize() {
-        if let value = store[key]?.wcdSamplePercent {
+        if let value = store[key]?.networkSampleRateSDK {
             let rate = Double(value) / 100.0
             sampleRate = rate
         }

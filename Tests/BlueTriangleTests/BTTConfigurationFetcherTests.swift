@@ -29,7 +29,7 @@ final class BTTConfigurationFetcherTests: XCTestCase {
     func testFetchConfigurationSuccess() {
 
         let mockNetworking: Networking = { request in
-            let mockConfig = BTTRemoteConfig(errorSamplePercent: 10, wcdSamplePercent: 20)
+            let mockConfig = BTTRemoteConfig(networkSampleRateSDK: 20)
             let mockData = try! JSONEncoder().encode(mockConfig)
             
             let response = HTTPURLResponse(url: request.url,
@@ -53,8 +53,7 @@ final class BTTConfigurationFetcherTests: XCTestCase {
         
         configurationFetcher.fetch { config , error in
             XCTAssertNotNil(config, "Config should not be nil on success")
-            XCTAssertEqual(config?.errorSamplePercent, 10, "Error sample percent should be 10")
-            XCTAssertEqual(config?.wcdSamplePercent, 20, "WCD sample percent should be 20")
+            XCTAssertEqual(config?.networkSampleRateSDK, 20, "WCD sample percent should be 20")
             expectation.fulfill()
         }
         

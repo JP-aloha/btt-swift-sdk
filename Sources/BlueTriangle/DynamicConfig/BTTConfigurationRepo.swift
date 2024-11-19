@@ -37,8 +37,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
     }
     
     func save(_ config: BTTRemoteConfig) throws {
-        let newConfig = BTTSavedRemoteConfig(errorSamplePercent: config.errorSamplePercent,
-                                             wcdSamplePercent: config.wcdSamplePercent,
+        let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         
         try queue.sync(flags: .barrier) {

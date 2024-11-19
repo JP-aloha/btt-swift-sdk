@@ -12,14 +12,10 @@ import Foundation
 class BTTSavedRemoteConfig: BTTRemoteConfig {
     var dateSaved: Millisecond
 
-    init(errorSamplePercent: Int, 
-         wcdSamplePercent: Int,
-         sessionDuration: Int? = nil,
+    init(networkSampleRateSDK: Int?,
          dateSaved: Millisecond) {
         self.dateSaved = dateSaved
-        super.init(errorSamplePercent: errorSamplePercent, 
-                   wcdSamplePercent: wcdSamplePercent,
-                   sessionDuration: sessionDuration)
+        super.init(networkSampleRateSDK: networkSampleRateSDK)
     }
 
     required init(from decoder: Decoder) throws {
