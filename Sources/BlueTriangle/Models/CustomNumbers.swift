@@ -10,6 +10,7 @@ import Foundation
 /// Custom numeric data that is collected from the page, aggregated, and ultimately
 /// appears on your trend graphs in the Blue Triangle portal.
 @objcMembers
+@available(*, deprecated, message: "Use BlueTriangle 'setCustomVariable(_ name:, value:)' method instead.")
 final public class CustomNumbers: NSObject {
     /// Custom number for data collection use.
     public var cn1: Double
