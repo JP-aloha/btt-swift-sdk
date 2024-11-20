@@ -15,7 +15,7 @@ protocol ConfigurationUpdater {
 
 class BTTConfigurationUpdater : ConfigurationUpdater {
     
-    private let updatePeriod: Millisecond = .hour
+    private let updatePeriod: Millisecond = 5 * 60 * 1000//.hour
     private let configFetcher : ConfigurationFetcher
     private let configRepo : ConfigurationRepo
     private let logger : Logging?
@@ -48,7 +48,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
             if let newConfig = config{
                 do{
                     try  self.configRepo.save(newConfig)
-                    self.logger?.info("Fetched remote config from end point")
+                    self.logger?.info("Fetched remote config from end point \(newConfig.networkSampleRateSDK ?? 0)")
                 }
                 catch{
                     self.logger?.error("Fail to save remote config: \(error)")
