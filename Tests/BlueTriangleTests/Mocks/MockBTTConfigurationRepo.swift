@@ -12,7 +12,7 @@ class MockBTTConfigurationRepo: ConfigurationRepo {
   
     var store = [String: BTTSavedRemoteConfig]()
     var sampleRate : Double = 0.0
-    let key = Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
+    let key = BlueTriangle.siteID
     
     func get() -> BTTSavedRemoteConfig? {
         return store[key]

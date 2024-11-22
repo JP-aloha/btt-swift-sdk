@@ -286,7 +286,7 @@ extension BlueTriangle {
     /// - Parameter configure: A closure that enables mutation of the Blue Triangle SDK configuration.
     @objc
     public static func configure(_ configure: (BlueTriangleConfiguration) -> Void) {
-        lock.sync {
+        lock.sync { 
             precondition(!Self.initialized, "BlueTriangle can only be initialized once.")
             initialized.toggle()
             configure(configuration)

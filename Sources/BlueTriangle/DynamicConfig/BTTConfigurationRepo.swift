@@ -15,12 +15,14 @@ protocol ConfigurationRepo {
 
 class BTTConfigurationRepo : ConfigurationRepo{
     
-    private let key = Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
+   //private let key = BlueTriangle.siteID//Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
     private let queue = DispatchQueue(label: "com.bluetriangle.configurationRepo", attributes: .concurrent)
     private let defaultConfig : BTTRemoteConfig
     private let lock = NSLock()
 
     @Published private(set) var currentConfig: BTTSavedRemoteConfig?
+    
+    private func key() -> String { return BlueTriangle.configuration.siteID }
     
     init(_ defaultConfig : BTTRemoteConfig){
         self.defaultConfig = defaultConfig
@@ -29,7 +31,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
     
     func get() throws -> BTTSavedRemoteConfig? {
         
-        if let data = UserDefaults.standard.data(forKey: key) {
+        if let data = UserDefaults.standard.data(forKey: key()) {
             return try JSONDecoder().decode(BTTSavedRemoteConfig.self, from: data)
         }
         
@@ -43,7 +45,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
         try queue.sync(flags: .barrier) {
             do {
                 let data = try JSONEncoder().encode(newConfig)
-                UserDefaults.standard.set(data, forKey: key)
+                UserDefaults.standard.set(data, forKey: key())
                 
                 print("Save data")
 

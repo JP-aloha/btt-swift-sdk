@@ -11,7 +11,7 @@ import XCTest
 final class BTTConfigurationRepoTests: XCTestCase {
     
     var configurationRepo: MockBTTConfigurationRepo!
-    let key = Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
+    let key = BlueTriangle.siteID
     
     override func setUp() {
         super.setUp()
