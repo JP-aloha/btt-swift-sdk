@@ -19,26 +19,28 @@ import Combine
 
 class SessionManager {
    
-    private let lock = NSLock()
-    private var logger: Logging?
     private var expirationDurationInMS: Millisecond = 30 * 60 * 1000
-    private let  sessionStore = SessionStore()
-    private var currentSession : SessionData?
-   
+    private let lock = NSLock()
+    private let sessionStore = SessionStore()
+    private var cancellables = Set<AnyCancellable>()
     private let queue = DispatchQueue(label: "com.bluetriangle.remote", qos: .userInitiated, autoreleaseFrequency: .workItem)
+    private var currentSession : SessionData?
+
     private let configFetcher: BTTConfigurationFetcher
     private let configRepo: BTTConfigurationRepo
-    private var cancellables = Set<AnyCancellable>()
-    lazy var updater = BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger)
+    private let logger: Logging
+    private let configAck: RemoteConfigAckReporter
+    private let updater: BTTConfigurationUpdater
     
-    init(_ configRepo : BTTConfigurationRepo = BTTConfigurationRepo(BTTRemoteConfig.defaultConfig),_ fetcher : BTTConfigurationFetcher =  BTTConfigurationFetcher()) {
+    init(_ logger: Logging,_ configRepo : BTTConfigurationRepo,_ fetcher : BTTConfigurationFetcher, _ configAck : RemoteConfigAckReporter, _ updater : BTTConfigurationUpdater) {
+        self.logger = logger
         self.configRepo = configRepo
         self.configFetcher = fetcher
+        self.configAck = configAck
+        self.updater = updater
     }
     
-    public func start(with  expiry : Millisecond, logger: Logging){
-        
-        self.logger = logger
+    public func start(with expiry : Millisecond){
         self.expirationDurationInMS = expiry
         
 #if os(iOS)
@@ -79,11 +81,10 @@ class SessionManager {
 
         configRepo.$currentConfig
             .sink { changedConfig in
-                if let config = changedConfig{
-                    self.logger?.info("Remote config has changed")
+                if let _ = changedConfig{
+                    self.logger.info("Remote config has changed")
                     self.reloadSession()
                     BlueTriangle.refreshCaptureRequests()
-                    print("Current config changed: \(String(describing: config.networkSampleRateSDK))")
                 }
             }
             .store(in: &cancellables)
@@ -97,7 +98,7 @@ class SessionManager {
         queue.async { [weak self] in
             if let isNewSession = self?.currentSession?.isNewSession {
                 self?.updater.update(isNewSession) {
-                    self?.logger?.info("updated remote config")
+                    self?.logger.info("updated remote config")
                 }
             }
         }
@@ -122,7 +123,7 @@ class SessionManager {
             currentSession = session
             reloadSession()
             sessionStore.saveSession(session)
-            logger?.info("New session \(session.sessionID) has created")
+            logger.info("New session \(session.sessionID) has created")
             
             return session
         }
@@ -149,10 +150,10 @@ class SessionManager {
                 session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
                 session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
                 sessionStore.saveSession(session)
-                logger?.info("Sync new session remote config with configuration \(BlueTriangle.configuration.networkSampleRate)")
+                logger.info("Sync new session remote config with configuration \(BlueTriangle.configuration.networkSampleRate)")
             }else{
                 BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
-                logger?.info("Sync old session remote config with configuration \(BlueTriangle.configuration.networkSampleRate)")
+                logger.info("Sync old session remote config with configuration \(BlueTriangle.configuration.networkSampleRate)")
             }
         }
     }
@@ -171,7 +172,7 @@ class SessionManager {
             }
         }
         catch {
-            logger?.error("Error syncing remote config: \(error)")
+            logger.error("Error syncing remote config: \(error)")
         }
     }
     

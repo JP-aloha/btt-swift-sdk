@@ -10,13 +10,15 @@ import Foundation
 
 class BTTRemoteConfig: Codable, Equatable {
     var networkSampleRateSDK: Int?
+    var enableRemoteConfigAck: Bool = false
     
-    init(networkSampleRateSDK: Int?) {
+    init(networkSampleRateSDK: Int?, enableRemoteConfigAck : Bool = false) {
         self.networkSampleRateSDK = networkSampleRateSDK
+        self.enableRemoteConfigAck = enableRemoteConfigAck
     }
     
     static func == (lhs: BTTRemoteConfig, rhs: BTTRemoteConfig) -> Bool {
-        return lhs.networkSampleRateSDK == rhs.networkSampleRateSDK
+        return lhs.networkSampleRateSDK == rhs.networkSampleRateSDK && lhs.enableRemoteConfigAck == rhs.enableRemoteConfigAck
     }
     
     public static var defaultConfig: BTTRemoteConfig {

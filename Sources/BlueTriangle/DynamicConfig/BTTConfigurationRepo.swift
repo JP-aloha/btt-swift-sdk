@@ -11,11 +11,11 @@ import Foundation
 protocol ConfigurationRepo {
     func get() throws -> BTTSavedRemoteConfig?
     func save(_ config: BTTRemoteConfig) throws
+    func hasChange( _ config : BTTRemoteConfig) -> Bool
 }
 
 class BTTConfigurationRepo : ConfigurationRepo{
     
-   //private let key = BlueTriangle.siteID//Constants.BTT_BUFFER_REMOTE_CONFIG_KEY
     private let queue = DispatchQueue(label: "com.bluetriangle.configurationRepo", attributes: .concurrent)
     private let defaultConfig : BTTRemoteConfig
     private let lock = NSLock()
@@ -32,7 +32,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
     func get() throws -> BTTSavedRemoteConfig? {
         
         if let data = UserDefaults.standard.data(forKey: key()) {
-            return try JSONDecoder().decode(BTTSavedRemoteConfig.self, from: data)
+            let config = try JSONDecoder().decode(BTTSavedRemoteConfig.self, from: data)
+            return config
         }
         
         return nil
@@ -46,14 +47,24 @@ class BTTConfigurationRepo : ConfigurationRepo{
             do {
                 let data = try JSONEncoder().encode(newConfig)
                 UserDefaults.standard.set(data, forKey: key())
-                
                 print("Save data")
-
-                if newConfig != currentConfig {
+                if hasChange(config){
                     self.currentConfig = newConfig
                     print("Save changed")
                 }
             }
+        }
+    }
+    
+    func hasChange( _ config : BTTRemoteConfig) -> Bool{
+        
+        let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
+                                             dateSaved: Date().timeIntervalSince1970.milliseconds)
+        
+        if let current = currentConfig, newConfig == current{
+            return false
+        }else{
+            return true
         }
     }
     
@@ -64,9 +75,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
                 try self.save(defaultConfig)
                 return
             }
-
+            
             self.currentConfig = config
-            print("Load changed")
         }
         catch{
             print("Fail to load remote changed")

@@ -32,7 +32,11 @@ final public class BlueTriangle: NSObject {
 #endif
     }
     
-    internal static let sessionManager = SessionManager()
+    private static let configRepo  =  BTTConfigurationRepo(BTTRemoteConfig.defaultConfig)
+    private static let configFetcher  =  BTTConfigurationFetcher()
+    private static let configAck  =  RemoteConfigAckReporter(logger: logger, uploader: uploader)
+    private static let configUpdater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: configAck)
+    internal static let sessionManager = SessionManager(logger, configRepo, configFetcher, configAck, configUpdater)
     
     internal static func removeActiveTimer(_ timer : BTTimer){
         
@@ -753,7 +757,7 @@ extension BlueTriangle{
 extension BlueTriangle{
     static func configureSession(with expiry: Millisecond){
 #if os(iOS)
-        self.sessionManager.start(with: expiry, logger: logger)
+        self.sessionManager.start(with: expiry)
 #endif
     }
 }
