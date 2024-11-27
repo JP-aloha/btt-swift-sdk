@@ -167,7 +167,11 @@ class SessionManager {
             
             if let config = try configRepo.get(){
                 if let rate = config.networkSampleRateSDK{
-                    BlueTriangle.updateNetworkSampleRate(Double(rate) / 100.0)
+                    if rate == 0 {
+                        BlueTriangle.updateNetworkSampleRate(0.0)
+                    }else{
+                        BlueTriangle.updateNetworkSampleRate(Double(rate) / 100.0)
+                    }
                 }
             }
         }
