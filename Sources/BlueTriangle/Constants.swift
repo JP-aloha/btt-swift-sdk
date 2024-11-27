@@ -51,7 +51,6 @@ enum Constants {
     static let SCREEN_TRACKING_TRAFFIC_SEGMENT = "ScreenTracker"
     
     //Dynamic Config
-   // static let BTT_BUFFER_REMOTE_CONFIG_KEY  = "BTTBufferRemoteConfigKey"
     static let FULL_SAMPLE_RATE_ARGUMENT  = "-FullSampleRate"
     static let NEW_SESSION_ON_LAUNCH_ARGUMENT  = "-NewSessionOnLaunch"
 

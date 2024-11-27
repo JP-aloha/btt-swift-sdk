@@ -45,6 +45,22 @@ extension CrashReport {
                                   column: 1,
                                   time: intervalProvider.milliseconds)
     }
+    
+    // For message
+    init(
+        errorType : BT_ErrorType,
+        sessionID: Identifier,
+        message: String,
+        pageName:String?,
+        intervalProvider: TimeInterval = Date().timeIntervalSince1970
+    ) {
+        self.sessionID = sessionID
+        self.pageName =  pageName
+        self.report = ErrorReport(eTp: errorType.rawValue, message: message.bttReportMessage,
+                                  line: 1,
+                                  column: 1,
+                                  time: intervalProvider.milliseconds)
+    }
 }
 
 //ANR Warning
@@ -85,4 +101,5 @@ enum BT_ErrorType : String{
     case NativeAppCrash
     case ANRWarning
     case MemoryWarning
+    case BTTConfigUpdateError
 }

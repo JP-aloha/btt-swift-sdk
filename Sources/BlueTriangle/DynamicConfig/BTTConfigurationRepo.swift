@@ -17,14 +17,14 @@ protocol ConfigurationRepo {
 class BTTConfigurationRepo : ConfigurationRepo{
     
     private let queue = DispatchQueue(label: "com.bluetriangle.configurationRepo", attributes: .concurrent)
-    private let defaultConfig : BTTRemoteConfig
+    private let defaultConfig : BTTSavedRemoteConfig
     private let lock = NSLock()
 
     @Published private(set) var currentConfig: BTTSavedRemoteConfig?
     
     private func key() -> String { return BlueTriangle.configuration.siteID }
     
-    init(_ defaultConfig : BTTRemoteConfig){
+    init(_ defaultConfig : BTTSavedRemoteConfig){
         self.defaultConfig = defaultConfig
         self.loadConfig()
     }
@@ -41,6 +41,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
     
     func save(_ config: BTTRemoteConfig) throws {
         let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
+                                             enableRemoteConfigAck : config.enableRemoteConfigAck,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         
         try queue.sync(flags: .barrier) {
@@ -59,6 +60,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
     func hasChange( _ config : BTTRemoteConfig) -> Bool{
         
         let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
+                                             enableRemoteConfigAck : config.enableRemoteConfigAck,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         
         if let current = currentConfig, newConfig == current{
@@ -71,8 +73,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
     private func loadConfig(){
         do{
             guard let config = try get() else {
-                print("Save default")
-                try self.save(defaultConfig)
+                self.currentConfig = defaultConfig
                 return
             }
             

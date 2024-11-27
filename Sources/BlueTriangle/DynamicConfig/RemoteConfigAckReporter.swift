@@ -1,8 +1,8 @@
 //
 //  RemoteConfigAckReporter.swift
 //  
-//
-//  Created by Ashok Singh on 25/11/24.
+//  Created by Ashok Singh on 05/09/24.
+//  Copyright © 2021 Blue Triangle. All rights reserved.
 //
 
 import UIKit
@@ -25,10 +25,8 @@ class RemoteConfigAckReporter {
             do {
                 let session = BlueTriangle.session()
                 let pageName = "BTTConfigUpdate"
-                let pageType =  "BTTConfigUpdate"
                 try self.upload(session: session,
-                                pageName: pageName,
-                                pageType: pageType)
+                                pageName: pageName)
             }catch {
                 self.logger.error("BlueTriangle:RemoteConfigAckReporter: \(error.localizedDescription)")
             }
@@ -40,13 +38,11 @@ class RemoteConfigAckReporter {
             do {
                     let session = BlueTriangle.session()
                     let pageName = "BTTConfigUpdate"
-                    let pageType =  "BTTConfigUpdateError"
                     let message = error.localizedDescription
-                    let crashReport = CrashReport(sessionID: session.sessionID, message: message, pageName: pageName)
-                   try self.upload(session: session, 
+                   let crashReport = CrashReport(errorType : BT_ErrorType.BTTConfigUpdateError, sessionID: session.sessionID, message: message, pageName: pageName)
+                   try self.upload(session: session,
                                    report: crashReport.report,
-                                   pageName: pageName,
-                                   pageType: pageType)
+                                   pageName: pageName)
         
             }catch {
                 self.logger.error("BlueTriangle:RemoteConfigAckReporter: \(error.localizedDescription)")
@@ -56,8 +52,8 @@ class RemoteConfigAckReporter {
 }
 
 private extension RemoteConfigAckReporter {
-    func makeTimerRequest(session: Session, report: ErrorReport, pageName : String , pageType : String) throws -> Request {
-        let page = Page(pageName: pageName, pageType: pageType)
+    func makeTimerRequest(session: Session, report: ErrorReport, pageName : String) throws -> Request {
+        let page = Page(pageName: pageName)
         let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
         let nativeProperty =  report.nativeApp.copy(.Regular)
         let model = TimerRequest(session: session,
@@ -100,9 +96,9 @@ private extension RemoteConfigAckReporter {
                            model: [report])
     }
     
-    func upload(session: Session, report: ErrorReport, pageName : String , pageType : String) throws {
+    func upload(session: Session, report: ErrorReport, pageName : String) throws {
         let timerRequest = try makeTimerRequest(session: session,
-                                                report: report, pageName: pageName, pageType: pageType)
+                                                report: report, pageName: pageName)
         uploader.send(request: timerRequest)
         
         let reportRequest = try makeErrorReportRequest(session: session,
@@ -113,20 +109,19 @@ private extension RemoteConfigAckReporter {
 
 private extension RemoteConfigAckReporter {
     
-    func upload(session: Session, pageName : String, pageType : String) throws {
+    func upload(session: Session, pageName : String) throws {
         
         let timeMS = Date().timeIntervalSince1970.milliseconds
         let durationMS = Constants.minPgTm
         let timerRequest = try self.makeTimerRequest(session: session,
                                                            time: timeMS,
                                                            duration: durationMS,
-                                                     pageName: pageName, 
-                                                     pageType: pageType)
+                                                     pageName: pageName)
         self.uploader.send(request: timerRequest)
     }
     
-    private func makeTimerRequest(session: Session, time : Millisecond, duration : Millisecond , pageName: String, pageType : String) throws -> Request {
-        let page = Page(pageName: pageName, pageType: pageType)
+    private func makeTimerRequest(session: Session, time : Millisecond, duration : Millisecond , pageName: String) throws -> Request {
+        let page = Page(pageName: pageName)
         let timer = PageTimeInterval(startTime: time, interactiveTime: 0, pageTime: duration)
         let model = TimerRequest(session: session,
                                  page: page,

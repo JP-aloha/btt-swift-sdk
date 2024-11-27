@@ -13,9 +13,10 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
     var dateSaved: Millisecond
 
     init(networkSampleRateSDK: Int?,
+         enableRemoteConfigAck : Bool?,
          dateSaved: Millisecond) {
         self.dateSaved = dateSaved
-        super.init(networkSampleRateSDK: networkSampleRateSDK)
+        super.init(networkSampleRateSDK: networkSampleRateSDK, enableRemoteConfigAck: enableRemoteConfigAck)
     }
 
     required init(from decoder: Decoder) throws {

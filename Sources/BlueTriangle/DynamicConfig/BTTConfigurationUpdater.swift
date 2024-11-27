@@ -19,9 +19,9 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
     private let configFetcher : ConfigurationFetcher
     private let configRepo : ConfigurationRepo
     private let logger : Logging?
-    private var configAck: RemoteConfigAckReporter?
+    private var configAck: RemoteConfigAckReporter
         
-    init(configFetcher : ConfigurationFetcher, configRepo : ConfigurationRepo, logger: Logging?, configAck :RemoteConfigAckReporter?) {
+    init(configFetcher : ConfigurationFetcher, configRepo : ConfigurationRepo, logger: Logging, configAck :RemoteConfigAckReporter) {
         self.configFetcher = configFetcher
         self.configRepo = configRepo
         self.logger = logger
@@ -37,7 +37,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
            
             if let savedConfig = config{
                 
-                enableRemoteConfigAck = savedConfig.enableRemoteConfigAck
+                enableRemoteConfigAck = savedConfig.enableRemoteConfigAck ?? false
                 
                 let currentTime = Date().timeIntervalSince1970.milliseconds
                 let timeIntervalSinceLastUpdate =  currentTime - savedConfig.dateSaved
@@ -57,9 +57,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
             
             if let newConfig = config{
                 
-                if newConfig.enableRemoteConfigAck{
-                    enableRemoteConfigAck = true
-                }
+                enableRemoteConfigAck = newConfig.enableRemoteConfigAck ?? false
                 
                 do{
                     if self.configRepo.hasChange(newConfig) {
@@ -86,13 +84,13 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
     
     func reportFailAck(_ enableRemoteConfigAck : Bool, _ error : Error){
         if enableRemoteConfigAck {
-            configAck?.reportFailAck(error)
+            configAck.reportFailAck(error)
         }
     }
     
     func reportSucessAck(_ enableRemoteConfigAck : Bool){
         if enableRemoteConfigAck {
-            configAck?.reportSuccessAck()
+            configAck.reportSuccessAck()
         }
     }
 }
