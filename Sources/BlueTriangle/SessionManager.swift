@@ -32,7 +32,12 @@ class SessionManager {
     private let configAck: RemoteConfigAckReporter
     private let updater: BTTConfigurationUpdater
     
-    init(_ logger: Logging,_ configRepo : BTTConfigurationRepo,_ fetcher : BTTConfigurationFetcher, _ configAck : RemoteConfigAckReporter, _ updater : BTTConfigurationUpdater) {
+    init(_ logger: Logging,
+         _ configRepo : BTTConfigurationRepo,
+         _ fetcher : BTTConfigurationFetcher,
+         _ configAck : RemoteConfigAckReporter,
+         _ updater : BTTConfigurationUpdater) {
+        
         self.logger = logger
         self.configRepo = configRepo
         self.configFetcher = fetcher
@@ -56,13 +61,6 @@ class SessionManager {
         self.updateSession()
     }
     
-    public func getSessionData() -> SessionData {
-        lock.sync {
-            let updatedSession = self.invalidateSession()
-            return updatedSession
-        }
-    }
-    
     private func appOffScreen(){
         if let session = currentSession {
             session.expiration = expiryDuration()
@@ -75,30 +73,6 @@ class SessionManager {
     private func onLaunch(){
         self.updateSession()
         self.updateRemoteConfig()
-    }
-        
-    private func observeRemoteConfig(){
-
-        configRepo.$currentConfig
-            .sink { changedConfig in
-                if let _ = changedConfig{
-                    self.reloadSession()
-                    BlueTriangle.refreshCaptureRequests()
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func updateSession(){
-        BlueTriangle.updateSession(getSessionData())
-    }
-    
-    private func updateRemoteConfig(){
-        queue.async { [weak self] in
-            if let isNewSession = self?.currentSession?.isNewSession {
-                self?.updater.update(isNewSession) {}
-            }
-        }
     }
     
     private func invalidateSession() -> SessionData{
@@ -136,6 +110,45 @@ class SessionManager {
             }
             
             return session
+        }
+    }
+    
+    public func getSessionData() -> SessionData {
+        lock.sync {
+            let updatedSession = self.invalidateSession()
+            return updatedSession
+        }
+    }
+    
+    private func updateSession(){
+        BlueTriangle.updateSession(getSessionData())
+    }
+    
+    private func expiryDuration()-> Millisecond {
+        let expiry = Int64(Date().timeIntervalSince1970) * 1000 + expirationDurationInMS
+        return expiry
+    }
+}
+
+extension SessionManager {
+    
+    private func observeRemoteConfig(){
+        
+        configRepo.$currentConfig
+            .sink { changedConfig in
+                if let _ = changedConfig{
+                    self.reloadSession()
+                    BlueTriangle.refreshCaptureRequests()
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func updateRemoteConfig(){
+        queue.async { [weak self] in
+            if let isNewSession = self?.currentSession?.isNewSession {
+                self?.updater.update(isNewSession) {}
+            }
         }
     }
     
@@ -177,10 +190,4 @@ class SessionManager {
             logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
         }
     }
-    
-    private func expiryDuration()-> Millisecond {
-        let expiry = Int64(Date().timeIntervalSince1970) * 1000 + expirationDurationInMS
-        return expiry
-    }
 }
-

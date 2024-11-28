@@ -61,6 +61,7 @@ class BTTConfigurationFetcher : ConfigurationFetcher {
                 return try httpResponse.validate()
                     .decode(with: self.decoder)
             }
+            .mapError {NetworkError.wrap($0)}
             .eraseToAnyPublisher()
     }
 }

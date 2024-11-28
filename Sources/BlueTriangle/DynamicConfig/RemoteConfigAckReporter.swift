@@ -12,10 +12,11 @@ class RemoteConfigAckReporter {
     private let queue = DispatchQueue(label: "com.bluetriangle.ack.reporter", qos: .userInitiated, autoreleaseFrequency: .workItem)
     
     private let logger: Logging
-    
     private let uploader: Uploading
     
-    init(logger: Logging, uploader: Uploading) {
+    init(logger: Logging, 
+         uploader: Uploading) {
+        
         self.logger = logger
         self.uploader = uploader
     }
