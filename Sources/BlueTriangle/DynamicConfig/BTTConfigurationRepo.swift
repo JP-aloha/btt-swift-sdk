@@ -17,11 +17,9 @@ protocol ConfigurationRepo {
 class BTTConfigurationRepo : ConfigurationRepo{
     
     private let queue = DispatchQueue(label: "com.bluetriangle.configurationRepo", attributes: .concurrent)
-    private let defaultConfig : BTTSavedRemoteConfig
     private let lock = NSLock()
-
+    private(set) var defaultConfig : BTTSavedRemoteConfig
     @Published private(set) var currentConfig: BTTSavedRemoteConfig?
-    
     private func key() -> String { return BlueTriangle.configuration.siteID }
     
     init(_ defaultConfig : BTTSavedRemoteConfig){
@@ -40,6 +38,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
     }
     
     func save(_ config: BTTRemoteConfig) throws {
+        
         let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
                                              enableRemoteConfigAck : config.enableRemoteConfigAck,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
@@ -48,10 +47,9 @@ class BTTConfigurationRepo : ConfigurationRepo{
             do {
                 let data = try JSONEncoder().encode(newConfig)
                 UserDefaults.standard.set(data, forKey: key())
-                print("Save data")
+               
                 if hasChange(config){
                     self.currentConfig = newConfig
-                    print("Save changed")
                 }
             }
         }
@@ -69,6 +67,9 @@ class BTTConfigurationRepo : ConfigurationRepo{
             return true
         }
     }
+}
+
+extension BTTConfigurationRepo{
     
     private func loadConfig(){
         do{
@@ -80,7 +81,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
             self.currentConfig = config
         }
         catch{
-            print("Fail to load remote changed")
+            print("Failed to load remote")
         }
     }
 }

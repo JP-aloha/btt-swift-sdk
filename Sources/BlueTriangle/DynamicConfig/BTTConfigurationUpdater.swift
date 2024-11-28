@@ -30,7 +30,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
     
     func update(_ isNewSession : Bool, completion: @escaping () -> Void) {
         
-        var enableRemoteConfigAck = true
+        var enableRemoteConfigAck = false
         
         do {
             let config = try configRepo.get()
@@ -44,53 +44,65 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                 
                 // Perform remote config update only if it's a new session or the update period has elapsed
                 if timeIntervalSinceLastUpdate < updatePeriod &&  !isNewSession {
-                    self.logger?.info("No need to update")
+                   
+                    self.logger?.info("BlueTriangle:BTTConfigurationUpdater - The update period has not yet elapsed.")
                     completion()
                     return
                 }
             }
         }catch{
-            self.logger?.error("Fail to get remote config : \(error)")
+            self.logger?.error("BlueTriangle:BTTConfigurationUpdater: Failed to retrieve remote configuration from the repository - \(error)")
         }
         
-        configFetcher.fetch {  config, error  in
+        configFetcher.fetch {  fetchedConfig, error  in
             
-            if let newConfig = config{
+            if let config = fetchedConfig{
                 
-                enableRemoteConfigAck = newConfig.enableRemoteConfigAck ?? false
+                enableRemoteConfigAck = config.enableRemoteConfigAck ?? false
                 
                 do{
-                    if self.configRepo.hasChange(newConfig) {
-                        try  self.configRepo.save(newConfig)
-                        self.reportSucessAck(enableRemoteConfigAck)
+                    if self.configRepo.hasChange(config) {
+                        try  self.configRepo.save(config)
+                        self.reportAck(enableRemoteConfigAck, config, nil)
                     }
                     
-                    self.logger?.info("Fetched remote config from end point \(newConfig.networkSampleRateSDK ?? 0)")
+                    self.logger?.info("BlueTriangle:BTTConfigurationUpdater - Remote config fetched successfully \(config.networkSampleRateSDK ?? 0)")
                 }
                 catch{
-                    self.logger?.error("Fail to save remote config: \(error)")
-                    self.reportFailAck(enableRemoteConfigAck, error)
+                    self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to save fetch remote config: \(error)")
+                    self.reportAck(enableRemoteConfigAck, nil, error)
                 }
             }else{
                 if let error = error{
-                    self.logger?.error("Fail to fetch remote config: \(error)")
-                    self.reportFailAck(enableRemoteConfigAck, error)
+                    self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to fetch remote config: \(error)")
+                    self.reportAck(enableRemoteConfigAck, nil, error)
                 }
             }
             
             completion()
         }
     }
-    
-    func reportFailAck(_ enableRemoteConfigAck : Bool, _ error : Error){
-        if enableRemoteConfigAck {
-            configAck.reportFailAck(error)
+}
+
+extension BTTConfigurationUpdater{
+   
+    private func reportAck(_ enableRemoteConfigAck : Bool, _ fetchedConfig : BTTRemoteConfig?,  _ error : Error?){
+        if enableRemoteConfigAck{
+            if let _ = fetchedConfig{
+                reportSucessAck()
+            }else{
+                if let errorMessage = error?.localizedDescription{
+                    reportFailAck(errorMessage)
+                }
+            }
         }
     }
+
+    private func reportFailAck(_ error : String){
+        configAck.reportFailAck(error)
+    }
     
-    func reportSucessAck(_ enableRemoteConfigAck : Bool){
-        if enableRemoteConfigAck {
-            configAck.reportSuccessAck()
-        }
+    private func reportSucessAck(){
+        configAck.reportSuccessAck()
     }
 }

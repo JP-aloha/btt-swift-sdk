@@ -82,7 +82,6 @@ class SessionManager {
         configRepo.$currentConfig
             .sink { changedConfig in
                 if let _ = changedConfig{
-                    self.logger.info("Remote config has changed")
                     self.reloadSession()
                     BlueTriangle.refreshCaptureRequests()
                 }
@@ -97,9 +96,7 @@ class SessionManager {
     private func updateRemoteConfig(){
         queue.async { [weak self] in
             if let isNewSession = self?.currentSession?.isNewSession {
-                self?.updater.update(isNewSession) {
-                    self?.logger.info("updated remote config")
-                }
+                self?.updater.update(isNewSession) {}
             }
         }
     }
@@ -123,7 +120,7 @@ class SessionManager {
             currentSession = session
             reloadSession()
             sessionStore.saveSession(session)
-            logger.info("New session \(session.sessionID) has created")
+            logger.info("BlueTriangle:SessionManager: New session \(session.sessionID) has been created")
             
             return session
         }
@@ -150,10 +147,8 @@ class SessionManager {
                 session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
                 session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
                 sessionStore.saveSession(session)
-                logger.info("Sync new session remote config with configuration \(BlueTriangle.configuration.networkSampleRate)")
             }else{
                 BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
-                logger.info("Sync old session remote config with configuration \(BlueTriangle.configuration.networkSampleRate)")
             }
         }
     }
@@ -166,17 +161,20 @@ class SessionManager {
             }
             
             if let config = try configRepo.get(){
-                if let rate = config.networkSampleRateSDK{
+                let sampleRate = config.networkSampleRateSDK ?? configRepo.defaultConfig.networkSampleRateSDK
+                if let rate = sampleRate{
                     if rate == 0 {
                         BlueTriangle.updateNetworkSampleRate(0.0)
                     }else{
                         BlueTriangle.updateNetworkSampleRate(Double(rate) / 100.0)
                     }
+                    
+                    logger.info("BlueTriangle:SessionManager: Applied networkSampleRate - \(rate) %")
                 }
             }
         }
         catch {
-            logger.error("Error syncing remote config: \(error)")
+            logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
         }
     }
     
