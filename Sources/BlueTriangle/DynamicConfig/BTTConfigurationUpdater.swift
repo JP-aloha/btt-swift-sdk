@@ -50,8 +50,10 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                     return
                 }
             }
-        }catch{
-            self.logger?.error("BlueTriangle:BTTConfigurationUpdater: Failed to retrieve remote configuration from the repository - \(error)")
+        }
+        catch{
+           
+            self.logger?.error("BlueTriangle:BTTConfigurationUpdater: Failed to retrieve remote configuration from the repository - \(error.localizedDescription)")
         }
         
         configFetcher.fetch {  fetchedConfig, error  in
@@ -69,13 +71,23 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                     self.logger?.info("BlueTriangle:BTTConfigurationUpdater - Remote config fetched successfully \(config.networkSampleRateSDK ?? 0)")
                 }
                 catch{
-                    self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to save fetch remote config: \(error)")
-                    self.reportAck(enableRemoteConfigAck, nil, error)
+                   
+                    self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to save fetch remote config: \(error.localizedDescription)")
+                    self.reportAck(enableRemoteConfigAck, nil, error.localizedDescription)
                 }
-            }else{
+            }
+            else if let networkError = error {
+                
+                let errorMessage = networkError.getErrorMessage()
+                self.reportAck(enableRemoteConfigAck, nil, errorMessage)
+                self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to fetch remote config: \(errorMessage)")
+            }
+            else{
+                
                 if let error = error{
-                    self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to fetch remote config: \(error)")
-                    self.reportAck(enableRemoteConfigAck, nil, error)
+                    
+                    self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to fetch remote config: \(error.localizedDescription)")
+                    self.reportAck(enableRemoteConfigAck, nil, error.localizedDescription)
                 }
             }
             
@@ -86,12 +98,16 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
 
 extension BTTConfigurationUpdater{
    
-    private func reportAck(_ enableRemoteConfigAck : Bool, _ fetchedConfig : BTTRemoteConfig?,  _ error : Error?){
+    private func reportAck(_ enableRemoteConfigAck : Bool, _ fetchedConfig : BTTRemoteConfig?,  _ error : String?){
         if enableRemoteConfigAck{
+           
             if let _ = fetchedConfig{
+               
                 reportSucessAck()
-            }else{
-                if let errorMessage = error?.localizedDescription{
+            }
+            else{
+                
+                if let errorMessage = error{
                     reportFailAck(errorMessage)
                 }
             }

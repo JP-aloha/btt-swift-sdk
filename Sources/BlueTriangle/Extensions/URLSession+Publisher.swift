@@ -43,6 +43,43 @@ enum NetworkError: Error {
     }
 }
 
+extension NetworkError {
+    
+    func getErrorMessage () -> String{
+        
+        var errorMessage = self.localizedDescription
+        
+        switch self {
+            
+        case .malformedRequest:
+            errorMessage = "The request could not be created due to invalid parameters or formatting."
+
+        case .network(error: let error):
+            errorMessage = "A network error occurred: \(error.localizedDescription)."
+        
+        case .noData:
+            errorMessage = "The response did not contain any data."
+           
+        case .invalidResponse(let urlResponse):
+            errorMessage = "Received an invalid response for the URL: \(urlResponse?.url?.absoluteString ?? "Unknown URL")."
+
+        case .clientError(let response):
+            errorMessage = "A client error occurred with status code \(response.statusCode): \(self.localizedDescription)."
+
+        case .serverError(let response):
+            errorMessage = "A server error occurred with status code \(response.statusCode): \(self.localizedDescription)."
+
+        case .decoding(error: let error):
+            errorMessage = "A decoding error occurred: \(error.localizedDescription). Check the data format."
+
+        case .unknown(message: let message):
+            errorMessage = "An unknown error occurred with the message: \(message)."
+        }
+        
+        return errorMessage
+    }
+}
+
 struct HTTPResponse<T> {
     let value: T
     let response: HTTPURLResponse
@@ -67,17 +104,6 @@ extension HTTPResponse {
 }
 
 extension HTTPResponse {
-    func validateStatus() throws {
-        switch response.statusCode {
-        // Success
-        case (200..<300): return
-        // Client Error
-        case (400..<500): throw NetworkError.clientError(response)
-        // Server Error
-        case (500..<600): throw NetworkError.serverError(response)
-        default: throw NetworkError.unknown(message: "Unrecognized status code: \(response.statusCode)")
-        }
-    }
     
     func validate() throws -> Self {
         switch response.statusCode {

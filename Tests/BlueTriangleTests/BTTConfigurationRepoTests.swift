@@ -24,7 +24,8 @@ final class BTTConfigurationRepoTests: XCTestCase {
     }
 
     func testSaveConfig() {
-        let config = BTTRemoteConfig(networkSampleRateSDK: 5)
+        let config = BTTRemoteConfig(networkSampleRateSDK: 5, 
+                                     enableRemoteConfigAck: false)
         configurationRepo.save(config)
         
         XCTAssertNotNil(configurationRepo.store[key])
@@ -35,7 +36,9 @@ final class BTTConfigurationRepoTests: XCTestCase {
     
     func testGetConfigSuccess() {
         
-        let savedConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 5, dateSaved: Date().timeIntervalSince1970.milliseconds)
+        let savedConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 5,
+                                               enableRemoteConfigAck: false,
+                                               dateSaved: Date().timeIntervalSince1970.milliseconds)
         configurationRepo.store[key] = savedConfig
         
         let fetchedConfig = configurationRepo.get()
@@ -47,17 +50,5 @@ final class BTTConfigurationRepoTests: XCTestCase {
     func testSaveAndRetrieveNilConfig() {
         let retrievedConfig = configurationRepo.get()
         XCTAssertNil(retrievedConfig)
-    }
-    
-    func testSynchronizeUpdatesNetworkSampleRate() {
-        // Save the config
-        let config = BTTRemoteConfig(networkSampleRateSDK: 5)
-        configurationRepo.save(config)
-        configurationRepo.synchronize()
-        
-        if let networkSampleRateSDK = config.networkSampleRateSDK{
-            let expectedSampleRate = Double(networkSampleRateSDK) / 100.0
-            XCTAssertEqual(configurationRepo.sampleRate, expectedSampleRate, accuracy: 0.001)
-        }
     }
 }

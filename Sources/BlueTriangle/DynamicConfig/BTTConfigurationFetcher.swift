@@ -10,7 +10,7 @@ import Foundation
 import Combine
 
 protocol ConfigurationFetcher {
-    func fetch(completion: @escaping (BTTRemoteConfig? , Error?) -> Void)
+    func fetch(completion: @escaping (BTTRemoteConfig? , NetworkError?) -> Void)
 }
 
 class BTTConfigurationFetcher : ConfigurationFetcher {
@@ -32,7 +32,7 @@ class BTTConfigurationFetcher : ConfigurationFetcher {
         self.networking = networking
     }
   
-    func fetch(completion: @escaping (BTTRemoteConfig?, Error?) -> Void) {
+    func fetch(completion: @escaping (BTTRemoteConfig?, NetworkError?) -> Void) {
         self.fetchRemoteConfig()
             .subscribe(on: queue)
             .sink(
@@ -51,7 +51,7 @@ class BTTConfigurationFetcher : ConfigurationFetcher {
             .store(in: &cancellables)
     }
     
-    private func fetchRemoteConfig() -> AnyPublisher<BTTRemoteConfig, Error> {
+    private func fetchRemoteConfig() -> AnyPublisher<BTTRemoteConfig, NetworkError> {
         let parameters = [
             "siteID": BlueTriangle.siteID
         ]
