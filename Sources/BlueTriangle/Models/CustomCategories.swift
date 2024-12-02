@@ -10,6 +10,7 @@ import Foundation
 /// Custom textual data that is collected from the page, aggregated, and ultimately
 /// appears in the list of filter options in the Blue Triangle portal.
 @objcMembers
+@available(*, deprecated, message: "Use BlueTriangle 'setCustomVariable(_ name:, value:)' method instead.")
 final public class CustomCategories: NSObject {
     /// Custom category for data collection use.
     public var cv6: String?

@@ -13,6 +13,7 @@ import Foundation
 /// This is similar to ``CustomCategories`` but they're not aggregated and do not appear
 /// as filter options in the Blue Triangle portal.
 @objcMembers
+@available(*, deprecated, message: "Use BlueTriangle 'setCustomVariable(_ name:, value:)' method instead.")
 final public class CustomVariables: NSObject {
     /// Custom variable for data collection use.
     public var cv1: String?
