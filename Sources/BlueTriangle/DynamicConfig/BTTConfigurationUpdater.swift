@@ -32,7 +32,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         
         var enableRemoteConfigAck = false
         
-        do {
+       /* do {
             let config = try configRepo.get()
            
             if let savedConfig = config{
@@ -54,7 +54,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         catch{
            
             self.logger?.error("BlueTriangle:BTTConfigurationUpdater: Failed to retrieve remote configuration from the repository - \(error.localizedDescription)")
-        }
+        }*/
         
         configFetcher.fetch {  fetchedConfig, error  in
             
@@ -71,19 +71,16 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                     self.logger?.info("BlueTriangle:BTTConfigurationUpdater - Remote config fetched successfully \(config.networkSampleRateSDK ?? 0)")
                 }
                 catch{
-                   
                     self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to save fetch remote config: \(error.localizedDescription)")
-                    self.reportAck(enableRemoteConfigAck, nil, error.localizedDescription)
                 }
             }
             else if let networkError = error {
-                
+               
                 let errorMessage = networkError.getErrorMessage()
                 self.reportAck(enableRemoteConfigAck, nil, errorMessage)
                 self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to fetch remote config: \(errorMessage)")
             }
             else{
-                
                 if let error = error{
                     
                     self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to fetch remote config: \(error.localizedDescription)")

@@ -74,9 +74,8 @@ final public class BlueTriangle: NSObject {
     
     internal static func refreshCaptureRequests(){
         shouldCaptureRequests = sessionManager.getSessionData().shouldNetworkCapture
-        if shouldCaptureRequests{
-            if let _ = capturedRequestCollector {}
-            else{
+        if shouldCaptureRequests {
+            if let _ = capturedRequestCollector {} else{
                 capturedRequestCollector = makeCapturedRequestCollector()
             }
         }else{
