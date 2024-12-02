@@ -74,7 +74,14 @@ final public class BlueTriangle: NSObject {
     
     internal static func refreshCaptureRequests(){
         shouldCaptureRequests = sessionManager.getSessionData().shouldNetworkCapture
-        capturedRequestCollector = makeCapturedRequestCollector()
+        if shouldCaptureRequests{
+            if let _ = capturedRequestCollector {}
+            else{
+                capturedRequestCollector = makeCapturedRequestCollector()
+            }
+        }else{
+            capturedRequestCollector = makeCapturedRequestCollector()
+        }
 #if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
 #endif
