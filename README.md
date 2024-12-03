@@ -748,7 +748,7 @@ func testCrashTracking() {  let array = NSArray()  array.object(at: 99)  }
 
 
 
-##Troubleshooting
+## Troubleshooting
 
 ### Optional Launch Arguments for Testing and Debugging
 
@@ -780,8 +780,10 @@ These arguments only apply when the app is launched using the Xcode play button.
 
 You can add these arguments by editing your project's scheme and adding a new entry to "Arguments Passed On Launch":
 
-1.Open Xcode.
-2.Navigate to Edit Scheme > Run > Arguments.
-3.Add the desired arguments (-FullSampleRate,  -NewSessionOnLaunch) to Arguments Passed On Launch.
+1. Open Xcode.
+2. Navigate to Edit Scheme > Run > Arguments.
+3. Add the desired arguments (-FullSampleRate,  -NewSessionOnLaunch) to Arguments Passed On Launch.
+
+
 
 
