@@ -745,3 +745,44 @@ func testCrashTracking() {  let array = NSArray()  array.object(at: 99)  }
 ```
 
 
+
+
+
+##Troubleshooting
+
+### Optional Launch Arguments for Testing and Debugging
+
+
+To facilitate testing and debugging, the SDK includes optional launch arguments that allow developers to simulate specific scenarios when running the app from Xcode.
+
+1. Full Sample Rate Mode 
+
+This argument enables the SDK to operate with a 100% network sample rate, which is useful for testing scenarios where all networs are captured and processed.
+
+  ```swift
+
+  -FullSampleRate
+ 
+  ```
+
+2. New Session on Each Launch 
+
+This argument forces a new session to start on each app launch. It is helpful for testing session-based features, ensuring each run begins with a clean session state.
+
+  ```swift
+
+   -NewSessionOnLaunch
+
+  ```
+
+**Important Notes: **
+
+These arguments only apply when the app is launched using the Xcode play button. They do not apply when the app is launched directly on a device by tapping the app icon.
+
+**To set these arguments:
+    1.Open Xcode.
+    2.Navigate to Edit Scheme > Run > Arguments.
+    3.Add the desired arguments (-FullSampleRate,  -NewSessionOnLaunch) to Arguments Passed On Launch.
+**
+
+By configuring these arguments, developers can effectively simulate various runtime conditions to validate and debug the SDK's behavior.
