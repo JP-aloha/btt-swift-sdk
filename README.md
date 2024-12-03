@@ -775,14 +775,13 @@ This argument forces a new session to start on each app launch. It is helpful fo
 
   ```
 
-**Important Notes: **
 
 These arguments only apply when the app is launched using the Xcode play button. They do not apply when the app is launched directly on a device by tapping the app icon.
 
-**To set these arguments:
-    1.Open Xcode.
-    2.Navigate to Edit Scheme > Run > Arguments.
-    3.Add the desired arguments (-FullSampleRate,  -NewSessionOnLaunch) to Arguments Passed On Launch.
-**
+You can add these arguments by editing your project's scheme and adding a new entry to "Arguments Passed On Launch":
 
-By configuring these arguments, developers can effectively simulate various runtime conditions to validate and debug the SDK's behavior.
+1.Open Xcode.
+2.Navigate to Edit Scheme > Run > Arguments.
+3.Add the desired arguments (-FullSampleRate,  -NewSessionOnLaunch) to Arguments Passed On Launch.
+
+
