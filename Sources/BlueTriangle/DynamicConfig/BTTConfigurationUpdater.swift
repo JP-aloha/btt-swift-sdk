@@ -32,7 +32,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         
         var enableRemoteConfigAck = false
         
-       /* do {
+        do {
             let config = try configRepo.get()
            
             if let savedConfig = config{
@@ -54,7 +54,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         catch{
            
             self.logger?.error("BlueTriangle:BTTConfigurationUpdater: Failed to retrieve remote configuration from the repository - \(error.localizedDescription)")
-        }*/
+        }
         
         configFetcher.fetch {  fetchedConfig, error  in
             
