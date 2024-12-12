@@ -41,8 +41,16 @@ extension UIViewController{
     func shouldTrackScreen() -> Bool{
         
         // Ignore non-main bundle view controllers whose class or superclass is an internal iOS view controller
-        
+                
         let bundle = Bundle(for: type(of: self))
+        
+        if bundle != Bundle.main{
+           
+          let className = "\(type(of: self))"
+          print("Class Name : \(className) - Bundle Name : \(bundle.bundleIdentifier) - Ignored")
+          
+          return false
+        }
                 
         if bundle != Bundle.main{
             
