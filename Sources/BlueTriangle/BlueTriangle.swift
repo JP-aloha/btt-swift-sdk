@@ -72,6 +72,13 @@ final public class BlueTriangle: NSObject {
         configuration.networkSampleRate = rate
     }
     
+    internal static func updateIgnoreVcs(_ vcs : Set<String>?){
+        if let vcs = vcs{
+            configuration.ignoreViewControllers = vcs
+            UIViewController.ignoreViewControllers =  vcs
+        }
+    }
+    
     internal static func refreshCaptureRequests(){
         shouldCaptureRequests = sessionManager.getSessionData().shouldNetworkCapture
         if shouldCaptureRequests {
@@ -311,7 +318,7 @@ extension BlueTriangle {
             configureMemoryWarning(with: configuration.enableMemoryWarning)
             configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
                                  interval: configuration.ANRWarningTimeInterval)
-            configureScreenTracking(with: configuration.enableScreenTracking, ignoreVCs: configuration.ignoreViewControllers)
+            configureScreenTracking(with: configuration.enableScreenTracking)
             configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
             configureLaunchTime(with: configuration.enableLaunchTime)
         }
@@ -703,7 +710,7 @@ extension BlueTriangle{
 
 // MARK: - Screen Tracking
 extension BlueTriangle{
-    static func configureScreenTracking(with enabled: Bool, ignoreVCs : Set<String>){
+    static func configureScreenTracking(with enabled: Bool){
         BTTScreenLifecycleTracker.shared.setLifecycleTracker(enabled)
         BTTScreenLifecycleTracker.shared.setUpLogger(logger)
         
@@ -711,7 +718,8 @@ extension BlueTriangle{
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
         BTTWebViewTracker.logger = logger
         if enabled {
-            UIViewController.setUp(ignoreVCs)
+            let ignoreVcs = sessionManager.getSessionData().ignoreViewControllers
+            UIViewController.setUp(ignoreVcs)
         }
 #endif
     }
