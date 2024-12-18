@@ -23,9 +23,7 @@ fileprivate func swizzleMethod(_ `class`: AnyClass, _ original: Selector, _ swiz
 
 extension UIViewController{
    
-    static var ignoreViewControllers = Set<String>()
-   
-    static func setUp(_ ignoreVCs : Set<String>){
+    static func setUp(){
     
         let  _ : () = {
             
@@ -33,7 +31,6 @@ extension UIViewController{
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewWillAppear(_:)), #selector(UIViewController.viewWillAppear_Tracker(_:)))
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidAppear(_:)), #selector(UIViewController.viewDidAppear_Tracker(_:)))
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidDisappear(_:)), #selector(UIViewController.viewDidDisappear_Tracker(_:)))
-            self.ignoreViewControllers = ignoreVCs
             BTTScreenLifecycleTracker.shared.logger?.debug("View Screen Tracker: setup completed.")
         }()
     }
@@ -95,7 +92,7 @@ extension UIViewController{
         }
         
        // Ignore any view controllers explicitly listed in a developer exclusion list or remote config ignore list
-        if UIViewController.ignoreViewControllers.contains(selfClassName) {
+        if BlueTriangle.sessionData().ignoreViewControllers.contains(selfClassName) {
             return false
         }
         

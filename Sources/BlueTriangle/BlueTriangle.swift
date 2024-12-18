@@ -75,12 +75,11 @@ final public class BlueTriangle: NSObject {
     internal static func updateIgnoreVcs(_ vcs : Set<String>?){
         if let vcs = vcs{
             configuration.ignoreViewControllers = vcs
-            UIViewController.ignoreViewControllers =  vcs
         }
     }
     
     internal static func refreshCaptureRequests(){
-        shouldCaptureRequests = sessionManager.getSessionData().shouldNetworkCapture
+        shouldCaptureRequests = sessionData().shouldNetworkCapture
         if shouldCaptureRequests {
             if let _ = capturedRequestCollector {} else{
                 capturedRequestCollector = makeCapturedRequestCollector()
@@ -100,6 +99,10 @@ final public class BlueTriangle: NSObject {
     
     internal static func session() -> Session {
         return _session
+    }
+    
+    internal static func sessionData() -> SessionData {
+        return sessionManager.getSessionData()
     }
     
     internal static func makeCapturedRequestCollector() -> CapturedRequestCollecting? {
@@ -143,7 +146,7 @@ final public class BlueTriangle: NSObject {
     }()
 
     private static var shouldCaptureRequests: Bool = {
-        sessionManager.getSessionData().shouldNetworkCapture
+        sessionData().shouldNetworkCapture
     }()
     
     /// A Boolean value indicating whether the SDK has been initialized.
@@ -718,8 +721,7 @@ extension BlueTriangle{
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
         BTTWebViewTracker.logger = logger
         if enabled {
-            let ignoreVcs = sessionManager.getSessionData().ignoreViewControllers
-            UIViewController.setUp(ignoreVcs)
+            UIViewController.setUp()
         }
 #endif
     }

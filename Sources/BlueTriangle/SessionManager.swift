@@ -163,6 +163,7 @@ extension SessionManager {
                 sessionStore.saveSession(session)
             }else{
                 BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
+                BlueTriangle.updateIgnoreVcs(session.ignoreViewControllers)
             }
         }
     }

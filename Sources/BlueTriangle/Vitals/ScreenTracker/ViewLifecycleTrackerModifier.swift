@@ -61,12 +61,12 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
 
 public extension View {
     
-    private func shouldIgnoreView(_ name : String) -> Bool{
+    private func shouldTrackScreen(_ name : String) -> Bool{
 
         setUpViewType()
         
         // Ignore any view explicitly listed in a developer exclusion list or remote config ignore list
-        if BlueTriangle.configuration.ignoreViewControllers.contains(name) {
+        if BlueTriangle.sessionData().ignoreViewControllers.contains(name) {
              return false
          }
         
@@ -85,7 +85,7 @@ public extension View {
     
     @ViewBuilder
     func bttTrackScreen(_ screenName: String) -> some View {
-        if shouldIgnoreView(screenName) {
+        if shouldTrackScreen(screenName) {
              self.modifier(ViewLifecycleTrackerModifier(name: screenName))
         } else {
             self
