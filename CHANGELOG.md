@@ -1,5 +1,8 @@
 # Blue Triangle 3.13.1 Latest
+- [added] Added CHANGELOG.md
 - [changed] Ability to remotely ignore Screens.
+- [changed] Ignore system-defined view controllers whose bundleIdentifier starts with com.apple
+- [removed] Deprecated ingnoreViewControllers from local configuration.
 
 # Blue Triangle 3.13.0
 - [changed] Ability to remotely overwrite Network Sample Rate.
