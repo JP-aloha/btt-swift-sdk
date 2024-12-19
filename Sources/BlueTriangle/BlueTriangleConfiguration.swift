@@ -113,6 +113,7 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// This is a  Set of ViewControllers  which developer does not want to track or want to ignore their track. This property can only ignore that screen, Which is being tracked autometically. And It can not ignore , Which is being tracked  manually.
     /// Set an array of view controlles which user want to ignore
+    @available(*, deprecated, message: "Use remote configuration for tracking exclusions. This property will be removed in a future release.")
     @objc public  var ignoreViewControllers: Set<String> = Set<String>()
     
     /// Track the network state during Timer Network State and Errors. State Includes wifi, cellular, ethernet and offline.
