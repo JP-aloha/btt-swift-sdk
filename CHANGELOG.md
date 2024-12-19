@@ -1,11 +1,11 @@
-# Blue Triangle Unknown Latest, Dec 20, 2024
+# Blue Triangle 3.13.1 Latest, Dec 20 2024
 ### New Features
 - Ability to remotely ignore automatically tracked screen names. Developers can configure a list of page names from the BlueTriangle portal, which will be ignored from tracking. Any view controller class name or page name given in SwiftUI .bttTrackScreen(_) modifiers will also be ignored. These names are case-sensitive. This feature allows developers to remotely calibrate the list of view controllers or views they want to track at any time.
   
 ### Bug Fixes and Improvements
 - Ignore system-defined view controllers whose bundleIdentifier starts with com.apple
 
-# Blue Triangle 3.13.0, Dec 6, 2024
+# Blue Triangle 3.13.0, Dec 6 2024
 ### New Features
 -  Ability to remotely overwrite Network Sample Rate.
 -  Improved way to test SDK integration using xcode scheme launch arguments for testing full Network Sample Rate in xcode debug sessions.
