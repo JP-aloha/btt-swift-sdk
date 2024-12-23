@@ -57,7 +57,7 @@ enum Device {
 
     /// The User-Agent token.
     static var userAgentToken: String {
-        "\(os)/\(osVersion) (\(name))"
+        "\(os)/\(osVersion) (\(model))"
     }
     
     /// Returns device model name.
