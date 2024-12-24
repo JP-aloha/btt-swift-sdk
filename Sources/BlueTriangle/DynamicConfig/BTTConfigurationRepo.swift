@@ -1,6 +1,6 @@
 //
 //  BTTConfigurationRepo.swift
-//  
+//
 //
 //  Created by Ashok Singh on 05/09/24.
 //  Copyright © 2021 Blue Triangle. All rights reserved.
@@ -41,6 +41,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
         
         let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
                                              enableRemoteConfigAck : config.enableRemoteConfigAck,
+                                             ignoreScreens: config.ignoreScreens,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         
         try queue.sync(flags: .barrier) {
@@ -59,6 +60,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
         
         let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
                                              enableRemoteConfigAck : config.enableRemoteConfigAck,
+                                             ignoreScreens: config.ignoreScreens,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         
         if let current = currentConfig, newConfig == current{

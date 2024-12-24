@@ -1,6 +1,6 @@
 //
 //  BTTSavedRemoteConfig.swift
-//  
+//
 //
 //  Created by Ashok Singh on 05/09/24.
 //  Copyright © 2021 Blue Triangle. All rights reserved.
@@ -14,9 +14,12 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
 
     init(networkSampleRateSDK: Int?,
          enableRemoteConfigAck : Bool?,
+         ignoreScreens : [String]?,
          dateSaved: Millisecond) {
         self.dateSaved = dateSaved
-        super.init(networkSampleRateSDK: networkSampleRateSDK, enableRemoteConfigAck: enableRemoteConfigAck)
+        super.init(networkSampleRateSDK: networkSampleRateSDK,
+                   enableRemoteConfigAck: enableRemoteConfigAck,
+                   ignoreScreens: ignoreScreens)
     }
 
     required init(from decoder: Decoder) throws {

@@ -156,17 +156,25 @@ extension SessionManager {
                 
         if let session = currentSession {
             if session.isNewSession{
-                self.syncConfiguration()
+                self.syncConfigurationOnNewSession()
                 session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
                 session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
+                session.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers
                 sessionStore.saveSession(session)
             }else{
                 BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
+                BlueTriangle.updateIgnoreVcs(session.ignoreViewControllers)
             }
         }
     }
     
-    private func syncConfiguration(){
+    private func syncConfigurationOnNewSession(){
+        self.syncNetworkSampleRate()
+        self.syncIgnoreViewControllers()
+    }
+    
+    private func syncNetworkSampleRate(){
+        
         do{
             if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
                 BlueTriangle.updateNetworkSampleRate(1.0)
@@ -174,7 +182,9 @@ extension SessionManager {
             }
             
             if let config = try configRepo.get(){
+                
                 let sampleRate = config.networkSampleRateSDK ?? configRepo.defaultConfig.networkSampleRateSDK
+                
                 if let rate = sampleRate{
                     if rate == 0 {
                         BlueTriangle.updateNetworkSampleRate(0.0)
@@ -183,6 +193,31 @@ extension SessionManager {
                     }
                     
                     logger.info("BlueTriangle:SessionManager: Applied networkSampleRate - \(rate) %")
+                }
+            }
+        }
+        catch {
+            logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
+        }
+    }
+    
+    private func syncIgnoreViewControllers(){
+        do{
+            if let config = try configRepo.get(){
+                
+                let ignoreScreens = config.ignoreScreens ?? configRepo.defaultConfig.ignoreScreens
+                
+                if let ignoreVcs = ignoreScreens{
+                                       
+                    var unianOfIgnoreScreens = Set(ignoreVcs)
+                    
+                    if let defaultScreens = configRepo.defaultConfig.ignoreScreens{
+                        unianOfIgnoreScreens = unianOfIgnoreScreens.union(Set(defaultScreens))
+                    }
+                   
+                    BlueTriangle.updateIgnoreVcs(unianOfIgnoreScreens)
+                    
+                    logger.info("BlueTriangle:SessionManager: Applied ignore Vcs - \(BlueTriangle.configuration.ignoreViewControllers)")
                 }
             }
         }

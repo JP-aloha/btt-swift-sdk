@@ -23,9 +23,7 @@ fileprivate func swizzleMethod(_ `class`: AnyClass, _ original: Selector, _ swiz
 
 extension UIViewController{
    
-    static var ignoreViewControllers = Set<String>()
-   
-    static func setUp(_ ignoreVCs : Set<String>){
+    static func setUp(){
     
         let  _ : () = {
             
@@ -33,17 +31,27 @@ extension UIViewController{
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewWillAppear(_:)), #selector(UIViewController.viewWillAppear_Tracker(_:)))
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidAppear(_:)), #selector(UIViewController.viewDidAppear_Tracker(_:)))
             swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidDisappear(_:)), #selector(UIViewController.viewDidDisappear_Tracker(_:)))
-            self.ignoreViewControllers = ignoreVCs
             BTTScreenLifecycleTracker.shared.logger?.debug("View Screen Tracker: setup completed.")
         }()
     }
     
+    /// Checks if the given object belongs to an Apple framework class.
+        /// - Parameter object: The object to be checked.
+        /// - Returns: `true` if the object's class is defined within an Apple framework; otherwise, `false`.
+    private func isAppleClass(_ object: AnyObject) -> Bool {
+        let objectBundle = Bundle(for: type(of: object))
+        return objectBundle.bundleIdentifier?.starts(with: "com.apple") ?? false
+    }
+    
+    /// Determines whether the current view controller should be tracked for analytics or other purposes.
+    /// - Returns: `true` if the view controller is eligible for tracking; otherwise, `false`.
     func shouldTrackScreen() -> Bool{
         
-        // Ignore non-main bundle view controllers whose class or superclass is an internal iOS view controller
         
         let bundle = Bundle(for: type(of: self))
-                
+           
+        // Ignore classes whose names or superclasses start with an underscore
+        // These are typically private or internal Apple system classes.
         if bundle != Bundle.main{
             
             let className = "\(type(of: self))"
@@ -59,16 +67,23 @@ extension UIViewController{
             }
         }
         
+        // Ignore any view controllers that belong to Apple frameworks
+        if isAppleClass(self){
+            return false
+        }
+        
         // Ignore spacific controllers to ignore Noise
+        // Ignore specific noise-causing view controllers (custom-defined list)
+        // These are common system-related view controllers that are not relevant for tracking.
         let excludedClasses: [String] = [
-            "UIHostingController",
-            "UIInputWindowController",
-            "UIEditingOverlayViewController",
-            "NavigationStackHostingController",
-            "UIPredictionViewController",
-            "UIPlaceholderPredictiveViewController"
+            "UIHostingController",             // SwiftUI hosting controller
+            "UIInputWindowController",         // Handles keyboard input
+            "UIEditingOverlayViewController",  // Overlay for text editing
+            "NavigationStackHostingController",// SwiftUI navigation stack
+            "UIPredictionViewController",      // Predictive typing view
+            "UIPlaceholderPredictiveViewController" // Placeholder for predictions
         ]
-    
+        
         let selfClassName = "\(type(of: self))"
         for excludedClass in excludedClasses {
             if selfClassName.contains(excludedClass) {
@@ -76,23 +91,21 @@ extension UIViewController{
             }
         }
         
-        for excludedClass in UIViewController.ignoreViewControllers {
-            if selfClassName == excludedClass {
-                return false
-            }
+       // Ignore any view controllers explicitly listed in a developer exclusion list or remote config ignore list
+        if BlueTriangle.sessionData().ignoreViewControllers.contains(selfClassName) {
+            return false
         }
         
-        // We are not capturing screen traces for any container or input view controllers.
-        return !(self.isKind(of: UINavigationController.self)
-                            || self.isKind(of: UINavigationController.self)
-                            || self.isKind(of: UITabBarController.self)
-                            || self.isKind(of: UISplitViewController.self)
-                            || self.isKind(of: UIPageViewController.self)
-                            || self.isKind(of: UIInputViewController.self)
-                            || self.isKind(of: UIAlertController.self)
-                            || self.isKind(of: UIAlertController.self))
-        
+        //Ignore container and input view controllers
+        // These are typically not standalone screens and are part of navigation or input handling.
+        return !(self.isKind(of: UINavigationController.self)       // Navigation controller
+                 || self.isKind(of: UITabBarController.self)         // Tab bar controller
+                 || self.isKind(of: UISplitViewController.self)      // Split view controller
+                 || self.isKind(of: UIPageViewController.self)       // Page view controller
+                 || self.isKind(of: UIInputViewController.self)      // Input method controller
+                 || self.isKind(of: UIAlertController.self))         // Alert controller
     }
+    
     
     @objc dynamic func viewDidLoad_Tracker() {
         if shouldTrackScreen(){

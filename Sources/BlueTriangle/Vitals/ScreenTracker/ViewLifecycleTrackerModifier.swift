@@ -55,16 +55,41 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
                 }
         }
     }
+    
+
 }
 
 public extension View {
+    
+    private func shouldTrackScreen(_ name : String) -> Bool{
+
+        setUpViewType()
+        
+        // Ignore any view explicitly listed in a developer exclusion list or remote config ignore list
+        if BlueTriangle.sessionData().ignoreViewControllers.contains(name) {
+             return false
+         }
+        
+        return true
+    }
+    
+   private func setUpViewType(){
+        //SetUp View Type
+        BTTScreenLifecycleTracker.shared.setUpViewType(.SwiftUI)
+    }
+    
     ///Uses for manual screen tracking to log individual views in SwiftUI.
     ///To track screen, call "trackScreen(_ screenName: String)" on view which screen compose(which life cycle you want to track) like VStack().trackScreen("ContentView") or  ContentView().trackScreen("ContentView")
     ///This method track screen when this view appears on screen
     
+    
+    @ViewBuilder
     func bttTrackScreen(_ screenName: String) -> some View {
-        BTTScreenLifecycleTracker.shared.setUpViewType(.SwiftUI)
-        return modifier(ViewLifecycleTrackerModifier(name: screenName))
+        if shouldTrackScreen(screenName) {
+             self.modifier(ViewLifecycleTrackerModifier(name: screenName))
+        } else {
+            self
+        }
     }
 }
 

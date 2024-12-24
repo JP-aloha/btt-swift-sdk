@@ -20,8 +20,9 @@ class MockBTTConfigurationRepo: ConfigurationRepo {
     
     func save(_ config: BTTRemoteConfig) {
         let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK, 
-                                             enableRemoteConfigAck: config.enableRemoteConfigAck,
-                                                    dateSaved: Date().timeIntervalSince1970.milliseconds)
+                                             enableRemoteConfigAck: config.enableRemoteConfigAck, 
+                                             ignoreScreens: config.ignoreScreens,
+                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         store[key] = newConfig
     }
     

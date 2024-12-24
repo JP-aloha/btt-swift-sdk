@@ -98,7 +98,9 @@ Replace `<BTT_SITE_ID>` with your **site ID**. You can find instructions on how 
 
 ### Native View Performance Tracking- Mandatory
 
-All UIKit UIViewControllers view counts will be tracked automatically. You can see each view controller name with their count on our dashboard. If you want to ignore a specific view controller (i.e., do not want to track that screen), you can exclude it using the 'ignoreViewControllers' configuration property as follows.
+All UIKit UIViewControllers view counts will be tracked automatically. You can see each view controller name with their count on our dashboard. If you want to ignore a specific view controller (i.e., do not want to track that screen), you can exclude it using the 'ignoreViewControllers' configuration property as follows. 
+ 
+Ensure the view controller name matches exactly, as it is case-sensitive.
 
 
 ```swift

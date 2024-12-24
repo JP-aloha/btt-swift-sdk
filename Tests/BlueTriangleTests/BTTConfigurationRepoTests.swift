@@ -25,7 +25,8 @@ final class BTTConfigurationRepoTests: XCTestCase {
 
     func testSaveConfig() {
         let config = BTTRemoteConfig(networkSampleRateSDK: 5, 
-                                     enableRemoteConfigAck: false)
+                                     enableRemoteConfigAck: false, 
+                                     ignoreScreens: [])
         configurationRepo.save(config)
         
         XCTAssertNotNil(configurationRepo.store[key])
@@ -37,7 +38,8 @@ final class BTTConfigurationRepoTests: XCTestCase {
     func testGetConfigSuccess() {
         
         let savedConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 5,
-                                               enableRemoteConfigAck: false,
+                                               enableRemoteConfigAck: false, 
+                                               ignoreScreens: [],
                                                dateSaved: Date().timeIntervalSince1970.milliseconds)
         configurationRepo.store[key] = savedConfig
         
