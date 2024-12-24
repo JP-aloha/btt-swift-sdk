@@ -10,9 +10,18 @@ import Foundation
 extension URLSession {
     static let live: Networking = {
         let configuration = URLSessionConfiguration.default
+        let userAgent = "\(Bundle.main.userAgentToken) \(Device.userAgentToken) \(Constants.sdkProductIdentifier)/\(Version.number)"
+        let encodedAgent = userAgent.unicodeScalars.map { scalar -> String in
+            if scalar.isASCII {
+                return String(scalar)
+            } else {
+                return "?"
+            }
+        }.joined()
+            
         configuration.httpShouldSetCookies = false
         configuration.httpAdditionalHeaders = [
-            "User-Agent": "\(Bundle.main.userAgentToken) \(Device.userAgentToken) \(Constants.sdkProductIdentifier)/\(Version.number)"]
+            "User-Agent": encodedAgent]
 
         let session = URLSession(configuration: configuration)
         return session.dataTaskPublisher
