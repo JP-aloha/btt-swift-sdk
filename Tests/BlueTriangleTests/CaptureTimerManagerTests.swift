@@ -61,7 +61,7 @@ class CaptureTimerManagerTests: XCTestCase {
 
         manager.start()
 
-        queue.asyncAfter(deadline: .now() + 0.0) {
+        queue.asyncAfter(deadline: .now() + 0.1) {
             guard case let .active(_, span) = manager.state else {
                 XCTFail("Unexpected manager state")
                 return
