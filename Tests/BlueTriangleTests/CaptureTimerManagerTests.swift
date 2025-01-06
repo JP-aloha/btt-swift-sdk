@@ -43,8 +43,8 @@ class CaptureTimerManagerTests: XCTestCase {
         let queue = DispatchQueue(label: "uploader.queue", attributes: .concurrent)
         let configuration = NetworkCaptureConfiguration(
             spanCount: 2,
-            initialSpanDuration: 0.5,
-            subsequentSpanDuration: 0.2)
+            initialSpanDuration: 1.0,
+            subsequentSpanDuration: 0.5)
 
         let manager = CaptureTimerManager(configuration: configuration)
 
@@ -79,8 +79,8 @@ class CaptureTimerManagerTests: XCTestCase {
         let queue = Mock.uploaderQueue
         let configuration = NetworkCaptureConfiguration(
             spanCount: 10,
-            initialSpanDuration: 0.2,
-            subsequentSpanDuration: 0.1)
+            initialSpanDuration: 0.5,
+            subsequentSpanDuration: 0.2)
 
         let manager = CaptureTimerManager(configuration: configuration)
 
