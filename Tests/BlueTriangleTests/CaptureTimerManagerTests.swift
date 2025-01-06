@@ -40,11 +40,11 @@ class CaptureTimerManagerTests: XCTestCase {
     }
 
     func testStartFromActive() throws {
-        let queue = DispatchQueue(label: "uploader.queue", attributes: .concurrent)
+        let queue = Mock.uploaderQueue
         let configuration = NetworkCaptureConfiguration(
             spanCount: 2,
-            initialSpanDuration: 1.0,
-            subsequentSpanDuration: 0.5)
+            initialSpanDuration: 0.3,
+            subsequentSpanDuration: 0.1)
 
         let manager = CaptureTimerManager(configuration: configuration)
 
@@ -71,7 +71,7 @@ class CaptureTimerManagerTests: XCTestCase {
             manager.start()
         }
 
-        waitForExpectations(timeout: 10.0)
+        waitForExpectations(timeout: 5.0)
         XCTAssertEqual(fireCount, 2)
     }
 
