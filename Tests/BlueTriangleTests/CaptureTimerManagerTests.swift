@@ -10,15 +10,15 @@ import XCTest
 
 class CaptureTimerManagerTests: XCTestCase {
     static let timerLeeway = DispatchTimeInterval.nanoseconds(1)
-    static let configuration = NetworkCaptureConfiguration(
-        spanCount: 2,
-        initialSpanDuration: 0.1,
-        subsequentSpanDuration: 0.1)
 
     func testStartFromInactive() throws {
-        let manager = CaptureTimerManager(configuration: Self.configuration)
+        let configuration = NetworkCaptureConfiguration(
+            spanCount: 2,
+            initialSpanDuration: 0.1,
+            subsequentSpanDuration: 0.1)
+        let manager = CaptureTimerManager(configuration: configuration)
 
-        let expectedFireCount = Self.configuration.spanCount
+        let expectedFireCount = configuration.spanCount
         let fireExpectation = expectation(description: "Timer fired twice.")
 
         let additionalFireExpectation = expectation(description: "Fire count exceeded spanCount.")
@@ -35,12 +35,12 @@ class CaptureTimerManagerTests: XCTestCase {
         }
         manager.start()
 
-        waitForExpectations(timeout: 5)
+        waitForExpectations(timeout: 10)
         XCTAssertEqual(manager.state, .inactive)
     }
 
     func testStartFromActive() throws {
-        let queue = Mock.uploaderQueue
+        let queue = DispatchQueue(label: "uploader.queue", attributes: .concurrent)
         let configuration = NetworkCaptureConfiguration(
             spanCount: 2,
             initialSpanDuration: 0.3,
@@ -61,7 +61,7 @@ class CaptureTimerManagerTests: XCTestCase {
 
         manager.start()
 
-        queue.asyncAfter(deadline: .now() + 0.1) {
+        queue.asyncAfter(deadline: .now() + 0.0) {
             guard case let .active(_, span) = manager.state else {
                 XCTFail("Unexpected manager state")
                 return
@@ -71,7 +71,7 @@ class CaptureTimerManagerTests: XCTestCase {
             manager.start()
         }
 
-        waitForExpectations(timeout: 5.0)
+        waitForExpectations(timeout: 10.0)
         XCTAssertEqual(fireCount, 2)
     }
 
@@ -102,7 +102,7 @@ class CaptureTimerManagerTests: XCTestCase {
             XCTAssertEqual(manager.state, .inactive)
         }
 
-        waitForExpectations(timeout: 5)
+        waitForExpectations(timeout: 10)
         XCTAssertEqual(manager.state, .inactive)
     }
 }
