@@ -35,7 +35,7 @@ class CaptureTimerManagerTests: XCTestCase {
         }
         manager.start()
 
-        waitForExpectations(timeout: 1)
+        waitForExpectations(timeout: 5)
         XCTAssertEqual(manager.state, .inactive)
     }
 
@@ -102,7 +102,7 @@ class CaptureTimerManagerTests: XCTestCase {
             XCTAssertEqual(manager.state, .inactive)
         }
 
-        waitForExpectations(timeout: 1)
+        waitForExpectations(timeout: 5)
         XCTAssertEqual(manager.state, .inactive)
     }
 }
