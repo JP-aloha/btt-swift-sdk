@@ -124,13 +124,7 @@ class CaptureTimerManagerTests: XCTestCase {
 
         print("Before wait fire count : \(fireCount)")
         // Wait for expectations
-        // Keep the run loop active until the handler finishes
-        let timeout = 10.0 // seconds
-        let startTime = Date()
-        
-        while fireCount < 2 && Date().timeIntervalSince(startTime) < timeout {
-            RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.1))
-        }
+        waitForExpectations(timeout: 100.0)
         print("After wait fire count : \(fireCount)")
         XCTAssertEqual(fireCount, 2, "Handler should fire exactly twice.")
     }
