@@ -38,16 +38,16 @@ class CaptureTimerManagerTests: XCTestCase {
         XCTAssertEqual(manager.state, .inactive)
     }
 
-  /*  func testStartFromActive() throws {
+    func testStartFromActive() throws {
         var queue: DispatchQueue {
-            DispatchQueue(label: "com.bluetriangle.test",
+            DispatchQueue(label: "com.bluetriangle.testActive",
                           qos: .userInitiated,
                           autoreleaseFrequency: .workItem)
         }
         let configuration = NetworkCaptureConfiguration(
             spanCount: 2,
-            initialSpanDuration: 0.5,
-            subsequentSpanDuration: 0.2)
+            initialSpanDuration: 1.0,
+            subsequentSpanDuration: 0.3)
 
         let manager = CaptureTimerManager(configuration: configuration)
 
@@ -74,64 +74,13 @@ class CaptureTimerManagerTests: XCTestCase {
             manager.start()
         }
 
-        waitForExpectations(timeout: 5.0)
+        waitForExpectations(timeout: 50.0)
         XCTAssertEqual(fireCount, 2)
-    }*/
-    
-    func testStartFromActive() throws {
-        var queue: DispatchQueue {
-            DispatchQueue(label: "com.bluetriangle.testStartFromActive",
-                          qos: .userInitiated,
-                          autoreleaseFrequency: .workItem)
-        }
-        let configuration = NetworkCaptureConfiguration(
-            spanCount: 2,
-            initialSpanDuration: 1.5, // Increased duration for stability
-            subsequentSpanDuration: 0.3)
-
-        let manager = CaptureTimerManager(configuration: configuration)
-
-        let excessiveFireExpectation = expectation(description: "Fire count exceeded spanCount.")
-        excessiveFireExpectation.isInverted = true
-
-        let fireExpectation = expectation(description: "Handler fired twice as expected.")
-
-        var fireCount: Int = 0
-        manager.handler = {
-            fireCount += 1
-            print("Handler executed. Fire count: \(fireCount)")
-            if fireCount == 2 {
-                fireExpectation.fulfill()
-            } else if fireCount > 2 {
-                excessiveFireExpectation.fulfill()
-            }
-        }
-
-        // Start the timer
-        manager.start()
-        print("Manager started.")
-
-        queue.asyncAfter(deadline: .now() + 0.1) {
-            guard case let .active(_, span) = manager.state else {
-                XCTFail("Unexpected manager state before restart.")
-                return
-            }
-            XCTAssertEqual(span, 1, "Expected span to be 1 after the first start.")
-            XCTAssertEqual(fireCount, 0, "Handler should not have fired yet.")
-            manager.start() // Restart the timer
-            print("Manager restarted.")
-        }
-
-        print("Before wait fire count : \(fireCount)")
-        // Wait for expectations
-        waitForExpectations(timeout: 100.0)
-        print("After wait fire count : \(fireCount)")
-        XCTAssertEqual(fireCount, 2, "Handler should fire exactly twice.")
     }
 
     func testCancelFromActive() throws {
         var queue: DispatchQueue {
-            DispatchQueue(label: "com.bluetriangle.testCancelFromActive",
+            DispatchQueue(label: "com.bluetriangle.testCancel",
                           qos: .userInitiated,
                           autoreleaseFrequency: .workItem)
         }
