@@ -40,11 +40,15 @@ class CaptureTimerManagerTests: XCTestCase {
     }
 
     func testStartFromActive() throws {
-        let queue = Mock.uploaderQueue
+        var queue: DispatchQueue {
+            DispatchQueue(label: "com.bluetriangle.test",
+                          qos: .userInitiated,
+                          autoreleaseFrequency: .workItem)
+        }
         let configuration = NetworkCaptureConfiguration(
             spanCount: 2,
-            initialSpanDuration: 0.3,
-            subsequentSpanDuration: 0.1)
+            initialSpanDuration: 0.5,
+            subsequentSpanDuration: 0.2)
 
         let manager = CaptureTimerManager(configuration: configuration)
 
@@ -76,7 +80,11 @@ class CaptureTimerManagerTests: XCTestCase {
     }
 
     func testCancelFromActive() throws {
-        let queue = Mock.uploaderQueue
+        var queue: DispatchQueue {
+            DispatchQueue(label: "com.bluetriangle.test",
+                          qos: .userInitiated,
+                          autoreleaseFrequency: .workItem)
+        }
         let configuration = NetworkCaptureConfiguration(
             spanCount: 10,
             initialSpanDuration: 0.5,
