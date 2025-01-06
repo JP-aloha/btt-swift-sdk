@@ -39,7 +39,7 @@ class CaptureTimerManagerTests: XCTestCase {
         XCTAssertEqual(manager.state, .inactive)
     }
 
-    func testStartFromActive() throws {
+  /*  func testStartFromActive() throws {
         var queue: DispatchQueue {
             DispatchQueue(label: "com.bluetriangle.test",
                           qos: .userInitiated,
@@ -77,6 +77,51 @@ class CaptureTimerManagerTests: XCTestCase {
 
         waitForExpectations(timeout: 5.0)
         XCTAssertEqual(fireCount, 2)
+    }*/
+    
+    func testStartFromActive() throws {
+        let configuration = NetworkCaptureConfiguration(
+            spanCount: 2,
+            initialSpanDuration: 1.0, // Increased duration for stability
+            subsequentSpanDuration: 0.5)
+
+        let manager = CaptureTimerManager(configuration: configuration)
+
+        let excessiveFireExpectation = expectation(description: "Fire count exceeded spanCount.")
+        excessiveFireExpectation.isInverted = true
+
+        let fireExpectation = expectation(description: "Handler fired twice as expected.")
+
+        var fireCount: Int = 0
+        manager.handler = {
+            fireCount += 1
+            print("Handler executed. Fire count: \(fireCount)")
+            if fireCount == 2 {
+                fireExpectation.fulfill()
+            } else if fireCount > 2 {
+                excessiveFireExpectation.fulfill()
+            }
+        }
+
+        // Start the timer
+        manager.start()
+        print("Manager started.")
+
+        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.2) {
+            guard case let .active(_, span) = manager.state else {
+                XCTFail("Unexpected manager state before restart.")
+                return
+            }
+            XCTAssertEqual(span, 1, "Expected span to be 1 after the first start.")
+            XCTAssertEqual(fireCount, 0, "Handler should not have fired yet.")
+            manager.start() // Restart the timer
+            print("Manager restarted.")
+        }
+
+        // Wait for expectations
+        waitForExpectations(timeout: 5.0)
+
+        XCTAssertEqual(fireCount, 2, "Handler should fire exactly twice.")
     }
 
     func testCancelFromActive() throws {
