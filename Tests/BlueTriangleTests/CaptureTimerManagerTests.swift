@@ -82,8 +82,8 @@ class CaptureTimerManagerTests: XCTestCase {
     func testStartFromActive() throws {
         let configuration = NetworkCaptureConfiguration(
             spanCount: 2,
-            initialSpanDuration: 1.5, // Increased duration for stability
-            subsequentSpanDuration: 1.0)
+            initialSpanDuration: 0.5, // Increased duration for stability
+            subsequentSpanDuration: 0.1)
 
         let manager = CaptureTimerManager(configuration: configuration)
 
@@ -119,9 +119,10 @@ class CaptureTimerManagerTests: XCTestCase {
         }
 
         // Wait for expectations
-        waitForExpectations(timeout: 15.0)
-
+        waitForExpectations(timeout: 5.0)
+         
         XCTAssertEqual(fireCount, 2, "Handler should fire exactly twice.")
+        XCTAssertEqual(manager.state, .inactive)
     }
 
     func testCancelFromActive() throws {
