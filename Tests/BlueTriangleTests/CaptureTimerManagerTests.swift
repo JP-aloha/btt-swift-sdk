@@ -14,8 +14,8 @@ class CaptureTimerManagerTests: XCTestCase {
     func testStartFromInactive() throws {
         let configuration = NetworkCaptureConfiguration(
             spanCount: 2,
-            initialSpanDuration: 0.1,
-            subsequentSpanDuration: 0.1)
+            initialSpanDuration: 0.5,
+            subsequentSpanDuration: 0.2)
         let manager = CaptureTimerManager(configuration: configuration)
 
         let expectedFireCount = configuration.spanCount
