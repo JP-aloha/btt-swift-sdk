@@ -1,4 +1,8 @@
-# Blue Triangle 3.13.1 Latest, Dec 20 2024
+# Blue Triangle 3.13.2, Latest
+### Bug Fixes and Improvements
+- Resolved an issue in the CaptureTimerManagerTests where asynchronous handler execution would sometimes occur after the test timeout.
+
+# Blue Triangle 3.13.1, Dec 27 2024
 ### New Features
 - Ability to remotely ignore automatically tracked screen names. Developers can configure a list of page names from the BlueTriangle portal, which will be ignored from tracking. Any view controller class name or page name given in SwiftUI .bttTrackScreen() modifiers will also be ignored. These names are case-sensitive. This feature allows developers to remotely calibrate the list of view controllers or views they want to track at any time.
   
