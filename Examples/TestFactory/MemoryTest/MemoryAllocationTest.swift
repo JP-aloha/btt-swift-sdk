@@ -19,10 +19,12 @@ class MemoryAllocationTest {
             print("Memory allocation failed.")
             return
         }
-        
-        memset(memoryBlock, 0, totalSize)
-        
+ 
+        let data = "H".data(using: .utf8)! as NSData
+        memcpy(memoryBlock, data.bytes, totalSize)
         allocatedMemoryBlocks.append(memoryBlock)
+        
+        print("allocated memory \(size) MB")
     }
     
     private func freeOneBlockMemory() {

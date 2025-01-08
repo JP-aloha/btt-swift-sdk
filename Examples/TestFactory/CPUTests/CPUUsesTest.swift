@@ -87,7 +87,6 @@ class AlphabetCombination{
         }
     }
     
-    
     func makeAllCombinations() -> [String] {
          
          result.removeAll()

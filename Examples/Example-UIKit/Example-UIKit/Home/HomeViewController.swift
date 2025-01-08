@@ -14,8 +14,6 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Home"
-        
-        Thread.sleep(forTimeInterval: 2)
     }
                                                                 
 }

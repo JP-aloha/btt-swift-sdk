@@ -43,6 +43,9 @@
 		51522EE42A6042D7002D126D /* SlidePadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC12A6042D7002D126D /* SlidePadViewController.swift */; };
 		51522EE52A6042D7002D126D /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC22A6042D7002D126D /* HomeViewController.swift */; };
 		5184F30E2AC1C0AE00A34161 /* CPUUsesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5184F30D2AC1C0AE00A34161 /* CPUUsesTest.swift */; };
+		51AB6A692D2E5DEA005F21C4 /* CPUTestsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51AB6A682D2E5DEA005F21C4 /* CPUTestsViewController.swift */; };
+		51ADF3F62D2D664700E96148 /* NetworkTrackingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51ADF3F52D2D664700E96148 /* NetworkTrackingViewController.swift */; };
+		51ADF3F82D2D8E5500E96148 /* MemoryWarningViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51ADF3F72D2D8E5500E96148 /* MemoryWarningViewController.swift */; };
 		51F8578F2A8B6E8600B9F77F /* MemoryAllocationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51F8578E2A8B6E8600B9F77F /* MemoryAllocationTest.swift */; };
 		8405FECA2A40A97900CC13B5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FEC92A40A97900CC13B5 /* Constants.swift */; };
 		8405FECC2A40A98300CC13B5 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FECB2A40A98300CC13B5 /* Utils.swift */; };
@@ -128,6 +131,9 @@
 		51522EC12A6042D7002D126D /* SlidePadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SlidePadViewController.swift; sourceTree = "<group>"; };
 		51522EC22A6042D7002D126D /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		5184F30D2AC1C0AE00A34161 /* CPUUsesTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CPUUsesTest.swift; path = ../../TestFactory/CPUTests/CPUUsesTest.swift; sourceTree = "<group>"; };
+		51AB6A682D2E5DEA005F21C4 /* CPUTestsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CPUTestsViewController.swift; sourceTree = "<group>"; };
+		51ADF3F52D2D664700E96148 /* NetworkTrackingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTrackingViewController.swift; sourceTree = "<group>"; };
+		51ADF3F72D2D8E5500E96148 /* MemoryWarningViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryWarningViewController.swift; sourceTree = "<group>"; };
 		51F8578E2A8B6E8600B9F77F /* MemoryAllocationTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MemoryAllocationTest.swift; path = ../../TestFactory/MemoryTest/MemoryAllocationTest.swift; sourceTree = "<group>"; };
 		8405FEC92A40A97900CC13B5 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		8405FECB2A40A98300CC13B5 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
@@ -454,11 +460,14 @@
 		C92144C42788B2AF007712FC /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
+				51AB6A682D2E5DEA005F21C4 /* CPUTestsViewController.swift */,
 				8405FED12A40A9C600CC13B5 /* RunTestViewController.swift */,
 				8405FED22A40A9C600CC13B5 /* TestsHomeViewController.swift */,
 				C9015ABF2719CA60003BC6C2 /* RootViewController.swift */,
 				C9D79CB528B19F82002FBB28 /* PhotoCollectionViewController.swift */,
 				C96B79BB28C6F55800BD03CD /* PhotoDetailViewController.swift */,
+				51ADF3F52D2D664700E96148 /* NetworkTrackingViewController.swift */,
+				51ADF3F72D2D8E5500E96148 /* MemoryWarningViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -658,6 +667,8 @@
 				51522EC72A6042D7002D126D /* Tab2ViewController.swift in Sources */,
 				8405FECA2A40A97900CC13B5 /* Constants.swift in Sources */,
 				51522EC52A6042D7002D126D /* TestFullPresentViewController.swift in Sources */,
+				51ADF3F62D2D664700E96148 /* NetworkTrackingViewController.swift in Sources */,
+				51ADF3F82D2D8E5500E96148 /* MemoryWarningViewController.swift in Sources */,
 				51522ED52A6042D7002D126D /* TestSplitViewController.swift in Sources */,
 				51522EC42A6042D7002D126D /* TestPresentViewController.swift in Sources */,
 				C9015ABE2719CA60003BC6C2 /* SceneDelegate.swift in Sources */,
@@ -682,6 +693,7 @@
 				51522ED92A6042D7002D126D /* Tab2PadViewController.swift in Sources */,
 				51522ED02A6042D7002D126D /* Subview2ViewController.swift in Sources */,
 				51F8578F2A8B6E8600B9F77F /* MemoryAllocationTest.swift in Sources */,
+				51AB6A692D2E5DEA005F21C4 /* CPUTestsViewController.swift in Sources */,
 				C9D79C9928B1929A002FBB28 /* Album.swift in Sources */,
 				51522EE52A6042D7002D126D /* HomeViewController.swift in Sources */,
 				51522ED22A6042D7002D126D /* SlideViewController.swift in Sources */,

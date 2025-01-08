@@ -13,9 +13,9 @@ class RootViewController: UIViewController {
 
     // MARK: - Subviews
 
-    private lazy var galleryButton: UIButton = {
-        let action = UIAction(title: "Gallery") { [weak self] _ in
-            self?.showPhotoCollection()
+    private lazy var networkButton: UIButton = {
+        let action = UIAction(title: "Network  ->") { [weak self] _ in
+            self?.showNetwork()
         }
         let control = UIButton(configuration: .filled(), primaryAction: action)
         control.translatesAutoresizingMaskIntoConstraints = false
@@ -43,7 +43,7 @@ class RootViewController: UIViewController {
     }()
 
     private lazy var ANRtestButton: UIButton = {
-        let action = UIAction(title: "ANR Tests") { [weak self] _ in
+        let action = UIAction(title: "ANR Tests  ->") { [weak self] _ in
             self?.showTestHomeVC()
         }
         let control = UIButton(configuration: .filled(), primaryAction: action)
@@ -52,19 +52,39 @@ class RootViewController: UIViewController {
         return control
     }()
     
-    private lazy var buttonStackView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [galleryButton, errorButton, crashButton, ANRtestButton, screenTrackingButton])
-        view.axis = .vertical
-        view.alignment = .fill
-        view.distribution = .fillEqually
-        view.spacing = 16.0
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
+    private lazy var memoryWarningButton: UIButton = {
+        let action = UIAction(title: "Memory Warning") { [weak self] _ in
+            self?.showMemoryWarning()
+        }
+        let control = UIButton(configuration: .filled(), primaryAction: action)
+        control.tintColor = .systemMint
+        control.translatesAutoresizingMaskIntoConstraints = false
+        return control
     }()
     
+    private lazy var cpuTestsButton: UIButton = {
+        let action = UIAction(title: "CPU Tests  ->") { [weak self] _ in
+            self?.cpuTestsTimer()
+        }
+        let control = UIButton(configuration: .filled(), primaryAction: action)
+        control.tintColor = .brown
+        control.translatesAutoresizingMaskIntoConstraints = false
+        return control
+    }()
+    
+    private lazy var customTimerButton: UIButton = {
+        let action = UIAction(title: "Custom Timer") { [weak self] _ in
+            let timer = BlueTriangle.startTimer(page: Page(pageName: "Custom Timer"))
+            BlueTriangle.endTimer(timer)
+        }
+        let control = UIButton(configuration: .filled(), primaryAction: action)
+        control.tintColor = .systemCyan
+        control.translatesAutoresizingMaskIntoConstraints = false
+        return control
+    }()
     
     private lazy var screenTrackingButton: UIButton = {
-        let action = UIAction(title: "Screen Tracking") { [weak self] _ in
+        let action = UIAction(title: "Auto Screen Tracking   ->") { [weak self] _ in
             self?.showScreenTrackingHomeVC()
         }
         let control = UIButton(configuration: .filled(), primaryAction: action)
@@ -85,6 +105,17 @@ class RootViewController: UIViewController {
             buttonStackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
         ])
     }
+    
+    private lazy var buttonStackView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [networkButton, errorButton, crashButton, ANRtestButton, memoryWarningButton, cpuTestsButton, customTimerButton, screenTrackingButton])
+        view.axis = .vertical
+        view.alignment = .fill
+        view.distribution = .fillEqually
+        view.spacing = 16.0
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
 
     // MARK: - Actions
 
@@ -101,6 +132,21 @@ class RootViewController: UIViewController {
         let viewController = PhotoCollectionViewController(
             jsonPlaceholder: jsonPlaceholder,
             imageLoader: imageLoader)
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+    
+    private func cpuTestsTimer() {
+        let viewController = CPUTestsViewController()
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+    
+    private func showMemoryWarning() {
+        let viewController = MemoryWarningViewController()
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+    
+    private func showNetwork() {
+        let viewController = NetworkTrackingViewController()
         navigationController?.pushViewController(viewController, animated: true)
     }
 
