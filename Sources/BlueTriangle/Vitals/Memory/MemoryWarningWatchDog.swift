@@ -34,6 +34,10 @@ class MemoryWarningWatchDog {
         logger.info("Memory Warning WatchDog started.")
     }
     
+    func stop(){
+        removeObserver()
+    }
+    
     @objc func raiseMemoryWarning(){
        
         logger.debug("Memory Warning WatchDog :Memory Warning detected...  ")

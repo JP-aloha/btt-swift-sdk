@@ -36,6 +36,7 @@ protocol NetworkTelephonyProtocol{
     func observeNetworkType(_ completion :@escaping (String?)->())
     func getNetworkTechnology() -> String?
     func getNetworkType() -> NetworkType
+    func removeObserver()
 }
 
 class NetworkTelephonyHandler : NetworkTelephonyProtocol {
@@ -68,6 +69,15 @@ class NetworkTelephonyHandler : NetworkTelephonyProtocol {
         }
 #else
         completion(nil)
+#endif
+    }
+    
+    func removeObserver(){
+#if os(iOS)
+        NotificationCenter
+            .default
+            .removeObserver(self, name: NSNotification.Name.CTServiceRadioAccessTechnologyDidChange,
+                            object: nil)
 #endif
     }
     

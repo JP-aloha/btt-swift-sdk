@@ -19,9 +19,9 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
     private let configFetcher : ConfigurationFetcher
     private let configRepo : ConfigurationRepo
     private let logger : Logging?
-    private var configAck: RemoteConfigAckReporter
+    private var configAck: RemoteConfigAckReporter?
         
-    init(configFetcher : ConfigurationFetcher, configRepo : ConfigurationRepo, logger: Logging, configAck :RemoteConfigAckReporter) {
+    init(configFetcher : ConfigurationFetcher, configRepo : ConfigurationRepo, logger: Logging, configAck :RemoteConfigAckReporter?) {
         self.configFetcher = configFetcher
         self.configRepo = configRepo
         self.logger = logger
@@ -66,9 +66,10 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                     if self.configRepo.hasChange(config) {
                         try  self.configRepo.save(config)
                         self.reportAck(enableRemoteConfigAck, config, nil)
+                        print("BlueTriangle:BTTConfigurationUpdater has changed : \(config.isSDKEnabled)")
                     }
                     
-                    self.logger?.info("BlueTriangle:BTTConfigurationUpdater - Remote config fetched successfully \(config.networkSampleRateSDK ?? 0)")
+                    self.logger?.info("BlueTriangle:BTTConfigurationUpdater - Remote config fetched successfully \(config.networkSampleRateSDK ?? 0) - sdk \(config.isSDKEnabled ?? true ? "true" : "fslse")")
                 }
                 catch{
                     self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to save fetch remote config: \(error.localizedDescription)")
@@ -97,13 +98,10 @@ extension BTTConfigurationUpdater{
    
     private func reportAck(_ enableRemoteConfigAck : Bool, _ fetchedConfig : BTTRemoteConfig?,  _ error : String?){
         if enableRemoteConfigAck{
-           
             if let _ = fetchedConfig{
-               
                 reportSucessAck()
             }
             else{
-                
                 if let errorMessage = error{
                     reportFailAck(errorMessage)
                 }
@@ -112,10 +110,10 @@ extension BTTConfigurationUpdater{
     }
 
     private func reportFailAck(_ error : String){
-        configAck.reportFailAck(error)
+        configAck?.reportFailAck(error)
     }
     
     private func reportSucessAck(){
-        configAck.reportSuccessAck()
+        configAck?.reportSuccessAck()
     }
 }

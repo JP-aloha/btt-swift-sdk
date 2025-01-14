@@ -12,7 +12,7 @@ import UIKit
 class RootViewController: UIViewController {
 
     // MARK: - Subviews
-
+    
     private lazy var networkButton: UIButton = {
         let action = UIAction(title: "Network  ->") { [weak self] _ in
             self?.showNetwork()

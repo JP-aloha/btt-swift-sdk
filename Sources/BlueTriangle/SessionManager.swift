@@ -15,51 +15,63 @@ import UIKit
 import SwiftUI
 #endif
 
+protocol SessionManagerProtocol  {
+    func start(with expiry : Millisecond)
+    func getSessionData() -> SessionData
+    func stop()
+}
+
+
 import Combine
 
-class SessionManager {
-   
+class SessionManager : SessionManagerProtocol{
+    
     private var expirationDurationInMS: Millisecond = 30 * 60 * 1000
     private let lock = NSLock()
     private let sessionStore = SessionStore()
     private var cancellables = Set<AnyCancellable>()
+    private var currentConfigSubscription: AnyCancellable?
     private let queue = DispatchQueue(label: "com.bluetriangle.remote", qos: .userInitiated, autoreleaseFrequency: .workItem)
     private var currentSession : SessionData?
 
-    private let configFetcher: BTTConfigurationFetcher
     private let configRepo: BTTConfigurationRepo
-    private let logger: Logging
-    private let configAck: RemoteConfigAckReporter
     private let updater: BTTConfigurationUpdater
+    private let logger: Logging
+    private var foregroundObserver: NSObjectProtocol?
+    private var backgroundObserver: NSObjectProtocol?
     
     init(_ logger: Logging,
          _ configRepo : BTTConfigurationRepo,
-         _ fetcher : BTTConfigurationFetcher,
-         _ configAck : RemoteConfigAckReporter,
          _ updater : BTTConfigurationUpdater) {
         
         self.logger = logger
         self.configRepo = configRepo
-        self.configFetcher = fetcher
-        self.configAck = configAck
         self.updater = updater
     }
-    
+
     public func start(with expiry : Millisecond){
         self.expirationDurationInMS = expiry
-        
+        self.resisterObserver()
+    }
+    
+    public func stop(){
+        removeConfigObserver()
+    }
+    
+    private func resisterObserver() {
 #if os(iOS)
-        NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
+        foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
             self.appOffScreen()
         }
-
-        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
+        
+        backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
             self.onLaunch()
         }
 #endif
         self.observeRemoteConfig()
         self.updateSession()
     }
+    
     
     private func appOffScreen(){
         if let session = currentSession {
@@ -128,20 +140,43 @@ class SessionManager {
         let expiry = Int64(Date().timeIntervalSince1970) * 1000 + expirationDurationInMS
         return expiry
     }
+    
+    private func removeConfigObserver(){
+        if let observer = foregroundObserver {
+            NotificationCenter.default.removeObserver(observer)
+            foregroundObserver = nil
+        }
+        
+        if let observer = backgroundObserver {
+            NotificationCenter.default.removeObserver(observer)
+            backgroundObserver = nil
+        }
+        
+        self.cancellables.forEach { cancellable in
+            cancellable.cancel()
+        }
+        
+        cancellables.removeAll()
+    }
 }
 
 extension SessionManager {
     
     private func observeRemoteConfig(){
-        
         configRepo.$currentConfig
+            .dropFirst()
             .sink { changedConfig in
                 if let _ = changedConfig{
                     self.reloadSession()
+                    print("Change Observed")
+                    if BlueTriangle.initialized {
+                        BlueTriangle.configureSDK()
+                    }
                     BlueTriangle.refreshCaptureRequests()
                 }
-            }
-            .store(in: &cancellables)
+            }.store(in: &cancellables)
+        
+        print("cancellables : \(cancellables.count)")
     }
     
     private func updateRemoteConfig(){
@@ -155,6 +190,9 @@ extension SessionManager {
     private func reloadSession(){
                 
         if let session = currentSession {
+            
+            self.syncConfigurationEveryChange()
+            
             if session.isNewSession{
                 self.syncConfigurationOnNewSession()
                 session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
@@ -171,6 +209,10 @@ extension SessionManager {
     private func syncConfigurationOnNewSession(){
         self.syncNetworkSampleRate()
         self.syncIgnoreViewControllers()
+    }
+    
+    private func syncConfigurationEveryChange(){
+        self.syncSDKEnableStatus()
     }
     
     private func syncNetworkSampleRate(){
@@ -219,6 +261,18 @@ extension SessionManager {
                     
                     logger.info("BlueTriangle:SessionManager: Applied ignore Vcs - \(BlueTriangle.configuration.ignoreViewControllers)")
                 }
+            }
+        }
+        catch {
+            logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
+        }
+    }
+    
+    private func syncSDKEnableStatus(){
+        do{
+            if let config = try configRepo.get(){
+                BlueTriangle.isEnableSDK = config.isSDKEnabled ?? true                
+                logger.info("BlueTriangle:SessionManager: Configure SDK MODE - \(BlueTriangle.isEnableSDK ? "true": "false")")
             }
         }
         catch {

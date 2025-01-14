@@ -52,14 +52,16 @@ class SessionData: Codable {
     let sessionID: Identifier
     var expiration: Millisecond
     var isNewSession: Bool
+    var isSDKEnabled: Bool
     var shouldNetworkCapture: Bool
     var networkSampleRate : Double
     var ignoreViewControllers: Set<String>
-
+    
     init(expiration: Millisecond) {
         self.expiration = expiration
         self.sessionID =  SessionData.generateSessionID()
         self.isNewSession = true
+        self.isSDKEnabled = true
         self.shouldNetworkCapture = false
         self.networkSampleRate = BlueTriangle.configuration.networkSampleRate
         self.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers

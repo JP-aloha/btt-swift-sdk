@@ -1,6 +1,6 @@
 //
 //  ViewControllerLifecycleTracker.swift
-//  
+//
 //
 //  Created by JP on 13/06/23.
 //  Copyright © 2023 Blue Triangle. All rights reserved.
@@ -17,21 +17,39 @@ fileprivate func swizzleMethod(_ `class`: AnyClass, _ original: Selector, _ swiz
         method_exchangeImplementations(original, swizzled)
     }
     else{
-        BTTScreenLifecycleTracker.shared.logger?.error("View Screen Tracker: failed to swizzle: \(`class`.self), '\(original)', '\(swizzled)'")
+        BlueTriangle.screenTracker?.logger?.error("View Screen Tracker: failed to swizzle: \(`class`.self), '\(original)', '\(swizzled)'")
     }
 }
 
 extension UIViewController{
+    
+    private static var isSwizzled = false
    
     static func setUp(){
     
         let  _ : () = {
             
-            swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidLoad), #selector(UIViewController.viewDidLoad_Tracker))
-            swizzleMethod(UIViewController.self, #selector(UIViewController.viewWillAppear(_:)), #selector(UIViewController.viewWillAppear_Tracker(_:)))
-            swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidAppear(_:)), #selector(UIViewController.viewDidAppear_Tracker(_:)))
-            swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidDisappear(_:)), #selector(UIViewController.viewDidDisappear_Tracker(_:)))
-            BTTScreenLifecycleTracker.shared.logger?.debug("View Screen Tracker: setup completed.")
+            if !isSwizzled {
+                swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidLoad), #selector(UIViewController.viewDidLoad_Tracker))
+                swizzleMethod(UIViewController.self, #selector(UIViewController.viewWillAppear(_:)), #selector(UIViewController.viewWillAppear_Tracker(_:)))
+                swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidAppear(_:)), #selector(UIViewController.viewDidAppear_Tracker(_:)))
+                swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidDisappear(_:)), #selector(UIViewController.viewDidDisappear_Tracker(_:)))
+                BlueTriangle.screenTracker?.logger?.debug("View Screen Tracker: setup completed.")
+                isSwizzled = true
+            }
+        }()
+    }
+    
+    static func removeSetUp() {
+        let  _ : () = {
+            if isSwizzled {
+                swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidLoad), #selector(UIViewController.viewDidLoad_Tracker))
+                swizzleMethod(UIViewController.self, #selector(UIViewController.viewWillAppear(_:)), #selector(UIViewController.viewWillAppear_Tracker(_:)))
+                swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidAppear(_:)), #selector(UIViewController.viewDidAppear_Tracker(_:)))
+                swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidDisappear(_:)), #selector(UIViewController.viewDidDisappear_Tracker(_:)))
+                BlueTriangle.screenTracker?.logger?.debug("View Screen Tracker: setup removed.")
+                isSwizzled = false
+            }
         }()
     }
     
@@ -109,28 +127,28 @@ extension UIViewController{
     
     @objc dynamic func viewDidLoad_Tracker() {
         if shouldTrackScreen(){
-            BTTScreenLifecycleTracker.shared.loadStarted(String(describing: self), "\(type(of: self))")
+            BlueTriangle.screenTracker?.loadStarted(String(describing: self), "\(type(of: self))")
         }
         viewDidLoad_Tracker()
     }
     
     @objc dynamic func viewWillAppear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
-            BTTScreenLifecycleTracker.shared.loadFinish(String(describing: self), "\(type(of: self))")
+            BlueTriangle.screenTracker?.loadFinish(String(describing: self), "\(type(of: self))")
         }
         viewWillAppear_Tracker(animated)
     }
                                 
     @objc dynamic func viewDidAppear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
-            BTTScreenLifecycleTracker.shared.viewStart(String(describing: self), "\(type(of: self))")
+            BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(type(of: self))")
         }
         viewDidAppear_Tracker(animated)
     }
     
     @objc dynamic func viewDidDisappear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
-            BTTScreenLifecycleTracker.shared.viewingEnd(String(describing: self), "\(type(of: self))")
+            BlueTriangle.screenTracker?.viewingEnd(String(describing: self), "\(type(of: self))")
         }
         viewDidDisappear_Tracker(animated)
     }

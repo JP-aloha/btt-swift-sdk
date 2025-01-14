@@ -19,8 +19,38 @@ typealias SessionProvider = () -> Session
 /// The entry point for interacting with the Blue Triangle SDK.
 final public class BlueTriangle: NSObject {
     
-    private static let lock = NSLock()
     internal static var configuration = BlueTriangleConfiguration()
+
+    internal static var screenTracker : BTTScreenLifecycleTracker?
+    internal static var monitorNetwork: NetworkStateMonitorProtocol?
+    private static var appEventObserver: AppEventObserver?
+    private static var crashReportManager: CrashReportManaging?
+    private static var launchTimeReporter : LaunchTimeReporter?
+    private static var memoryWarningWatchDog : MemoryWarningWatchDog?
+    private static var anrWatchDog : ANRWatchDog?
+    private static var sessionManager : SessionManagerProtocol?
+    internal static var isEnableSDK = true
+    
+    
+    private static let configRepo: BTTConfigurationRepo = {
+        let config = BTTConfigurationRepo(BTTRemoteConfig.defaultConfig)
+        return  config
+    }()
+
+    internal static let disableModeSessionManager : SessionManagerProtocol = {
+        let configFetcher  =  BTTConfigurationFetcher()
+        let configUpdater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: nil)
+        return DisableModeSessionManager(logger, configRepo, configUpdater)
+    }()
+    
+    internal static let enabledModeSessionManager : SessionManagerProtocol = {
+        let configFetcher  =  BTTConfigurationFetcher()
+        let configAck  =  RemoteConfigAckReporter(logger: logger, uploader: uploader)
+        let configUpdater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: configAck)
+        return SessionManager(logger, configRepo, configUpdater)
+    }()
+    
+    private static let lock = NSLock()
     private static var activeTimers = [BTTimer]()
 #if os(iOS)
     private static let matricKitWatchDog = MetricKitWatchDog()
@@ -31,13 +61,7 @@ final public class BlueTriangle: NSObject {
         matricKitWatchDog.saveCurrentTimerData(timer)
 #endif
     }
-    
-    private static let configRepo  =  BTTConfigurationRepo(BTTRemoteConfig.defaultConfig)
-    private static let configFetcher  =  BTTConfigurationFetcher()
-    private static let configAck  =  RemoteConfigAckReporter(logger: logger, uploader: uploader)
-    private static let configUpdater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: configAck)
-    internal static let sessionManager = SessionManager(logger, configRepo, configFetcher, configAck, configUpdater)
-    
+
     internal static func removeActiveTimer(_ timer : BTTimer){
         
         var index = 0
@@ -102,7 +126,7 @@ final public class BlueTriangle: NSObject {
     }
     
     internal static func sessionData() -> SessionData {
-        return sessionManager.getSessionData()
+        return sessionManager?.getSessionData() ?? SessionData(expiration: 0)
     }
     
     internal static func makeCapturedRequestCollector() -> CapturedRequestCollecting? {
@@ -151,16 +175,11 @@ final public class BlueTriangle: NSObject {
     
     /// A Boolean value indicating whether the SDK has been initialized.
     public private(set) static var initialized = false
-
-    private static var crashReportManager: CrashReportManaging?
-    
-    static var monitorNetwork: NetworkStateMonitorProtocol?
     
     private static var capturedRequestCollector: CapturedRequestCollecting? = {
         return makeCapturedRequestCollector()
     }()
 
-    private static var appEventObserver: AppEventObserver?
 
     //Cache components
     internal static var payloadCache : PayloadCacheProtocol = {
@@ -169,7 +188,7 @@ final public class BlueTriangle: NSObject {
     }()
     
     //ANR components
-    private static let anrWatchDog : ANRWatchDog = {
+   /* private static let anrWatchDog : ANRWatchDog = {
         ANRWatchDog(
             mainThreadObserver: MainThreadObserver.live,
             session: {session()},
@@ -177,19 +196,18 @@ final public class BlueTriangle: NSObject {
                 file: .requests,
                 logger: logger)),
             logger: BlueTriangle.logger)
-    }()
+    }()*/
     
-    //ANR components
-    private static let memoryWarningWatchDog : MemoryWarningWatchDog = {
+  /*  //ANR components
+    private static let memoryWarningWatchDog : MemoryWarningWatchDog? = {
         MemoryWarningWatchDog(
             session: {session()},
             uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
                 file: .requests,
                 logger: logger)),
             logger: BlueTriangle.logger)
-    }()
-        
-    private static var launchTimeReporter : LaunchTimeReporter?
+    }()*/
+
     
     /// Blue Triangle Technologies-assigned site ID.
     @objc public static var siteID: String {
@@ -302,15 +320,16 @@ final public class BlueTriangle: NSObject {
 
 // MARK: - Configuration
 extension BlueTriangle {
+
     /// `configure` is a one-time configuration function to set session-level properties.
     /// - Parameter configure: A closure that enables mutation of the Blue Triangle SDK configuration.
     @objc
     public static func configure(_ configure: (BlueTriangleConfiguration) -> Void) {
-        lock.sync { 
-            precondition(!Self.initialized, "BlueTriangle can only be initialized once.")
-            initialized.toggle()
+        lock.sync {
+          //  precondition(!Self.initialized, "BlueTriangle can only be initialized once.")
             configure(configuration)
-            configureSession(with: configuration.sessionExpiryDuration)
+            configureSDK()
+           /* configureSession(with: configuration.sessionExpiryDuration)
             if let crashConfig = configuration.crashTracking.configuration {
                 DispatchQueue.global(qos: .utility).async {
                     configureCrashTracking(with: crashConfig)
@@ -323,8 +342,90 @@ extension BlueTriangle {
                                  interval: configuration.ANRWarningTimeInterval)
             configureScreenTracking(with: configuration.enableScreenTracking)
             configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
-            configureLaunchTime(with: configuration.enableLaunchTime)
+            configureLaunchTime(with: configuration.enableLaunchTime)*/
+            initialized.toggle()
         }
+    }
+    
+    internal static func configureSDK() {
+        self.isEnableSDK = configRepo.isSDKEnabled()
+        if self.isEnableSDK {
+           self.enableSDK()
+       }else{
+           self.dissableSDK()
+       }
+   }
+    
+    internal static func enableSDK() {
+        
+        screenTracker = BTTScreenLifecycleTracker()
+       
+        memoryWarningWatchDog?.stop()
+        memoryWarningWatchDog = MemoryWarningWatchDog(
+            session: {session()},
+            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
+                file: .requests,
+                logger: logger)),
+            logger: BlueTriangle.logger)
+        
+       anrWatchDog?.stop()
+       anrWatchDog = ANRWatchDog(
+            mainThreadObserver: MainThreadObserver.live,
+            session: {session()},
+            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
+                file: .requests,
+                logger: logger)),
+            logger: BlueTriangle.logger)
+        
+        sessionManager?.stop()
+        configureSession(with: configuration.sessionExpiryDuration)
+        
+        if let crashConfig = configuration.crashTracking.configuration {
+            DispatchQueue.global(qos: .utility).async {
+                configureCrashTracking(with: crashConfig)
+                configureSignalCrash(with: crashConfig, debugLog: configuration.enableDebugLogging)
+            }
+        }
+      
+        configureMemoryWarning(with: configuration.enableMemoryWarning)
+        configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
+                             interval: configuration.ANRWarningTimeInterval)
+        configureScreenTracking(with: configuration.enableScreenTracking)
+        configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
+        configureLaunchTime(with: configuration.enableLaunchTime)
+
+    }
+    
+    internal static func dissableSDK() {
+        
+        //Stop ACK
+        sessionManager?.stop()
+        configureSession(with: configuration.sessionExpiryDuration)
+        
+        //Stop Launch Time
+        launchTimeReporter?.stop()
+        launchTimeReporter = nil
+        
+        //Stop Screen Tracking
+        UIViewController.removeSetUp()
+        screenTracker?.stop()
+        screenTracker = nil
+        
+        //Stop Memory Warning
+        memoryWarningWatchDog?.stop()
+        memoryWarningWatchDog = nil
+        
+        //StopANR
+        anrWatchDog?.stop()
+        anrWatchDog = nil
+        
+        //Stop Network Status
+        monitorNetwork?.stop()
+        monitorNetwork = nil
+        
+        //Stop Crash Reporting
+        crashReportManager?.stop()
+        crashReportManager = nil
     }
 
     // We want to allow multiple configurations for testing
@@ -381,7 +482,7 @@ public extension BlueTriangle {
     @objc
     static func makeTimer(page: Page, timerType: BTTimer.TimerType = .main) -> BTTimer {
         lock.lock()
-        precondition(initialized, "BlueTriangle must be initialized before sending timers.")
+       // precondition(initialized, "BlueTriangle must be initialized before sending timers.")
         let timer = timerFactory(page, timerType)
         lock.unlock()
         return timer
@@ -409,18 +510,21 @@ public extension BlueTriangle {
     @objc
     static func endTimer(_ timer: BTTimer, purchaseConfirmation: PurchaseConfirmation? = nil) {
         timer.end()
-        purchaseConfirmation?.orderTime = timer.endTime
-        let request: Request
-        lock.lock()
-        do {
-            request = try configuration.requestBuilder.builder(session(), timer, purchaseConfirmation)
-            lock.unlock()
-        } catch {
-            lock.unlock()
-            logger.error(error.localizedDescription)
-            return
+        
+        if isEnableSDK {
+            purchaseConfirmation?.orderTime = timer.endTime
+            let request: Request
+            lock.lock()
+            do {
+                request = try configuration.requestBuilder.builder(session(), timer, purchaseConfirmation)
+                lock.unlock()
+            } catch {
+                lock.unlock()
+                logger.error(error.localizedDescription)
+                return
+            }
+            uploader.send(request: request)
         }
-        uploader.send(request: request)
     }
 }
 
@@ -522,7 +626,7 @@ public extension BlueTriangle {
     ///
     /// - Parameter variables: A dictionary containing key-value pairs where
     ///
-    @objc 
+    @objc
     static func setCustomVariables(_ variables : [String: String] ) {
         for (name, value) in variables {
             self.setCustomVariable(name, value: value)
@@ -569,7 +673,7 @@ public extension BlueTriangle {
     ///
     /// This function resets the  dictionary to an empty state, removing all previously set custom variables.
     ///
-    @objc 
+    @objc
     static func clearAllCustomVariables() {
         self.metrics = [:]
     }
@@ -681,7 +785,7 @@ extension BlueTriangle {
     static func configureSignalCrash(with crashConfiguration: CrashReportConfiguration, debugLog : Bool) {
         SignalHandler.enableCrashTracking(withApp_version: Version.number, debug_log: debugLog, bttSessionID: "\(sessionID)")
         btcrashReport = BTSignalCrashReporter(directory: SignalHandler.reportsFolderPath(), logger: logger,
-                                              uploader: uploader, 
+                                              uploader: uploader,
                                               session: {session()})
         btcrashReport?.configureSignalCrashHandling(configuration: crashConfiguration)
     }
@@ -701,12 +805,12 @@ extension BlueTriangle {
 //MARK: - ANR Tracking
 extension BlueTriangle{
     static func configureANRTracking(with enabled: Bool, enableStackTrace : Bool, interval: TimeInterval){
-        self.anrWatchDog.errorTriggerInterval = interval
-        self.anrWatchDog.enableStackTrace = enableStackTrace
+        self.anrWatchDog?.errorTriggerInterval = interval
+        self.anrWatchDog?.enableStackTrace = enableStackTrace
         if enabled {
             MainThreadObserver.live.setUpLogger(logger)
             MainThreadObserver.live.start()
-            self.anrWatchDog.start()
+            self.anrWatchDog?.start()
         }
     }
 }
@@ -714,8 +818,8 @@ extension BlueTriangle{
 // MARK: - Screen Tracking
 extension BlueTriangle{
     static func configureScreenTracking(with enabled: Bool){
-        BTTScreenLifecycleTracker.shared.setLifecycleTracker(enabled)
-        BTTScreenLifecycleTracker.shared.setUpLogger(logger)
+        screenTracker?.setLifecycleTracker(enabled)
+        screenTracker?.setUpLogger(logger)
         
 #if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
@@ -763,7 +867,7 @@ extension BlueTriangle{
     static func configureMemoryWarning(with enabled: Bool){
         if enabled {
 #if os(iOS)
-            self.memoryWarningWatchDog.start()
+            self.memoryWarningWatchDog?.start()
 #endif
         }
     }
@@ -773,7 +877,13 @@ extension BlueTriangle{
 extension BlueTriangle{
     static func configureSession(with expiry: Millisecond){
 #if os(iOS)
-        self.sessionManager.start(with: expiry)
+        if isEnableSDK{
+            sessionManager = enabledModeSessionManager
+            sessionManager?.start(with: expiry)
+        }else{
+            sessionManager = disableModeSessionManager
+            disableModeSessionManager.start(with: expiry)
+        }
 #endif
     }
 }

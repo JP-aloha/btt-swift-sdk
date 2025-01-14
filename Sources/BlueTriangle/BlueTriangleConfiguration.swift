@@ -161,18 +161,19 @@ extension BlueTriangleConfiguration {
     
     func makeSession() -> Session {
         
-        return Session(siteID: siteID,
-                       globalUserID: customGlobalUserID ?? globalUserID,
-                       sessionID: BlueTriangleConfiguration.currentSessionId,
-                       isReturningVisitor: isReturningVisitor,
-                       abTestID: abTestID,
-                       campaign: customCampaign,
-                       campaignMedium: campaignMedium,
-                       campaignName: campaignName,
-                       campaignSource: campaignSource,
-                       dataCenter: dataCenter,
-                       trafficSegmentName: trafficSegmentName
-               )
+            return Session(siteID: siteID,
+                           globalUserID: customGlobalUserID ?? globalUserID,
+                           sessionID: BlueTriangleConfiguration.currentSessionId,
+                           isReturningVisitor: isReturningVisitor,
+                           abTestID: abTestID,
+                           campaign: customCampaign,
+                           campaignMedium: campaignMedium,
+                           campaignName: campaignName,
+                           campaignSource: campaignSource,
+                           dataCenter: dataCenter,
+                           trafficSegmentName: trafficSegmentName
+            )
+
     }
 
     func makeLogger () -> Logging {

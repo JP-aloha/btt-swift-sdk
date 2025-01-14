@@ -85,6 +85,7 @@ class MainThreadObserver : ThreadTaskObserver{
             if let observing = self.observationToken{
                 self.registrationService.unregisterObserver(o: observing)
                 self.observationToken = nil
+                self._runningTask = nil
                 self.logger?.debug("Started MainThreadObserver...")
             }else{
                 self.logger?.debug("Stop MainThreadObserver skipped observer not started ...")

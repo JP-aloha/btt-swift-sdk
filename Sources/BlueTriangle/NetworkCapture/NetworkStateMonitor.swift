@@ -35,6 +35,7 @@ indirect enum NetworkState : CustomStringConvertible, Equatable{
 protocol NetworkStateMonitorProtocol{
     var state : CurrentValueSubject<NetworkState?, Never> { get}
     var networkSource : CurrentValueSubject<String?, Never> { get}
+    func stop()
 }
 
 protocol NetworkPathMonitorProtocol{
@@ -73,6 +74,11 @@ class NetworkStateMonitor : NetworkStateMonitorProtocol{
         self.monitor.start(queue: DispatchQueue.global(qos: .default))
         
         self.logger.debug("Network state monitoring started.")
+    }
+    
+    func stop(){
+        self.monitor.cancel()
+        self.telephony.removeObserver()
     }
     
     private func updateNetworkState(_ state : NetworkState, path: NWPath){

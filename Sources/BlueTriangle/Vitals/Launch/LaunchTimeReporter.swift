@@ -27,8 +27,7 @@ class LaunchTimeReporter : ObservableObject {
         self.start()
     }
 
-    private func start(){
-
+    func start(){
         self.monitor.launchEventPubliser
             .receive(on: DispatchQueue.main)
             .sink { event in
@@ -45,6 +44,13 @@ class LaunchTimeReporter : ObservableObject {
             }.store(in: &self.cancellables)
         
         logger.info("Setup to receive launch event")
+    }
+    
+    func stop(){
+        self.cancellables.forEach { cancellable in
+            cancellable.cancel()
+        }
+        self.cancellables.removeAll()
     }
     
     private func uploadReports(_ pageName : String, _ time : Date, _ duration : TimeInterval) {
@@ -85,5 +91,9 @@ class LaunchTimeReporter : ObservableObject {
         return try Request(method: .post,
                            url: Constants.timerEndpoint,
                            model: model)
+    }
+    
+    deinit {
+        stop()
     }
 }

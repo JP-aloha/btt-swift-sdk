@@ -42,6 +42,12 @@ final class CrashReportManager: CrashReportManaging {
             self?.startupTask = nil
         }
     }
+    
+    func stop(){
+        self.startupTask?.cancel()
+        self.startupTask = nil
+        CrashReportPersistence.disableExaptionHandler()
+    }
 
     func uploadCrashReport(session: Session) {
         guard let crashReport = crashReportPersistence.read() else {

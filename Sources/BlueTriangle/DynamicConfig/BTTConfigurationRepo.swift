@@ -40,7 +40,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
     func save(_ config: BTTRemoteConfig) throws {
         
         let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
-                                             enableRemoteConfigAck : config.enableRemoteConfigAck,
+                                             enableRemoteConfigAck : config.enableRemoteConfigAck, 
+                                             isSDKEnabled: config.isSDKEnabled,
                                              ignoreScreens: config.ignoreScreens,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         
@@ -48,10 +49,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
             do {
                 let data = try JSONEncoder().encode(newConfig)
                 UserDefaults.standard.set(data, forKey: key())
-               
-                if hasChange(config){
-                    self.currentConfig = newConfig
-                }
+                self.push(newConfig)
             }
         }
     }
@@ -59,7 +57,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
     func hasChange( _ config : BTTRemoteConfig) -> Bool{
         
         let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
-                                             enableRemoteConfigAck : config.enableRemoteConfigAck,
+                                             enableRemoteConfigAck : config.enableRemoteConfigAck, 
+                                             isSDKEnabled: config.isSDKEnabled,
                                              ignoreScreens: config.ignoreScreens,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         
@@ -69,18 +68,38 @@ class BTTConfigurationRepo : ConfigurationRepo{
             return true
         }
     }
+    
+    func isSDKEnabled() -> Bool{
+        var isSDKEnabled = defaultConfig.isSDKEnabled ?? true
+        do{
+            guard let value = try get()?.isSDKEnabled else {
+                return isSDKEnabled
+            }
+            
+            isSDKEnabled = value
+        }
+        catch{}
+        return isSDKEnabled
+    }
 }
 
 extension BTTConfigurationRepo{
     
+    private func push(_ config : BTTSavedRemoteConfig){
+        if hasChange(config){
+            self.currentConfig = config
+        }
+    }
+    
     private func loadConfig(){
         do{
+            print("load remote Oserver")
             guard let config = try get() else {
-                self.currentConfig = defaultConfig
+                self.push(defaultConfig)
                 return
             }
             
-            self.currentConfig = config
+           self.push(config)
         }
         catch{
             print("Failed to load remote")

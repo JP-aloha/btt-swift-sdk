@@ -59,6 +59,7 @@ class ANRWatchDog{
     }
     
    func stop(){
+        self.mainThreadObserver.stop()
         stopObservationTimer()
        logger.info("ANR Watch Dog Stopped.")
     }

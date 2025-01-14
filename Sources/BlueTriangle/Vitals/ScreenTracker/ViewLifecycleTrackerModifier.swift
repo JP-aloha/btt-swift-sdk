@@ -18,19 +18,19 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
             content
                 .task({
                     if let id = self.id{
-                        BTTScreenLifecycleTracker.shared.loadFinish(id, name)
-                        BTTScreenLifecycleTracker.shared.viewStart(id, name)
+                        BlueTriangle.screenTracker?.loadFinish(id, name)
+                        BlueTriangle.screenTracker?.viewStart(id, name)
                     }
                 })
                 .onAppear {
                     id = UUID().uuidString
                     if let id = self.id{
-                        BTTScreenLifecycleTracker.shared.loadStarted(id, name)
+                        BlueTriangle.screenTracker?.loadStarted(id, name)
                     }
                 }
                 .onDisappear{
                     if let id = self.id{
-                        BTTScreenLifecycleTracker.shared.viewingEnd(id, name)
+                        BlueTriangle.screenTracker?.viewingEnd(id, name)
                     }
                 }
         }
@@ -39,18 +39,18 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
                 .onAppear {
                     id = UUID().uuidString
                     if let id = self.id{
-                        BTTScreenLifecycleTracker.shared.viewStart(id, name)
+                        BlueTriangle.screenTracker?.viewStart(id, name)
                     }
                     Task{
                         if let id = self.id{
-                            BTTScreenLifecycleTracker.shared.loadFinish(id, name)
-                            BTTScreenLifecycleTracker.shared.viewStart(id, name)
+                            BlueTriangle.screenTracker?.loadFinish(id, name)
+                            BlueTriangle.screenTracker?.viewStart(id, name)
                         }
                     }
                 }
                 .onDisappear{
                     if let id = self.id{
-                        BTTScreenLifecycleTracker.shared.viewingEnd(id, name)
+                        BlueTriangle.screenTracker?.viewingEnd(id, name)
                     }
                 }
         }
@@ -75,7 +75,7 @@ public extension View {
     
    private func setUpViewType(){
         //SetUp View Type
-        BTTScreenLifecycleTracker.shared.setUpViewType(.SwiftUI)
+       BlueTriangle.screenTracker?.setUpViewType(.SwiftUI)
     }
     
     ///Uses for manual screen tracking to log individual views in SwiftUI.
