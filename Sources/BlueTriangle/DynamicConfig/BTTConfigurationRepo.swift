@@ -41,7 +41,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
         
         let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
                                              enableRemoteConfigAck : config.enableRemoteConfigAck, 
-                                             isSDKEnabled: config.isSDKEnabled,
+                                             enableAllTracking: config.enableAllTracking,
                                              ignoreScreens: config.ignoreScreens,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         
@@ -58,7 +58,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
         
         let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
                                              enableRemoteConfigAck : config.enableRemoteConfigAck, 
-                                             isSDKEnabled: config.isSDKEnabled,
+                                             enableAllTracking: config.enableAllTracking,
                                              ignoreScreens: config.ignoreScreens,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         
@@ -69,17 +69,17 @@ class BTTConfigurationRepo : ConfigurationRepo{
         }
     }
     
-    func isSDKEnabled() -> Bool{
-        var isSDKEnabled = defaultConfig.isSDKEnabled ?? true
+    func isEnableAllTracking() -> Bool{
+        var isEnableAllTracking = defaultConfig.enableAllTracking ?? true
         do{
-            guard let value = try get()?.isSDKEnabled else {
-                return isSDKEnabled
+            guard let value = try get()?.enableAllTracking else {
+                return isEnableAllTracking
             }
             
-            isSDKEnabled = value
+            isEnableAllTracking = value
         }
         catch{}
-        return isSDKEnabled
+        return isEnableAllTracking
     }
 }
 

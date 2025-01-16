@@ -30,8 +30,8 @@ final public class BlueTriangle: NSObject {
     private static var anrWatchDog : ANRWatchDog?
     private static var sessionManager : SessionManagerProtocol?
    
-    internal static var isEnableSDK: Bool = {
-        let value = configRepo.isSDKEnabled()
+    internal static var isEnableAllTracking: Bool = {
+        let value = configRepo.isEnableAllTracking()
         return  value
     }()
     
@@ -318,7 +318,7 @@ extension BlueTriangle {
     }
     
     private static func configureSDK() {
-        if self.isEnableSDK {
+        if self.isEnableAllTracking {
             self.enableSDK()
         }else{
             self.disableSDK()
@@ -382,10 +382,12 @@ extension BlueTriangle {
         anrWatchDog = nil
         
         //Stop Screen Tracking
+#if os(iOS)
         UIViewController.removeSetUp()
         screenTracker?.stop()
         screenTracker = nil
-        
+#endif
+
         //Stop Network Status
         monitorNetwork?.stop()
         monitorNetwork = nil
@@ -478,7 +480,7 @@ public extension BlueTriangle {
     static func endTimer(_ timer: BTTimer, purchaseConfirmation: PurchaseConfirmation? = nil) {
         timer.end()
         
-        if isEnableSDK {
+        if isEnableAllTracking {
             purchaseConfirmation?.orderTime = timer.endTime
             let request: Request
             lock.lock()

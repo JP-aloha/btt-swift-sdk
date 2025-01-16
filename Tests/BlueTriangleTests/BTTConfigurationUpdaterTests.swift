@@ -43,7 +43,8 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     func testUpdatePerformsFetchIfNewSession() {
 
         let config = BTTRemoteConfig(networkSampleRateSDK: 75, 
-                                     enableRemoteConfigAck: false,
+                                     enableRemoteConfigAck: false, 
+                                     enableAllTracking: true,
                                      ignoreScreens: [])
         mockFetcher.configToReturn = config
         
@@ -62,7 +63,8 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     func testUpdateSkipsFetchIfNotNewSessionAndWithinUpdatePeriod() {
         
         let config = BTTRemoteConfig(networkSampleRateSDK: 75, 
-                                     enableRemoteConfigAck: false,
+                                     enableRemoteConfigAck: false, 
+                                     enableAllTracking: true,
                                      ignoreScreens: [])
         mockRepo.save(config)
         
@@ -78,13 +80,14 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     func testUpdatePerformsFetchIfNotNewSessionAndUpdatePeriodElapsed() {
         
         let apiConfig = BTTRemoteConfig(networkSampleRateSDK: 75, 
-                                        enableRemoteConfigAck: false,
+                                        enableRemoteConfigAck: false, 
+                                        enableAllTracking: true,
                                         ignoreScreens: [])
         mockFetcher.configToReturn = apiConfig
         
         
         let currentTime = Date().timeIntervalSince1970.milliseconds
-        let storeConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 70, enableRemoteConfigAck: false, ignoreScreens: [], dateSaved: currentTime - Millisecond.hour * 2)
+        let storeConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 70, enableRemoteConfigAck: false, enableAllTracking: true, ignoreScreens: [], dateSaved: currentTime - Millisecond.hour * 2)
         mockRepo.store[key] = storeConfig
         
         let expectation = XCTestExpectation(description: "Completion handler called")

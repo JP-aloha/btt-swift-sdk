@@ -107,9 +107,9 @@ class DisableModeSessionManager : SessionManagerProtocol {
      private func evaluateAndUpdateSDKState(){
          do{
              if let config = try configRepo.get(){
-                 let isEnable = config.isSDKEnabled ?? true
-                 if BlueTriangle.initialized && isEnable != BlueTriangle.isEnableSDK{
-                     BlueTriangle.isEnableSDK = isEnable
+                 let isEnable = config.enableAllTracking ?? true
+                 if BlueTriangle.initialized && isEnable != BlueTriangle.isEnableAllTracking{
+                     BlueTriangle.isEnableAllTracking = isEnable
                      BlueTriangle.updateSDKState()
                  }
              }
