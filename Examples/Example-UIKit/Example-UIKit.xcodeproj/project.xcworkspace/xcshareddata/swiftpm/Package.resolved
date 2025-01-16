@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Clarity",
+        "repositoryURL": "https://github.com/microsoft/clarity-apps.git",
+        "state": {
+          "branch": null,
+          "revision": "6bd0243fffab0d039810eb46c0a8b75d3a74a3e6",
+          "version": "3.0.2"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
