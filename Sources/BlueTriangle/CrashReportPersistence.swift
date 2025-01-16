@@ -42,7 +42,6 @@ struct CrashReportPersistence: CrashReportPersisting {
     }
     
     static func disableExaptionHandler(){
-        SignalHandler.disableCrashTracking()
         NSSetUncaughtExceptionHandler(nil)
     }
 

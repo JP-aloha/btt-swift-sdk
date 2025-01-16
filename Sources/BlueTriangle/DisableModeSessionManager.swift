@@ -17,18 +17,18 @@ import SwiftUI
 import Combine
 
 class DisableModeSessionManager : SessionManagerProtocol {
-
-     private var expirationDurationInMS: Millisecond = 30 * 60 * 1000
-     private let lock = NSLock()
-     private var cancellables = Set<AnyCancellable>()
-     private let queue = DispatchQueue(label: "com.bluetriangle.remote", qos: .userInitiated, autoreleaseFrequency: .workItem)
-
-     private let configRepo: BTTConfigurationRepo
-     private let logger: Logging
-     private let updater: BTTConfigurationUpdater
-     private var isUpdatingConfig = false
+    
+    private var expirationDurationInMS: Millisecond = 30 * 60 * 1000
+    private let lock = NSLock()
+    private var cancellables = Set<AnyCancellable>()
+    private let queue = DispatchQueue(label: "com.bluetriangle.remote", qos: .userInitiated, autoreleaseFrequency: .workItem)
+    
+    private let configRepo: BTTConfigurationRepo
+    private let logger: Logging
+    private let updater: BTTConfigurationUpdater
+    private var isUpdatingConfig = false
     private var foregroundObserver: NSObjectProtocol?
-     
+    
     private var isObserverRegistered: Bool {
         cancellables.isEmpty == false
     }
@@ -61,7 +61,6 @@ class DisableModeSessionManager : SessionManagerProtocol {
      }
      
     func getSessionData() -> SessionData {
-        self.reloadConfig()
         let sessionData = SessionData.init(expiration: 0)
         return sessionData
     }
@@ -69,36 +68,30 @@ class DisableModeSessionManager : SessionManagerProtocol {
     private func onLaunch(){
         self.updateRemoteConfig()
     }
-    
-    private func removeConfigObserver(){
-        if let observer = foregroundObserver {
-            NotificationCenter.default.removeObserver(observer)
-            foregroundObserver = nil
-        }
-        self.cancellables.forEach { cancellable in
-            cancellable.cancel()
-        }
-        cancellables.removeAll()
-    }
  }
 
  extension DisableModeSessionManager {
      
      private func observeRemoteConfig(){
-         
          configRepo.$currentConfig
              .dropFirst()
              .sink { [weak self]  changedConfig in
-                 if let _ = changedConfig{
-                     self?.reloadConfig()
-                     if BlueTriangle.initialized {
-                         BlueTriangle.configureSDK()
-                     }
-                 }
+                 self?.manageSDKConfigureation()
              }
              .store(in: &cancellables)
-         
-         print("cancellables : \(cancellables.count)")
+     }
+    
+     private func removeConfigObserver(){
+         if let observer = foregroundObserver {
+#if os(iOS)
+             NotificationCenter.default.removeObserver(observer)
+#endif
+             foregroundObserver = nil
+         }
+         self.cancellables.forEach { cancellable in
+             cancellable.cancel()
+         }
+         cancellables.removeAll()
      }
      
      private func updateRemoteConfig(){
@@ -107,19 +100,18 @@ class DisableModeSessionManager : SessionManagerProtocol {
          }
      }
      
-     private func reloadConfig(){
-         self.syncConfigurationOnNewSession()
+     private func manageSDKConfigureation(){
+         self.evaluateAndUpdateSDKState()
      }
      
-     private func syncConfigurationOnNewSession(){
-         self.syncSDKEnableStatus()
-     }
-     
-     private func syncSDKEnableStatus(){
+     private func evaluateAndUpdateSDKState(){
          do{
              if let config = try configRepo.get(){
-                 BlueTriangle.isEnableSDK = config.isSDKEnabled ?? true
-                 logger.info("BlueTriangle:DisableModeSessionManager: Configure SDK MODE - \(BlueTriangle.isEnableSDK ? "true": "false")")
+                 let isEnable = config.isSDKEnabled ?? true
+                 if BlueTriangle.initialized && isEnable != BlueTriangle.isEnableSDK{
+                     BlueTriangle.isEnableSDK = isEnable
+                     BlueTriangle.updateSDKState()
+                 }
              }
          }
          catch {

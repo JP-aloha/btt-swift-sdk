@@ -28,6 +28,7 @@ class LaunchTimeReporter : ObservableObject {
     }
 
     func start(){
+        self.monitor.start()
         self.monitor.launchEventPubliser
             .receive(on: DispatchQueue.main)
             .sink { event in
@@ -47,6 +48,7 @@ class LaunchTimeReporter : ObservableObject {
     }
     
     func stop(){
+        self.monitor.stop()
         self.cancellables.forEach { cancellable in
             cancellable.cancel()
         }

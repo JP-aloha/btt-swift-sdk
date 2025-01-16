@@ -55,7 +55,8 @@ class SessionManager : SessionManagerProtocol{
     }
     
     public func stop(){
-        removeConfigObserver()
+        self.removeConfigObserver()
+        self.sessionStore.removeSessionData()
     }
     
     private func resisterObserver() {
@@ -104,7 +105,7 @@ class SessionManager : SessionManagerProtocol{
             let session = SessionData(expiration: expiryDuration())
             session.isNewSession = true
             currentSession = session
-            reloadSession()
+            syncStoredConfigToSession()
             sessionStore.saveSession(session)
             logger.info("BlueTriangle:SessionManager: New session \(session.sessionID) has been created")
             
@@ -116,7 +117,7 @@ class SessionManager : SessionManagerProtocol{
                 let session = sessionStore.retrieveSessionData()
                 session!.isNewSession = false
                 currentSession = session
-                reloadSession()
+                syncStoredConfigToSession()
                 sessionStore.saveSession(session!)
                 return session!
             }
@@ -140,24 +141,6 @@ class SessionManager : SessionManagerProtocol{
         let expiry = Int64(Date().timeIntervalSince1970) * 1000 + expirationDurationInMS
         return expiry
     }
-    
-    private func removeConfigObserver(){
-        if let observer = foregroundObserver {
-            NotificationCenter.default.removeObserver(observer)
-            foregroundObserver = nil
-        }
-        
-        if let observer = backgroundObserver {
-            NotificationCenter.default.removeObserver(observer)
-            backgroundObserver = nil
-        }
-        
-        self.cancellables.forEach { cancellable in
-            cancellable.cancel()
-        }
-        
-        cancellables.removeAll()
-    }
 }
 
 extension SessionManager {
@@ -165,18 +148,9 @@ extension SessionManager {
     private func observeRemoteConfig(){
         configRepo.$currentConfig
             .dropFirst()
-            .sink { changedConfig in
-                if let _ = changedConfig{
-                    self.reloadSession()
-                    print("Change Observed")
-                    if BlueTriangle.initialized {
-                        BlueTriangle.configureSDK()
-                    }
-                    BlueTriangle.refreshCaptureRequests()
-                }
+            .sink { [weak self] changedConfig in
+                    self?.manageSDKConfigureation()
             }.store(in: &cancellables)
-        
-        print("cancellables : \(cancellables.count)")
     }
     
     private func updateRemoteConfig(){
@@ -187,14 +161,39 @@ extension SessionManager {
         }
     }
     
-    private func reloadSession(){
+    private func removeConfigObserver(){
+        if let observer = foregroundObserver {
+#if os(iOS)
+             NotificationCenter.default.removeObserver(observer)
+#endif
+            foregroundObserver = nil
+        }
+        
+        if let observer = backgroundObserver {
+#if os(iOS)
+             NotificationCenter.default.removeObserver(observer)
+#endif           
+            backgroundObserver = nil
+        }
+        
+        self.cancellables.forEach { cancellable in
+            cancellable.cancel()
+        }
+        
+        cancellables.removeAll()
+    }
+    
+    private func manageSDKConfigureation(){
+        self.syncStoredConfigToSession()
+        BlueTriangle.refreshCaptureRequests()
+        self.evaluateAndUpdateSDKState()
+    }
+
+    private func syncStoredConfigToSession(){
                 
         if let session = currentSession {
-            
-            self.syncConfigurationEveryChange()
-            
             if session.isNewSession{
-                self.syncConfigurationOnNewSession()
+                self.syncConfigurationFromStorage()
                 session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
                 session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
                 session.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers
@@ -206,47 +205,26 @@ extension SessionManager {
         }
     }
     
-    private func syncConfigurationOnNewSession(){
-        self.syncNetworkSampleRate()
-        self.syncIgnoreViewControllers()
-    }
-    
-    private func syncConfigurationEveryChange(){
-        self.syncSDKEnableStatus()
-    }
-    
-    private func syncNetworkSampleRate(){
-        
+    // Updates the configuration values in the session by retrieving the latest configuration from storage.
+    private func syncConfigurationFromStorage(){
         do{
-            if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
-                BlueTriangle.updateNetworkSampleRate(1.0)
-                return
-            }
-            
             if let config = try configRepo.get(){
                 
+                //Sync Sample Rate
                 let sampleRate = config.networkSampleRateSDK ?? configRepo.defaultConfig.networkSampleRateSDK
                 
-                if let rate = sampleRate{
+                if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
+                    BlueTriangle.updateNetworkSampleRate(1.0)
+                }
+                else if let rate = sampleRate{
                     if rate == 0 {
                         BlueTriangle.updateNetworkSampleRate(0.0)
                     }else{
                         BlueTriangle.updateNetworkSampleRate(Double(rate) / 100.0)
                     }
-                    
-                    logger.info("BlueTriangle:SessionManager: Applied networkSampleRate - \(rate) %")
                 }
-            }
-        }
-        catch {
-            logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
-        }
-    }
-    
-    private func syncIgnoreViewControllers(){
-        do{
-            if let config = try configRepo.get(){
                 
+               // Sync Ignore Screens
                 let ignoreScreens = config.ignoreScreens ?? configRepo.defaultConfig.ignoreScreens
                 
                 if let ignoreVcs = ignoreScreens{
@@ -258,25 +236,27 @@ extension SessionManager {
                     }
                    
                     BlueTriangle.updateIgnoreVcs(unianOfIgnoreScreens)
-                    
-                    logger.info("BlueTriangle:SessionManager: Applied ignore Vcs - \(BlueTriangle.configuration.ignoreViewControllers)")
+                }
+                
+            }
+        }catch{
+            logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
+        }
+    }
+    
+    private func evaluateAndUpdateSDKState(){
+        do{
+            if let config = try configRepo.get(){
+                let isEnable = config.isSDKEnabled ?? true
+                if BlueTriangle.initialized && isEnable != BlueTriangle.isEnableSDK{
+                    BlueTriangle.isEnableSDK = isEnable
+                    BlueTriangle.updateSDKState()
                 }
             }
         }
         catch {
             logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
         }
-    }
-    
-    private func syncSDKEnableStatus(){
-        do{
-            if let config = try configRepo.get(){
-                BlueTriangle.isEnableSDK = config.isSDKEnabled ?? true                
-                logger.info("BlueTriangle:SessionManager: Configure SDK MODE - \(BlueTriangle.isEnableSDK ? "true": "false")")
-            }
-        }
-        catch {
-            logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
-        }
+        
     }
 }

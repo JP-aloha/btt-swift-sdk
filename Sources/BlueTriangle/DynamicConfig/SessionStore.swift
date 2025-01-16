@@ -45,6 +45,11 @@ class SessionStore {
         
         return isExpired
     }
+    
+    func removeSessionData() {
+        UserDefaults.standard.removeObject(forKey: sessionKey)
+        UserDefaults.standard.synchronize()
+    }
 }
 
 

@@ -28,7 +28,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         self.configAck = configAck
     }
     
-    func update(_ isNewSession : Bool, completion: @escaping () -> Void) {
+    func update(_ isNeedToUpdate : Bool, completion: @escaping () -> Void) {
         
         var enableRemoteConfigAck = false
         
@@ -43,7 +43,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                 let timeIntervalSinceLastUpdate =  currentTime - savedConfig.dateSaved
                 
                 // Perform remote config update only if it's a new session or the update period has elapsed
-                if timeIntervalSinceLastUpdate < updatePeriod &&  !isNewSession {
+                if timeIntervalSinceLastUpdate < updatePeriod &&  !isNeedToUpdate {
                    
                     self.logger?.info("BlueTriangle:BTTConfigurationUpdater - The update period has not yet elapsed.")
                     completion()
@@ -66,7 +66,6 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                     if self.configRepo.hasChange(config) {
                         try  self.configRepo.save(config)
                         self.reportAck(enableRemoteConfigAck, config, nil)
-                        print("BlueTriangle:BTTConfigurationUpdater has changed : \(config.isSDKEnabled)")
                     }
                     
                     self.logger?.info("BlueTriangle:BTTConfigurationUpdater - Remote config fetched successfully \(config.networkSampleRateSDK ?? 0) - sdk \(config.isSDKEnabled ?? true ? "true" : "fslse")")

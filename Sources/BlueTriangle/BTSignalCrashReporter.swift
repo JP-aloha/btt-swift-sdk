@@ -64,6 +64,12 @@ class BTSignalCrashReporter {
         }
     }
     
+    func stop(){
+        self.startupTask?.cancel()
+        self.startupTask = nil
+        SignalHandler.disableCrashTracking()
+    }
+    
     private func uploadAllStoredSignalCrashes(){
         do{
             let session = self.session()

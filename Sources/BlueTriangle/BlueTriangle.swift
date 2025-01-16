@@ -29,8 +29,11 @@ final public class BlueTriangle: NSObject {
     private static var memoryWarningWatchDog : MemoryWarningWatchDog?
     private static var anrWatchDog : ANRWatchDog?
     private static var sessionManager : SessionManagerProtocol?
-    internal static var isEnableSDK = true
-    
+   
+    internal static var isEnableSDK: Bool = {
+        let value = configRepo.isSDKEnabled()
+        return  value
+    }()
     
     private static let configRepo: BTTConfigurationRepo = {
         let config = BTTConfigurationRepo(BTTRemoteConfig.defaultConfig)
@@ -187,28 +190,6 @@ final public class BlueTriangle: NSObject {
                           expiry: configuration.cacheExpiryDuration)
     }()
     
-    //ANR components
-   /* private static let anrWatchDog : ANRWatchDog = {
-        ANRWatchDog(
-            mainThreadObserver: MainThreadObserver.live,
-            session: {session()},
-            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
-                file: .requests,
-                logger: logger)),
-            logger: BlueTriangle.logger)
-    }()*/
-    
-  /*  //ANR components
-    private static let memoryWarningWatchDog : MemoryWarningWatchDog? = {
-        MemoryWarningWatchDog(
-            session: {session()},
-            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
-                file: .requests,
-                logger: logger)),
-            logger: BlueTriangle.logger)
-    }()*/
-
-    
     /// Blue Triangle Technologies-assigned site ID.
     @objc public static var siteID: String {
         lock.sync { session().siteID }
@@ -326,90 +307,71 @@ extension BlueTriangle {
     @objc
     public static func configure(_ configure: (BlueTriangleConfiguration) -> Void) {
         lock.sync {
-          //  precondition(!Self.initialized, "BlueTriangle can only be initialized once.")
             configure(configuration)
-            configureSDK()
-           /* configureSession(with: configuration.sessionExpiryDuration)
-            if let crashConfig = configuration.crashTracking.configuration {
-                DispatchQueue.global(qos: .utility).async {
-                    configureCrashTracking(with: crashConfig)
-                    configureSignalCrash(with: crashConfig, debugLog: configuration.enableDebugLogging)
-                }
-            }
-          
-            configureMemoryWarning(with: configuration.enableMemoryWarning)
-            configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
-                                 interval: configuration.ANRWarningTimeInterval)
-            configureScreenTracking(with: configuration.enableScreenTracking)
-            configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
-            configureLaunchTime(with: configuration.enableLaunchTime)*/
+            self.configureSDK()
             initialized.toggle()
         }
     }
     
-    internal static func configureSDK() {
-        self.isEnableSDK = configRepo.isSDKEnabled()
-        if self.isEnableSDK {
-           self.enableSDK()
-       }else{
-           self.dissableSDK()
-       }
-   }
+    internal static func updateSDKState() {
+        self.configureSDK()
+    }
     
-    internal static func enableSDK() {
-        
-        screenTracker = BTTScreenLifecycleTracker()
-       
-        memoryWarningWatchDog?.stop()
-        memoryWarningWatchDog = MemoryWarningWatchDog(
-            session: {session()},
-            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
-                file: .requests,
-                logger: logger)),
-            logger: BlueTriangle.logger)
-        
-       anrWatchDog?.stop()
-       anrWatchDog = ANRWatchDog(
-            mainThreadObserver: MainThreadObserver.live,
-            session: {session()},
-            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
-                file: .requests,
-                logger: logger)),
-            logger: BlueTriangle.logger)
-        
-        sessionManager?.stop()
-        configureSession(with: configuration.sessionExpiryDuration)
+    private static func configureSDK() {
+        if self.isEnableSDK {
+            self.enableSDK()
+        }else{
+            self.disableSDK()
+        }
+    }
+    
+    private static func enableSDK() {
+               
+        configureSessionForMode(true, configuration.sessionExpiryDuration)
         
         if let crashConfig = configuration.crashTracking.configuration {
             DispatchQueue.global(qos: .utility).async {
-                configureCrashTracking(with: crashConfig)
-                configureSignalCrash(with: crashConfig, debugLog: configuration.enableDebugLogging)
+                if crashReportManager == nil{
+                    configureCrashTracking(with: crashConfig)
+                }
+                
+                if btcrashReport == nil{
+                    configureSignalCrash(with: crashConfig, debugLog: configuration.enableDebugLogging)
+                }
             }
         }
       
-        configureMemoryWarning(with: configuration.enableMemoryWarning)
-        configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
-                             interval: configuration.ANRWarningTimeInterval)
-        configureScreenTracking(with: configuration.enableScreenTracking)
-        configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
-        configureLaunchTime(with: configuration.enableLaunchTime)
+        if memoryWarningWatchDog == nil{
+            configureMemoryWarning(with: configuration.enableMemoryWarning)
+        }
+        
+        if anrWatchDog == nil{
+            configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
+                                 interval: configuration.ANRWarningTimeInterval)
+        }
 
+        if screenTracker == nil{
+            configureScreenTracking(with: configuration.enableScreenTracking)
+        }
+        
+        if monitorNetwork == nil{
+            configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
+        }
+        
+        if launchTimeReporter == nil{
+            configureLaunchTime(with: configuration.enableLaunchTime)
+        }
     }
     
-    internal static func dissableSDK() {
+    private static func disableSDK() {
         
-        //Stop ACK
-        sessionManager?.stop()
-        configureSession(with: configuration.sessionExpiryDuration)
-        
-        //Stop Launch Time
-        launchTimeReporter?.stop()
-        launchTimeReporter = nil
-        
-        //Stop Screen Tracking
-        UIViewController.removeSetUp()
-        screenTracker?.stop()
-        screenTracker = nil
+        configureSessionForMode(false, configuration.sessionExpiryDuration)
+                
+        //Stop Crash Reporting
+        crashReportManager?.stop()
+        crashReportManager = nil
+        btcrashReport?.stop()
+        btcrashReport = nil
         
         //Stop Memory Warning
         memoryWarningWatchDog?.stop()
@@ -419,13 +381,18 @@ extension BlueTriangle {
         anrWatchDog?.stop()
         anrWatchDog = nil
         
+        //Stop Screen Tracking
+        UIViewController.removeSetUp()
+        screenTracker?.stop()
+        screenTracker = nil
+        
         //Stop Network Status
         monitorNetwork?.stop()
         monitorNetwork = nil
         
-        //Stop Crash Reporting
-        crashReportManager?.stop()
-        crashReportManager = nil
+        //Stop Launch Time
+        launchTimeReporter?.stop()
+        launchTimeReporter = nil
     }
 
     // We want to allow multiple configurations for testing
@@ -805,6 +772,14 @@ extension BlueTriangle {
 //MARK: - ANR Tracking
 extension BlueTriangle{
     static func configureANRTracking(with enabled: Bool, enableStackTrace : Bool, interval: TimeInterval){
+        self.anrWatchDog = ANRWatchDog(
+            mainThreadObserver: MainThreadObserver.live,
+            session: {session()},
+            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
+                file: .requests,
+                logger: logger)),
+            logger: BlueTriangle.logger)
+        
         self.anrWatchDog?.errorTriggerInterval = interval
         self.anrWatchDog?.enableStackTrace = enableStackTrace
         if enabled {
@@ -818,6 +793,7 @@ extension BlueTriangle{
 // MARK: - Screen Tracking
 extension BlueTriangle{
     static func configureScreenTracking(with enabled: Bool){
+        screenTracker = BTTScreenLifecycleTracker()
         screenTracker?.setLifecycleTracker(enabled)
         screenTracker?.setUpLogger(logger)
         
@@ -847,7 +823,6 @@ extension BlueTriangle{
 
     static func configureLaunchTime(with enabled: Bool){
         if enabled {
-
             let launchMonitor = LaunchTimeMonitor(logger: logger)
             launchTimeReporter = LaunchTimeReporter(using: {session()},
                                                     uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
@@ -867,6 +842,12 @@ extension BlueTriangle{
     static func configureMemoryWarning(with enabled: Bool){
         if enabled {
 #if os(iOS)
+            memoryWarningWatchDog = MemoryWarningWatchDog(
+                session: {session()},
+                uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
+                    file: .requests,
+                    logger: logger)),
+                logger: BlueTriangle.logger)
             self.memoryWarningWatchDog?.start()
 #endif
         }
@@ -875,14 +856,22 @@ extension BlueTriangle{
 
 //MARK: - Session Expiry
 extension BlueTriangle{
-    static func configureSession(with expiry: Millisecond){
+    static func configureSessionForMode(_  isEnableSDK : Bool, _ expiry: Millisecond){
 #if os(iOS)
         if isEnableSDK{
+            if let _ = sessionManager as? SessionManager {
+                return
+            }
+            sessionManager?.stop()
             sessionManager = enabledModeSessionManager
             sessionManager?.start(with: expiry)
         }else{
+            if let _ = sessionManager as? DisableModeSessionManager {
+                return
+            }
+            sessionManager?.stop()
             sessionManager = disableModeSessionManager
-            disableModeSessionManager.start(with: expiry)
+            sessionManager?.start(with: expiry)
         }
 #endif
     }

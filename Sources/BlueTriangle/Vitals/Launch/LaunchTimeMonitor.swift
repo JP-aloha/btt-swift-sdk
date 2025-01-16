@@ -32,16 +32,27 @@ enum SystemEvent {
     case didBecomeActive(Date)
 }
 
- class LaunchTimeMonitor : ObservableObject{
+class LaunchTimeMonitor : ObservableObject{
     
     private let logger: Logging
     private var  systemEventLog = [SystemEvent]()
     internal var  launchEventPubliser = CurrentValueSubject<LaunchEvent?, Never>(nil)
     
+    private var launchObserver: NSObjectProtocol?
+    private var foregroundObserver: NSObjectProtocol?
+    private var activeObserver: NSObjectProtocol?
+    
     init(logger: Logging) {
         self.logger  = logger
+    }
+    
+    func start(){
         self.restoreNotificationLogs()
         self.registerNotifications()
+    }
+    
+    func stop(){
+        self.removeNotifications()
     }
     
     private func restoreNotificationLogs(){
@@ -117,20 +128,41 @@ extension LaunchTimeMonitor {
     
     private func registerNotifications() {
 #if os(iOS)
-        NotificationCenter.default.addObserver(forName: UIApplication.didFinishLaunchingNotification, object: nil, queue: nil) { notification in
+        launchObserver = NotificationCenter.default.addObserver(forName: UIApplication.didFinishLaunchingNotification, object: nil, queue: nil) { notification in
             self.processNonification(notification, date: Date())
         }
-        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
+        foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
             self.processNonification(notification, date: Date())
         }
-        NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { notification in
+        activeObserver = NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { notification in
             self.processNonification(notification, date: Date())
         }
         logger.info("Launch time monitor started listining to system event")
 #endif
         
     }
-
+    
+    private func removeNotifications() {
+#if os(iOS)
+        if let observer = launchObserver {
+             NotificationCenter.default.removeObserver(observer)
+            launchObserver = nil
+        }
+        
+        if let observer = foregroundObserver {
+             NotificationCenter.default.removeObserver(observer)
+            foregroundObserver = nil
+        }
+        
+        if let observer = activeObserver {
+             NotificationCenter.default.removeObserver(observer)
+            activeObserver = nil
+        }
+        logger.info("Launch time monitor started listining to system event")
+#endif
+        
+    }
+    
     private func notifyLaunchTime(){
         let firstEvent = self.systemEventLog.first
         let lastEvent = self.systemEventLog.last
