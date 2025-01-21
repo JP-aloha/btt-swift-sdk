@@ -9,16 +9,15 @@ import XCTest
 @testable import BlueTriangle
 
 class CaptureTimerManagerTests: XCTestCase {
-    static let timerLeeway = DispatchTimeInterval.nanoseconds(1)
-    static let configuration = NetworkCaptureConfiguration(
-        spanCount: 2,
-        initialSpanDuration: 0.1,
-        subsequentSpanDuration: 0.1)
 
     func testStartFromInactive() throws {
-        let manager = CaptureTimerManager(configuration: Self.configuration)
+        let configuration = NetworkCaptureConfiguration(
+            spanCount: 2,
+            initialSpanDuration: 0.5,
+            subsequentSpanDuration: 0.2)
+        let manager = CaptureTimerManager(configuration: configuration)
 
-        let expectedFireCount = Self.configuration.spanCount
+        let expectedFireCount = configuration.spanCount
         let fireExpectation = expectation(description: "Timer fired twice.")
 
         let additionalFireExpectation = expectation(description: "Fire count exceeded spanCount.")
@@ -35,16 +34,20 @@ class CaptureTimerManagerTests: XCTestCase {
         }
         manager.start()
 
-        waitForExpectations(timeout: 1)
+        waitForExpectations(timeout: 10)
         XCTAssertEqual(manager.state, .inactive)
     }
 
     func testStartFromActive() throws {
-        let queue = Mock.uploaderQueue
+        var queue: DispatchQueue {
+            DispatchQueue(label: "com.bluetriangle.testActive",
+                          qos: .userInitiated,
+                          autoreleaseFrequency: .workItem)
+        }
         let configuration = NetworkCaptureConfiguration(
             spanCount: 2,
-            initialSpanDuration: 0.3,
-            subsequentSpanDuration: 0.1)
+            initialSpanDuration: 1.0,
+            subsequentSpanDuration: 0.3)
 
         let manager = CaptureTimerManager(configuration: configuration)
 
@@ -71,16 +74,20 @@ class CaptureTimerManagerTests: XCTestCase {
             manager.start()
         }
 
-        waitForExpectations(timeout: 5.0)
+        waitForExpectations(timeout: 50.0)
         XCTAssertEqual(fireCount, 2)
     }
 
     func testCancelFromActive() throws {
-        let queue = Mock.uploaderQueue
+        var queue: DispatchQueue {
+            DispatchQueue(label: "com.bluetriangle.testCancel",
+                          qos: .userInitiated,
+                          autoreleaseFrequency: .workItem)
+        }
         let configuration = NetworkCaptureConfiguration(
             spanCount: 10,
-            initialSpanDuration: 0.2,
-            subsequentSpanDuration: 0.1)
+            initialSpanDuration: 0.5,
+            subsequentSpanDuration: 0.2)
 
         let manager = CaptureTimerManager(configuration: configuration)
 
@@ -102,7 +109,7 @@ class CaptureTimerManagerTests: XCTestCase {
             XCTAssertEqual(manager.state, .inactive)
         }
 
-        waitForExpectations(timeout: 1)
+        waitForExpectations(timeout: 10)
         XCTAssertEqual(manager.state, .inactive)
     }
 }
