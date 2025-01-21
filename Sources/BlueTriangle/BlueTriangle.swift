@@ -105,7 +105,7 @@ final public class BlueTriangle: NSObject {
         }
     }
     
-    internal static func refreshCaptureRequests(){
+    internal static func updateCaptureRequests(){
         shouldCaptureRequests = sessionData().shouldNetworkCapture
         if shouldCaptureRequests {
             if let _ = capturedRequestCollector {} else{
@@ -329,6 +329,8 @@ extension BlueTriangle {
                
         configureSessionForMode(true, configuration.sessionExpiryDuration)
         
+        self.updateCaptureRequests()
+        
         if let crashConfig = configuration.crashTracking.configuration {
             DispatchQueue.global(qos: .utility).async {
                 if crashReportManager == nil{
@@ -395,6 +397,9 @@ extension BlueTriangle {
         //Stop Launch Time
         launchTimeReporter?.stop()
         launchTimeReporter = nil
+        
+        //network capture
+        capturedRequestCollector = nil
     }
 
     // We want to allow multiple configurations for testing

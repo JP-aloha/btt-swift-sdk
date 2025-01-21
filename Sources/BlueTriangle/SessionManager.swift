@@ -185,7 +185,7 @@ extension SessionManager {
     
     private func manageSDKConfigureation(){
         self.syncStoredConfigToSession()
-        BlueTriangle.refreshCaptureRequests()
+        BlueTriangle.updateCaptureRequests()
         self.evaluateAndUpdateSDKState()
     }
 
