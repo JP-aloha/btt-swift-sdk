@@ -70,16 +70,16 @@ class BTTConfigurationRepo : ConfigurationRepo{
     }
     
     func isEnableAllTracking() -> Bool{
-        var isEnableAllTracking = defaultConfig.enableAllTracking ?? true
+        var enableAllTracking = defaultConfig.enableAllTracking ?? true
         do{
             guard let value = try get()?.enableAllTracking else {
-                return isEnableAllTracking
+                return enableAllTracking
             }
             
-            isEnableAllTracking = value
+            enableAllTracking = value
         }
         catch{}
-        return isEnableAllTracking
+        return enableAllTracking
     }
 }
 

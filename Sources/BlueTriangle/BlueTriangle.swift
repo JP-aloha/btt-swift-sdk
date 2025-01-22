@@ -30,7 +30,7 @@ final public class BlueTriangle: NSObject {
     private static var anrWatchDog : ANRWatchDog?
     private static var sessionManager : SessionManagerProtocol?
    
-    internal static var isEnableAllTracking: Bool = {
+    internal static var enableAllTracking: Bool = {
         let value = configRepo.isEnableAllTracking()
         return  value
     }()
@@ -42,15 +42,17 @@ final public class BlueTriangle: NSObject {
 
     internal static let disableModeSessionManager : SessionManagerProtocol = {
         let configFetcher  =  BTTConfigurationFetcher()
-        let configUpdater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: nil)
-        return DisableModeSessionManager(logger, configRepo, configUpdater)
+        let configSyncer = BTTStoredConfigSyncer(configRepo: configRepo, logger: logger)
+        let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: nil)
+        return DisableModeSessionManager(logger, configRepo, updater, configSyncer)
     }()
     
     internal static let enabledModeSessionManager : SessionManagerProtocol = {
         let configFetcher  =  BTTConfigurationFetcher()
+        let configSyncer = BTTStoredConfigSyncer(configRepo: configRepo, logger: logger)
         let configAck  =  RemoteConfigAckReporter(logger: logger, uploader: uploader)
-        let configUpdater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: configAck)
-        return SessionManager(logger, configRepo, configUpdater)
+        let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: configAck)
+        return SessionManager(logger, configRepo, updater, configSyncer)
     }()
     
     private static let lock = NSLock()
@@ -105,19 +107,20 @@ final public class BlueTriangle: NSObject {
         }
     }
     
-    internal static func updateCaptureRequests(){
+    internal static func updateCaptureRequests() {
         shouldCaptureRequests = sessionData().shouldNetworkCapture
+        
         if shouldCaptureRequests {
-            if let _ = capturedRequestCollector {} else{
+            if capturedRequestCollector == nil {
                 capturedRequestCollector = makeCapturedRequestCollector()
             }
-        }else{
+        } else {
             capturedRequestCollector = makeCapturedRequestCollector()
         }
+        
 #if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
 #endif
-        NSLog("BlueTriangle sample rate : %.2f - value : %@ ", configuration.networkSampleRate , shouldCaptureRequests ? "true" : "false")
     }
 
     private static var _session: Session = {
@@ -308,27 +311,24 @@ extension BlueTriangle {
     public static func configure(_ configure: (BlueTriangleConfiguration) -> Void) {
         lock.sync {
             configure(configuration)
-            self.configureSDK()
+            self.applyAllTrackerState()
             initialized.toggle()
         }
     }
     
-    internal static func updateSDKState() {
-        self.configureSDK()
-    }
-    
-    private static func configureSDK() {
-        if self.isEnableAllTracking {
-            self.enableSDK()
+    internal static func applyAllTrackerState() {
+        
+        self.configureSessionManager(forModeWithExpiry: configuration.sessionExpiryDuration)
+        
+        if self.enableAllTracking {
+            self.startAllTrackers()
         }else{
-            self.disableSDK()
+            self.stopAllTrackers()
         }
     }
     
-    private static func enableSDK() {
-               
-        configureSessionForMode(true, configuration.sessionExpiryDuration)
-        
+    private static func startAllTrackers() {
+                       
         self.updateCaptureRequests()
         
         if let crashConfig = configuration.crashTracking.configuration {
@@ -365,10 +365,11 @@ extension BlueTriangle {
         }
     }
     
-    private static func disableSDK() {
+    private static func stopAllTrackers() {
         
-        configureSessionForMode(false, configuration.sessionExpiryDuration)
-                
+        //network capture
+        capturedRequestCollector = nil
+        
         //Stop Crash Reporting
         crashReportManager?.stop()
         crashReportManager = nil
@@ -397,9 +398,6 @@ extension BlueTriangle {
         //Stop Launch Time
         launchTimeReporter?.stop()
         launchTimeReporter = nil
-        
-        //network capture
-        capturedRequestCollector = nil
     }
 
     // We want to allow multiple configurations for testing
@@ -485,7 +483,7 @@ public extension BlueTriangle {
     static func endTimer(_ timer: BTTimer, purchaseConfirmation: PurchaseConfirmation? = nil) {
         timer.end()
         
-        if isEnableAllTracking {
+        if enableAllTracking {
             purchaseConfirmation?.orderTime = timer.endTime
             let request: Request
             lock.lock()
@@ -863,9 +861,9 @@ extension BlueTriangle{
 
 //MARK: - Session Expiry
 extension BlueTriangle{
-    static func configureSessionForMode(_  isEnableSDK : Bool, _ expiry: Millisecond){
+    static func configureSessionManager(forModeWithExpiry expiry: Millisecond){
 #if os(iOS)
-        if isEnableSDK{
+        if self.enableAllTracking{
             if let _ = sessionManager as? SessionManager {
                 return
             }

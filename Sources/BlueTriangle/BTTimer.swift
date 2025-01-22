@@ -141,7 +141,7 @@ final public class BTTimer: NSObject {
     /// If already started, will log an error.
     @objc
     public func start() {
-        if BlueTriangle.isEnableAllTracking {
+        if BlueTriangle.enableAllTracking {
             BlueTriangle.addActiveTimer(self)
             handle(.start)
             self.startNetState()
@@ -161,7 +161,7 @@ final public class BTTimer: NSObject {
     /// End the timer.
     @objc
     public func end() {
-        if BlueTriangle.isEnableAllTracking {
+        if BlueTriangle.enableAllTracking {
             self.stopNetState()
             
             if let pm = performanceMonitor{

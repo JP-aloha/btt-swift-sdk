@@ -28,7 +28,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
         self.configAck = configAck
     }
     
-    func update(_ isNeedToUpdate : Bool, completion: @escaping () -> Void) {
+    func update(_ isForcedUpdate : Bool, completion: @escaping () -> Void) {
         
         var enableRemoteConfigAck = false
         
@@ -43,7 +43,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                 let timeIntervalSinceLastUpdate =  currentTime - savedConfig.dateSaved
                 
                 // Perform remote config update only if it's a new session or the update period has elapsed
-                if timeIntervalSinceLastUpdate < updatePeriod &&  !isNeedToUpdate {
+                if timeIntervalSinceLastUpdate < updatePeriod &&  !isForcedUpdate {
                    
                     self.logger?.info("BlueTriangle:BTTConfigurationUpdater - The update period has not yet elapsed.")
                     completion()

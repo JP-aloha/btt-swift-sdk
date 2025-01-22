@@ -26,6 +26,7 @@ class DisableModeSessionManager : SessionManagerProtocol {
     private let configRepo: BTTConfigurationRepo
     private let logger: Logging
     private let updater: BTTConfigurationUpdater
+    private let configSyncer: BTTStoredConfigSyncer
     private var isUpdatingConfig = false
     private var foregroundObserver: NSObjectProtocol?
     
@@ -35,11 +36,13 @@ class DisableModeSessionManager : SessionManagerProtocol {
     
      init(_ logger: Logging,
           _ configRepo : BTTConfigurationRepo,
-          _ updater : BTTConfigurationUpdater) {
+          _ updater : BTTConfigurationUpdater,
+          _ configSyncer : BTTStoredConfigSyncer) {
          
          self.logger = logger
          self.configRepo = configRepo
          self.updater = updater
+         self.configSyncer = configSyncer
      }
 
      public func start(with expiry : Millisecond){
@@ -80,6 +83,24 @@ class DisableModeSessionManager : SessionManagerProtocol {
              }
              .store(in: &cancellables)
      }
+     
+     private func updateRemoteConfig(){
+         queue.async { [weak self] in
+             self?.updater.update(true) {}
+         }
+     }
+     
+     private func manageSDKConfigureation(){
+         self.syncStoredConfigToSession()
+     }
+     
+     private func syncStoredConfigToSession(){
+         configSyncer.syncConfigurationFromStorage()
+         configSyncer.evaluateAndUpdateSDKState()
+     }
+}
+
+extension DisableModeSessionManager {
     
      private func removeConfigObserver(){
          if let observer = foregroundObserver {
@@ -92,30 +113,5 @@ class DisableModeSessionManager : SessionManagerProtocol {
              cancellable.cancel()
          }
          cancellables.removeAll()
-     }
-     
-     private func updateRemoteConfig(){
-         queue.async { [weak self] in
-             self?.updater.update(true) {}
-         }
-     }
-     
-     private func manageSDKConfigureation(){
-         self.evaluateAndUpdateSDKState()
-     }
-     
-     private func evaluateAndUpdateSDKState(){
-         do{
-             if let config = try configRepo.get(){
-                 let isEnable = config.enableAllTracking ?? true
-                 if BlueTriangle.initialized && isEnable != BlueTriangle.isEnableAllTracking{
-                     BlueTriangle.isEnableAllTracking = isEnable
-                     BlueTriangle.updateSDKState()
-                 }
-             }
-         }
-         catch {
-             logger.error("BlueTriangle:DisableModeSessionManager: Failed to retrieve remote configuration from the repository - \(error)")
-         }
      }
 }

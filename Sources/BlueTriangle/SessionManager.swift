@@ -36,17 +36,20 @@ class SessionManager : SessionManagerProtocol{
 
     private let configRepo: BTTConfigurationRepo
     private let updater: BTTConfigurationUpdater
+    private let configSyncer: BTTStoredConfigSyncer
     private let logger: Logging
     private var foregroundObserver: NSObjectProtocol?
     private var backgroundObserver: NSObjectProtocol?
     
     init(_ logger: Logging,
          _ configRepo : BTTConfigurationRepo,
-         _ updater : BTTConfigurationUpdater) {
+         _ updater : BTTConfigurationUpdater,
+         _ configSyncer : BTTStoredConfigSyncer) {
         
         self.logger = logger
         self.configRepo = configRepo
         self.updater = updater
+        self.configSyncer = configSyncer
     }
 
     public func start(with expiry : Millisecond){
@@ -155,11 +158,37 @@ extension SessionManager {
     
     private func updateRemoteConfig(){
         queue.async { [weak self] in
-            if let isNewSession = self?.currentSession?.isNewSession {
-                self?.updater.update(isNewSession) {}
+            if let isForcedUpdate = self?.currentSession?.isNewSession {
+                self?.updater.update(isForcedUpdate) {}
             }
         }
     }
+
+    private func manageSDKConfigureation(){
+        self.syncStoredConfigToSession()
+        BlueTriangle.updateCaptureRequests()
+    }
+
+    private func syncStoredConfigToSession(){
+                
+        if let session = currentSession {
+            if session.isNewSession{
+                configSyncer.syncConfigurationFromStorage()
+                session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
+                session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
+                session.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers
+                sessionStore.saveSession(session)
+            }else{
+                BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
+                BlueTriangle.updateIgnoreVcs(session.ignoreViewControllers)
+            }
+        }
+        
+        configSyncer.evaluateAndUpdateSDKState()
+    }
+}
+
+extension SessionManager {
     
     private func removeConfigObserver(){
         if let observer = foregroundObserver {
@@ -172,7 +201,7 @@ extension SessionManager {
         if let observer = backgroundObserver {
 #if os(iOS)
              NotificationCenter.default.removeObserver(observer)
-#endif           
+#endif
             backgroundObserver = nil
         }
         
@@ -181,82 +210,5 @@ extension SessionManager {
         }
         
         cancellables.removeAll()
-    }
-    
-    private func manageSDKConfigureation(){
-        self.syncStoredConfigToSession()
-        BlueTriangle.updateCaptureRequests()
-        self.evaluateAndUpdateSDKState()
-    }
-
-    private func syncStoredConfigToSession(){
-                
-        if let session = currentSession {
-            if session.isNewSession{
-                self.syncConfigurationFromStorage()
-                session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
-                session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
-                session.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers
-                sessionStore.saveSession(session)
-            }else{
-                BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
-                BlueTriangle.updateIgnoreVcs(session.ignoreViewControllers)
-            }
-        }
-    }
-    
-    // Updates the configuration values in the session by retrieving the latest configuration from storage.
-    private func syncConfigurationFromStorage(){
-        do{
-            if let config = try configRepo.get(){
-                
-                //Sync Sample Rate
-                let sampleRate = config.networkSampleRateSDK ?? configRepo.defaultConfig.networkSampleRateSDK
-                
-                if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
-                    BlueTriangle.updateNetworkSampleRate(1.0)
-                }
-                else if let rate = sampleRate{
-                    if rate == 0 {
-                        BlueTriangle.updateNetworkSampleRate(0.0)
-                    }else{
-                        BlueTriangle.updateNetworkSampleRate(Double(rate) / 100.0)
-                    }
-                }
-                
-               // Sync Ignore Screens
-                let ignoreScreens = config.ignoreScreens ?? configRepo.defaultConfig.ignoreScreens
-                
-                if let ignoreVcs = ignoreScreens{
-                                       
-                    var unianOfIgnoreScreens = Set(ignoreVcs)
-                    
-                    if let defaultScreens = configRepo.defaultConfig.ignoreScreens{
-                        unianOfIgnoreScreens = unianOfIgnoreScreens.union(Set(defaultScreens))
-                    }
-                   
-                    BlueTriangle.updateIgnoreVcs(unianOfIgnoreScreens)
-                }
-                
-            }
-        }catch{
-            logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
-        }
-    }
-    
-    private func evaluateAndUpdateSDKState(){
-        do{
-            if let config = try configRepo.get(){
-                let isEnable = config.enableAllTracking ?? true
-                if BlueTriangle.initialized && isEnable != BlueTriangle.isEnableAllTracking{
-                    BlueTriangle.isEnableAllTracking = isEnable
-                    BlueTriangle.updateSDKState()
-                }
-            }
-        }
-        catch {
-            logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
-        }
-        
     }
 }
