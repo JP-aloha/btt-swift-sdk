@@ -24,6 +24,18 @@ protocol SessionManagerProtocol  {
 
 import Combine
 
+/// A session manager responsible for managing session-related functionality in the SDK.
+///
+/// The `SessionManager` class is the primary component for handling session lifecycle events,
+/// such as starting, stopping, and tracking session durations. It serves as the foundation
+/// for session management when the SDK is in **enabled mode** and actively tracking user activity.
+///
+/// - Responsibilities:
+///   - Manages session lifecycle events (start, stop, and expiry).
+///
+/// - Note: This class is used when `enableAllTracking` is true, ensuring the SDK operates in
+///         full functionality mode.
+
 class SessionManager : SessionManagerProtocol{
     
     private var expirationDurationInMS: Millisecond = 30 * 60 * 1000
@@ -152,7 +164,7 @@ extension SessionManager {
         configRepo.$currentConfig
             .dropFirst()
             .sink { [weak self] changedConfig in
-                    self?.manageSDKConfigureation()
+                    self?.manageSDKConfiguration()
             }.store(in: &cancellables)
     }
     
@@ -164,7 +176,7 @@ extension SessionManager {
         }
     }
 
-    private func manageSDKConfigureation(){
+    private func manageSDKConfiguration(){
         self.syncStoredConfigToSession()
         BlueTriangle.updateCaptureRequests()
     }

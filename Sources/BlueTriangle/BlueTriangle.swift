@@ -179,7 +179,14 @@ final public class BlueTriangle: NSObject {
         sessionData().shouldNetworkCapture
     }()
     
-    /// A Boolean value indicating whether the SDK has been initialized.
+    /// A Boolean value indicating  whether the SDK has been successfully configured and initialized.
+    ///
+    /// - `true`: The SDK has been configured and is ready to function. This means
+    ///           that all necessary setup steps have been completed.
+    /// - `false`: The SDK has not been configured. In this state, the SDK will not
+    ///            function correctly, including the ability to fetch updates for the
+    ///            enable/disable state via the Remote Configuration Updater.
+    ///
     public private(set) static var initialized = false
     
     private static var capturedRequestCollector: CapturedRequestCollecting? = {
@@ -316,6 +323,17 @@ extension BlueTriangle {
         }
     }
     
+    /// Applies the appropriate tracker state based on the current configuration.
+    ///
+    /// This method ensures that all SDK trackers are either started or stopped,
+    /// depending on the `enableAllTracking` flag.
+    ///
+    /// - Behavior:
+    ///   - If `enableAllTracking` is true, all trackers are started to enable SDK functionality.
+    ///   - If `enableAllTracking` is false, all trackers are stopped to disable SDK functionality,
+    ///     except for the Remote Configuration Updater, which remains active.
+    ///
+    ///
     internal static func applyAllTrackerState() {
         
         self.configureSessionManager(forModeWithExpiry: configuration.sessionExpiryDuration)
@@ -327,6 +345,15 @@ extension BlueTriangle {
         }
     }
     
+    /// Starts all trackers to enable the full functionality of the SDK.
+    ///
+    /// This method is responsible for initializing and activating all tracking mechanisms
+    /// provided by the SDK. These include screen tracking, ANR detection, crash reporting,
+    /// memory warning observation, network activity monitoring, launch time tracking, and more.
+    ///
+    /// - Note: This method is called when `enableAllTracking` is true, indicating that
+    ///         the SDK should be fully operational.
+    ///
     private static func startAllTrackers() {
                        
         self.updateCaptureRequests()
@@ -365,6 +392,16 @@ extension BlueTriangle {
         }
     }
     
+    /// Stops all trackers to disable the functionality of the SDK.
+    ///
+    /// This method is responsible for deactivating all tracking mechanisms provided by the SDK,
+    /// including screen tracking, ANR detection, crash reporting, memory warning observation,
+    /// network activity monitoring, launch time tracking, and other related features.
+    ///
+    /// - Note: This method is called when `enableAllTracking` is false, ensuring that the SDK
+    ///         ceases all tracking activity. However, the **Remote Configuration Updater**
+    ///         remains active to monitor and update the enable/disable state.
+    ///
     private static func stopAllTrackers() {
         
         //network capture
@@ -861,6 +898,21 @@ extension BlueTriangle{
 
 //MARK: - Session Expiry
 extension BlueTriangle{
+    
+    /// The session manager is responsible for handling session-related functionality,
+    /// such as timing and lifecycle management.
+    ///
+    /// - Parameters:
+    ///   - expiry: The session expiry duration in milliseconds.
+    ///
+    /// - Behavior:
+    ///   - If `enableAllTracking` is true, the SDK uses `SessionManager` to handle
+    ///     session management for the active tracking mode.
+    ///   - If `enableAllTracking` is false, the SDK uses `DisableModeSessionManager` to manage
+    ///     session activity while tracking is disabled.
+    ///   - If the correct session manager is already set, no action is taken to avoid redundant reconfiguration.
+    ///
+    ///
     static func configureSessionManager(forModeWithExpiry expiry: Millisecond){
 #if os(iOS)
         if self.enableAllTracking{

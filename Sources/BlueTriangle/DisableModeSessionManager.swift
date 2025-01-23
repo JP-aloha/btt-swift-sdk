@@ -16,6 +16,17 @@ import SwiftUI
 
 import Combine
 
+/// A specialized session manager for handling the SDK's behavior in disabled mode.
+///
+/// This class is responsible for managing session-related functionality when the SDK
+/// is in **disabled mode**. In this mode, the SDK's features are turned off, and only
+/// the essential components, such as the **Remote Configuration Updater**, remain active.
+///
+/// - Responsibilities:
+///   - Ensures minimal overhead while maintaining the ability to monitor the remote configuration.
+///
+/// - Note: This session manager is used exclusively when `enableAllTracking` is false.
+///
 class DisableModeSessionManager : SessionManagerProtocol {
     
     private var expirationDurationInMS: Millisecond = 30 * 60 * 1000
@@ -79,7 +90,7 @@ class DisableModeSessionManager : SessionManagerProtocol {
          configRepo.$currentConfig
              .dropFirst()
              .sink { [weak self]  changedConfig in
-                 self?.manageSDKConfigureation()
+                 self?.manageSDKConfiguration()
              }
              .store(in: &cancellables)
      }
@@ -90,7 +101,7 @@ class DisableModeSessionManager : SessionManagerProtocol {
          }
      }
      
-     private func manageSDKConfigureation(){
+     private func manageSDKConfiguration(){
          self.syncStoredConfigToSession()
      }
      
