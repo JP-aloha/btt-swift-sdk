@@ -106,7 +106,6 @@ class DisableModeSessionManager : SessionManagerProtocol {
      }
      
      private func syncStoredConfigToSession(){
-         configSyncer.syncConfigurationFromStorage()
          configSyncer.evaluateAndUpdateSDKState()
      }
 }

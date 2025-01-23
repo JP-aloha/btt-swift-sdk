@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class ANRPerformanceMonitor : PerformanceMonitoring{
+class ANRPerformanceMonitor : PerformanceMonitoring{
     var measurementCount: Int = 0
     let logger: Logging
     private var maxRunningTime      : TimeInterval = 0

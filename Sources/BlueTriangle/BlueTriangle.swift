@@ -21,14 +21,85 @@ final public class BlueTriangle: NSObject {
     
     internal static var configuration = BlueTriangleConfiguration()
 
-    internal static var screenTracker : BTTScreenLifecycleTracker?
-    internal static var monitorNetwork: NetworkStateMonitorProtocol?
-    private static var appEventObserver: AppEventObserver?
-    private static var crashReportManager: CrashReportManaging?
-    private static var launchTimeReporter : LaunchTimeReporter?
-    private static var memoryWarningWatchDog : MemoryWarningWatchDog?
-    private static var anrWatchDog : ANRWatchDog?
-    private static var sessionManager : SessionManagerProtocol?
+    private static var _screenTracker: BTTScreenLifecycleTracker?
+    internal static var screenTracker: BTTScreenLifecycleTracker? {
+        get {
+            lock.sync { return _screenTracker }
+        }
+        set {
+            lock.sync { _screenTracker = newValue }
+        }
+    }
+    
+    private static var _monitorNetwork: NetworkStateMonitorProtocol?
+    internal static var monitorNetwork: NetworkStateMonitorProtocol?{
+        get {
+            lock.sync { return _monitorNetwork }
+        }
+        set {
+            lock.sync { _monitorNetwork = newValue }
+        }
+    }
+    
+    private static var _appEventObserver: AppEventObserver?
+    private static var appEventObserver: AppEventObserver?{
+        get {
+            lock.sync { return _appEventObserver }
+        }
+        set {
+            lock.sync { _appEventObserver = newValue }
+        }
+    }
+    
+    private static var _crashReportManager: CrashReportManaging?
+    private static var crashReportManager: CrashReportManaging?{
+        get {
+            lock.sync { return _crashReportManager }
+        }
+        set {
+            lock.sync { _crashReportManager = newValue }
+        }
+    }
+    
+    private static var _launchTimeReporter : LaunchTimeReporter?
+    private static var launchTimeReporter : LaunchTimeReporter?{
+        get {
+            lock.sync { return _launchTimeReporter }
+        }
+        set {
+            lock.sync { _launchTimeReporter = newValue }
+        }
+    }
+    
+    private static var _memoryWarningWatchDog : MemoryWarningWatchDog?
+    private static var memoryWarningWatchDog : MemoryWarningWatchDog?{
+        get {
+            lock.sync { return _memoryWarningWatchDog }
+        }
+        set {
+            lock.sync { _memoryWarningWatchDog = newValue }
+        }
+    }
+    
+    private static var _anrWatchDog : ANRWatchDog?
+    private static var anrWatchDog : ANRWatchDog?{
+        get {
+            lock.sync { return _anrWatchDog }
+        }
+        set {
+            lock.sync { _anrWatchDog = newValue }
+        }
+    }
+    
+    private static var _sessionManager : SessionManagerProtocol?
+    private static var sessionManager : SessionManagerProtocol?{
+        get {
+            lock.sync { return _sessionManager }
+        }
+        set {
+            lock.sync { _sessionManager = newValue }
+        }
+    }
    
     internal static var enableAllTracking: Bool = {
         let value = configRepo.isEnableAllTracking()
@@ -520,7 +591,7 @@ public extension BlueTriangle {
     static func endTimer(_ timer: BTTimer, purchaseConfirmation: PurchaseConfirmation? = nil) {
         timer.end()
         
-        if let _ = BlueTriangle.screenTracker {
+        if enableAllTracking {
             purchaseConfirmation?.orderTime = timer.endTime
             let request: Request
             lock.lock()
@@ -541,6 +612,11 @@ public extension BlueTriangle {
 public extension BlueTriangle {
     
     private static func _setCustomVariable(_ value: Any?, _ key: String) {
+        
+        guard enableAllTracking else{
+            return
+        }
+        
         if let value = value {
             do {
                 let anyValue = try AnyCodable(value)
@@ -554,6 +630,11 @@ public extension BlueTriangle {
     }
     
     private static func _getCustomVariable(_ key: String) -> String? {
+        
+        guard enableAllTracking else{
+            return nil
+        }
+        
         if let stringValue = self.metrics[key]?.stringValue {
             return stringValue
         } else if let doubleValue = self.metrics[key]?.doubleValue {
@@ -660,6 +741,11 @@ public extension BlueTriangle {
     ///
     @objc
     static func getCustomVariables() -> [String: String] {
+        
+        guard enableAllTracking else{
+            return [:]
+        }
+        
         var stringDict: [String: String] = [:]
         for (key, _) in self.metrics {
             if let stringValue = getCustomVariable(key){
@@ -675,6 +761,10 @@ public extension BlueTriangle {
     ///
     @objc
     static func clearCustomVariable(_ name : String){
+        guard enableAllTracking else{
+            return
+        }
+        
         self.metrics.removeValue(forKey: name)
     }
     
@@ -684,6 +774,11 @@ public extension BlueTriangle {
     ///
     @objc
     static func clearAllCustomVariables() {
+        
+        guard enableAllTracking else{
+            return
+        }
+        
         self.metrics = [:]
     }
 }

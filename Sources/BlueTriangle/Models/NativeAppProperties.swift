@@ -18,7 +18,7 @@ enum NativeAppType : CustomStringConvertible, Encodable, Decodable{
     case Regular
     case NST
     
-    public var description: String {
+    internal var description: String {
         switch self {
         case .Regular:
             return "regular"

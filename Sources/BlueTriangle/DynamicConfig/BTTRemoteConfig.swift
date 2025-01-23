@@ -31,7 +31,7 @@ class BTTRemoteConfig: Codable, Equatable {
         lhs.enableAllTracking == rhs.enableAllTracking
     }
     
-    public static var defaultConfig: BTTSavedRemoteConfig {
+    internal static var defaultConfig: BTTSavedRemoteConfig {
         BTTSavedRemoteConfig(networkSampleRateSDK: Int(BlueTriangle.configuration.networkSampleRate * 100),
                              enableRemoteConfigAck : false, 
                              enableAllTracking: true,

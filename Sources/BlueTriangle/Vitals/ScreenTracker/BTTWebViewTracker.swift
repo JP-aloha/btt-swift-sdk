@@ -14,9 +14,11 @@ public class BTTWebViewTracker {
     static var logger : Logging?
     private var webViews: [WeakWebView] = []
     private static let tracker = BTTWebViewTracker()
+    private static let enableAllTracking = BlueTriangle.enableAllTracking
   
     public static func webView( _ webView: WKWebView, didCommit navigation: WKNavigation!){
-        guard let _ = BlueTriangle.screenTracker else {
+        
+        guard enableAllTracking else{
             return
         }
         
@@ -28,8 +30,8 @@ public class BTTWebViewTracker {
     }
     
     public static func updateSessionId(_ sessionID : Identifier){
-        
-        guard let _ = BlueTriangle.screenTracker else {
+       
+        guard enableAllTracking else{
             return
         }
         
@@ -42,8 +44,8 @@ public class BTTWebViewTracker {
     }
 
     public static func verifySessionStitchingOnWebView( _ webView: WKWebView, completion: @escaping (String?, Error?) -> Void){
-
-        guard let _ = BlueTriangle.screenTracker else {
+        
+        guard enableAllTracking else{
             return
         }
         
@@ -58,7 +60,7 @@ public class BTTWebViewTracker {
         webView.evaluateJavaScript(bttJSVerificationTag) { (result, error) in
             
             if let isBttJSAvailable = result as? Bool{
-               
+                
                 if isBttJSAvailable {
                     
                     webView.evaluateJavaScript(bttJSSiteIdTag) { (result, error) in
@@ -110,7 +112,7 @@ public class BTTWebViewTracker {
             }
         }
 #else
-    completion(nil, nil)
+        completion(nil, nil)
 #endif
         
     }

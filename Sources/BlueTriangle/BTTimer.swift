@@ -78,6 +78,8 @@ final public class BTTimer: NSObject {
         default: return false
         }
     }
+    
+    let enableAllTracking = BlueTriangle.enableAllTracking
 
     var pageTimeInterval: PageTimeInterval {
         PageTimeInterval(
@@ -141,11 +143,13 @@ final public class BTTimer: NSObject {
     /// If already started, will log an error.
     @objc
     public func start() {
-        if let _ = BlueTriangle.screenTracker {
-            BlueTriangle.addActiveTimer(self)
-            handle(.start)
-            self.startNetState()
+        guard enableAllTracking else{
+            return
         }
+        
+        BlueTriangle.addActiveTimer(self)
+        handle(.start)
+        self.startNetState()
     }
 
     /// Mark the timer interactive at current time if the timer has been started and not
@@ -161,18 +165,21 @@ final public class BTTimer: NSObject {
     /// End the timer.
     @objc
     public func end() {
-        if let _ = BlueTriangle.screenTracker {
-            self.stopNetState()
-            
-            if let pm = performanceMonitor{
-                let pageName = self.page.pageName
-                let page = pm.debugDescription.replacingOccurrences(of: "PAGE NAME", with: pageName)
-                logger.info(page)
-            }
-            
-            BlueTriangle.removeActiveTimer(self)
-            handle(.end)
+        
+        guard enableAllTracking else{
+            return
         }
+        
+        self.stopNetState()
+        
+        if let pm = performanceMonitor{
+            let pageName = self.page.pageName
+            let page = pm.debugDescription.replacingOccurrences(of: "PAGE NAME", with: pageName)
+            logger.info(page)
+        }
+        
+        BlueTriangle.removeActiveTimer(self)
+        handle(.end)
     }
 
     private func handle(_ action: Action) {
