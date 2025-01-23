@@ -16,7 +16,7 @@ public class BTTWebViewTracker {
     private static let tracker = BTTWebViewTracker()
   
     public static func webView( _ webView: WKWebView, didCommit navigation: WKNavigation!){
-        guard BlueTriangle.enableAllTracking else {
+        guard let _ = BlueTriangle.screenTracker else {
             return
         }
         
@@ -29,7 +29,7 @@ public class BTTWebViewTracker {
     
     public static func updateSessionId(_ sessionID : Identifier){
         
-        guard BlueTriangle.enableAllTracking else {
+        guard let _ = BlueTriangle.screenTracker else {
             return
         }
         
@@ -43,7 +43,7 @@ public class BTTWebViewTracker {
 
     public static func verifySessionStitchingOnWebView( _ webView: WKWebView, completion: @escaping (String?, Error?) -> Void){
 
-        guard BlueTriangle.enableAllTracking else {
+        guard let _ = BlueTriangle.screenTracker else {
             return
         }
         

@@ -358,6 +358,10 @@ extension BlueTriangle {
                        
         self.updateCaptureRequests()
         
+        if launchTimeReporter == nil{
+            configureLaunchTime(with: configuration.enableLaunchTime)
+        }
+        
         if let crashConfig = configuration.crashTracking.configuration {
             DispatchQueue.global(qos: .utility).async {
                 if crashReportManager == nil{
@@ -386,10 +390,6 @@ extension BlueTriangle {
         if monitorNetwork == nil{
             configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
         }
-        
-        if launchTimeReporter == nil{
-            configureLaunchTime(with: configuration.enableLaunchTime)
-        }
     }
     
     /// Stops all trackers to disable the functionality of the SDK.
@@ -406,6 +406,10 @@ extension BlueTriangle {
         
         //network capture
         capturedRequestCollector = nil
+        
+        //Stop Launch Time
+        launchTimeReporter?.stop()
+        launchTimeReporter = nil
         
         //Stop Crash Reporting
         crashReportManager?.stop()
@@ -431,10 +435,6 @@ extension BlueTriangle {
         //Stop Network Status
         monitorNetwork?.stop()
         monitorNetwork = nil
-        
-        //Stop Launch Time
-        launchTimeReporter?.stop()
-        launchTimeReporter = nil
     }
 
     // We want to allow multiple configurations for testing
@@ -520,7 +520,7 @@ public extension BlueTriangle {
     static func endTimer(_ timer: BTTimer, purchaseConfirmation: PurchaseConfirmation? = nil) {
         timer.end()
         
-        if enableAllTracking {
+        if let _ = BlueTriangle.screenTracker {
             purchaseConfirmation?.orderTime = timer.endTime
             let request: Request
             lock.lock()
