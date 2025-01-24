@@ -120,7 +120,7 @@ class SessionManager : SessionManagerProtocol{
             let session = SessionData(expiration: expiryDuration())
             session.isNewSession = true
             currentSession = session
-            syncStoredConfigToSession()
+            syncStoredConfigToSessionAndApply()
             sessionStore.saveSession(session)
             logger.info("BlueTriangle:SessionManager: New session \(session.sessionID) has been created")
             
@@ -132,7 +132,7 @@ class SessionManager : SessionManagerProtocol{
                 let session = sessionStore.retrieveSessionData()
                 session!.isNewSession = false
                 currentSession = session
-                syncStoredConfigToSession()
+                syncStoredConfigToSessionAndApply()
                 sessionStore.saveSession(session!)
                 return session!
             }
@@ -164,7 +164,7 @@ extension SessionManager {
         configRepo.$currentConfig
             .dropFirst()
             .sink { [weak self] changedConfig in
-                    self?.manageSDKConfiguration()
+                    self?.updateConfigurationOnChange()
             }.store(in: &cancellables)
     }
     
@@ -176,12 +176,13 @@ extension SessionManager {
         }
     }
 
-    private func manageSDKConfiguration(){
-        self.syncStoredConfigToSession()
+    private func updateConfigurationOnChange(){
+        self.syncStoredConfigToSessionAndApply()
         BlueTriangle.updateCaptureRequests()
+        configSyncer.updateAndApplySDKState()
     }
 
-    private func syncStoredConfigToSession(){
+    private func syncStoredConfigToSessionAndApply(){
                 
         if let session = currentSession {
             if session.isNewSession{
@@ -195,8 +196,6 @@ extension SessionManager {
                 BlueTriangle.updateIgnoreVcs(session.ignoreViewControllers)
             }
         }
-        
-        configSyncer.evaluateAndUpdateSDKState()
     }
 }
 

@@ -84,7 +84,7 @@ class BTTStoredConfigSyncer {
     /// - Notes:
     ///   - This method ensures that the SDK's behavior is in sync with the remote configuration
     ///
-    func evaluateAndUpdateSDKState(){
+    func updateAndApplySDKState(){
         do{
             if let config = try configRepo.get(){
                 let isEnable = config.enableAllTracking ?? true

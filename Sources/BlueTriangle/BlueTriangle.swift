@@ -20,86 +20,15 @@ typealias SessionProvider = () -> Session
 final public class BlueTriangle: NSObject {
     
     internal static var configuration = BlueTriangleConfiguration()
-
-    private static var _screenTracker: BTTScreenLifecycleTracker?
-    internal static var screenTracker: BTTScreenLifecycleTracker? {
-        get {
-            lock.sync { return _screenTracker }
-        }
-        set {
-            lock.sync { _screenTracker = newValue }
-        }
-    }
+    internal static var screenTracker: BTTScreenLifecycleTracker?
+    internal static var monitorNetwork: NetworkStateMonitorProtocol?
     
-    private static var _monitorNetwork: NetworkStateMonitorProtocol?
-    internal static var monitorNetwork: NetworkStateMonitorProtocol?{
-        get {
-            lock.sync { return _monitorNetwork }
-        }
-        set {
-            lock.sync { _monitorNetwork = newValue }
-        }
-    }
-    
-    private static var _appEventObserver: AppEventObserver?
-    private static var appEventObserver: AppEventObserver?{
-        get {
-            lock.sync { return _appEventObserver }
-        }
-        set {
-            lock.sync { _appEventObserver = newValue }
-        }
-    }
-    
-    private static var _crashReportManager: CrashReportManaging?
-    private static var crashReportManager: CrashReportManaging?{
-        get {
-            lock.sync { return _crashReportManager }
-        }
-        set {
-            lock.sync { _crashReportManager = newValue }
-        }
-    }
-    
-    private static var _launchTimeReporter : LaunchTimeReporter?
-    private static var launchTimeReporter : LaunchTimeReporter?{
-        get {
-            lock.sync { return _launchTimeReporter }
-        }
-        set {
-            lock.sync { _launchTimeReporter = newValue }
-        }
-    }
-    
-    private static var _memoryWarningWatchDog : MemoryWarningWatchDog?
-    private static var memoryWarningWatchDog : MemoryWarningWatchDog?{
-        get {
-            lock.sync { return _memoryWarningWatchDog }
-        }
-        set {
-            lock.sync { _memoryWarningWatchDog = newValue }
-        }
-    }
-    
-    private static var _anrWatchDog : ANRWatchDog?
-    private static var anrWatchDog : ANRWatchDog?{
-        get {
-            lock.sync { return _anrWatchDog }
-        }
-        set {
-            lock.sync { _anrWatchDog = newValue }
-        }
-    }
-    
-    private static var _sessionManager : SessionManagerProtocol?
-    private static var sessionManager : SessionManagerProtocol?{
-        get {
-            lock.sync { return _sessionManager }
-        }
-        set {
-            lock.sync { _sessionManager = newValue }
-        }
-    }
+    private static var appEventObserver: AppEventObserver?
+    private static var crashReportManager: CrashReportManaging?
+    private static var launchTimeReporter : LaunchTimeReporter?
+    private static var memoryWarningWatchDog : MemoryWarningWatchDog?
+    private static var anrWatchDog : ANRWatchDog?
+    private static var sessionManager : SessionManagerProtocol?
    
     internal static var enableAllTracking: Bool = {
         let value = configRepo.isEnableAllTracking()
@@ -387,11 +316,11 @@ extension BlueTriangle {
     /// - Parameter configure: A closure that enables mutation of the Blue Triangle SDK configuration.
     @objc
     public static func configure(_ configure: (BlueTriangleConfiguration) -> Void) {
-        lock.sync {
+       // lock.sync {
             configure(configuration)
             self.applyAllTrackerState()
             initialized.toggle()
-        }
+        //}
     }
     
     /// Applies the appropriate tracker state based on the current configuration.
@@ -406,13 +335,14 @@ extension BlueTriangle {
     ///
     ///
     internal static func applyAllTrackerState() {
-        
-        self.configureSessionManager(forModeWithExpiry: configuration.sessionExpiryDuration)
-        
-        if self.enableAllTracking {
-            self.startAllTrackers()
-        }else{
-            self.stopAllTrackers()
+        lock.sync {
+            self.configureSessionManager(forModeWithExpiry: configuration.sessionExpiryDuration)
+            
+            if self.enableAllTracking {
+                self.startAllTrackers()
+            }else{
+                self.stopAllTrackers()
+            }
         }
     }
     
@@ -609,7 +539,7 @@ public extension BlueTriangle {
 }
 
 // MARK: - Custom Metrics
-public extension BlueTriangle {
+public extension BlueTriangle{
     
     private static func _setCustomVariable(_ value: Any?, _ key: String) {
         

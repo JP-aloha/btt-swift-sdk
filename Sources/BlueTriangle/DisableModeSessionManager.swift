@@ -90,7 +90,7 @@ class DisableModeSessionManager : SessionManagerProtocol {
          configRepo.$currentConfig
              .dropFirst()
              .sink { [weak self]  changedConfig in
-                 self?.manageSDKConfiguration()
+                 self?.updateConfigurationOnChange()
              }
              .store(in: &cancellables)
      }
@@ -101,12 +101,8 @@ class DisableModeSessionManager : SessionManagerProtocol {
          }
      }
      
-     private func manageSDKConfiguration(){
-         self.syncStoredConfigToSession()
-     }
-     
-     private func syncStoredConfigToSession(){
-         configSyncer.evaluateAndUpdateSDKState()
+     private func updateConfigurationOnChange(){
+         configSyncer.updateAndApplySDKState()
      }
 }
 
