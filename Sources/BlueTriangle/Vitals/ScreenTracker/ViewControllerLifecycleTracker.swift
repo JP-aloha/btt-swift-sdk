@@ -110,7 +110,7 @@ extension UIViewController{
         }
         
        // Ignore any view controllers explicitly listed in a developer exclusion list or remote config ignore list
-        if BlueTriangle.sessionData().ignoreViewControllers.contains(selfClassName) {
+        if let sessionData = BlueTriangle.sessionData(), sessionData.ignoreViewControllers.contains(selfClassName) {
             return false
         }
         

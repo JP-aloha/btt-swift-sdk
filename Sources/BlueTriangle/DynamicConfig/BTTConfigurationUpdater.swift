@@ -15,7 +15,7 @@ protocol ConfigurationUpdater {
 
 class BTTConfigurationUpdater : ConfigurationUpdater {
     
-    private let updatePeriod: Millisecond = .hour
+    private let updatePeriod: Millisecond = 0//.hour
     private let configFetcher : ConfigurationFetcher
     private let configRepo : ConfigurationRepo
     private let logger : Logging?
@@ -68,7 +68,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                         self.reportAck(enableRemoteConfigAck, config, nil)
                     }
                     
-                    self.logger?.info("BlueTriangle:BTTConfigurationUpdater - Remote config fetched successfully \(config.networkSampleRateSDK ?? 0) - sdk \(config.enableAllTracking ?? true ? "true" : "fslse")")
+                    self.logger?.info("BlueTriangle:BTTConfigurationUpdater - Remote config fetched successfully \(config.networkSampleRateSDK ?? 0) - sdk \(config.enableAllTracking ?? true ? "true" : "false")")
                 }
                 catch{
                     self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to save fetch remote config: \(error.localizedDescription)")

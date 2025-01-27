@@ -74,9 +74,8 @@ class DisableModeSessionManager : SessionManagerProtocol {
          self.observeRemoteConfig()
      }
      
-    func getSessionData() -> SessionData {
-        let sessionData = SessionData.init(expiration: 0)
-        return sessionData
+    func getSessionData() -> SessionData? {
+        return nil
     }
     
     private func onLaunch(){
@@ -109,15 +108,18 @@ class DisableModeSessionManager : SessionManagerProtocol {
 extension DisableModeSessionManager {
     
      private func removeConfigObserver(){
+        
          if let observer = foregroundObserver {
 #if os(iOS)
              NotificationCenter.default.removeObserver(observer)
 #endif
              foregroundObserver = nil
          }
+         
          self.cancellables.forEach { cancellable in
              cancellable.cancel()
          }
+         
          cancellables.removeAll()
      }
 }

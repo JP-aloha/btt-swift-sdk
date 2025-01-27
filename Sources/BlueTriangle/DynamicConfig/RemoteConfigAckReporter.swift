@@ -24,14 +24,15 @@ class RemoteConfigAckReporter {
     func reportSuccessAck(){
         queue.async {
             do {
-                let session = BlueTriangle.session()
-                let pageName = "BTTConfigUpdate"
-                let pageGroup = "BTTConfigUpdate"
-                let trafficSegment = "BTTConfigUpdate"
-                try self.upload(session: session,
-                                pageName: pageName,
-                                pageGroup: pageGroup,
-                                trafficSegment: trafficSegment)
+                if let session = BlueTriangle.session() {
+                    let pageName = "BTTConfigUpdate"
+                    let pageGroup = "BTTConfigUpdate"
+                    let trafficSegment = "BTTConfigUpdate"
+                    try self.upload(session: session,
+                                    pageName: pageName,
+                                    pageGroup: pageGroup,
+                                    trafficSegment: trafficSegment)
+                }
             }catch {
                 self.logger.error("BlueTriangle:RemoteConfigAckReporter: Fail to upload success Ack -\(error.localizedDescription)")
             }
@@ -41,17 +42,18 @@ class RemoteConfigAckReporter {
     func reportFailAck(_ error : String){
         queue.async {
             do {
-                let session = BlueTriangle.session()
-                let pageName = "BTTConfigUpdate"
-                let pageGroup = "BTTConfigUpdate"
-                let trafficSegment = "BTTConfigUpdate"
-                let message = "\(BT_ErrorType.BTTConfigUpdateError.rawValue) : \(error)"
-                let crashReport = CrashReport(errorType : BT_ErrorType.BTTConfigUpdateError, sessionID: session.sessionID, message: message, pageName: pageName)
-                try self.upload(session: session,
-                                report: crashReport.report,
-                                pageName: pageName,
-                                pageGroup: pageGroup,
-                                trafficSegment: trafficSegment)
+                if let session = BlueTriangle.session(){
+                    let pageName = "BTTConfigUpdate"
+                    let pageGroup = "BTTConfigUpdate"
+                    let trafficSegment = "BTTConfigUpdate"
+                    let message = "\(BT_ErrorType.BTTConfigUpdateError.rawValue) : \(error)"
+                    let crashReport = CrashReport(errorType : BT_ErrorType.BTTConfigUpdateError, sessionID: session.sessionID, message: message, pageName: pageName)
+                    try self.upload(session: session,
+                                    report: crashReport.report,
+                                    pageName: pageName,
+                                    pageGroup: pageGroup,
+                                    trafficSegment: trafficSegment)
+                }
                 
             }catch {
                 self.logger.error("BlueTriangle:RemoteConfigAckReporter: Fail to upload fail Ack -\(error.localizedDescription)")

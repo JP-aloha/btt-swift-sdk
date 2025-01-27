@@ -66,7 +66,7 @@ public extension View {
         setUpViewType()
         
         // Ignore any view explicitly listed in a developer exclusion list or remote config ignore list
-        if BlueTriangle.sessionData().ignoreViewControllers.contains(name) {
+        if let sessionData = BlueTriangle.sessionData(), sessionData.ignoreViewControllers.contains(name) {
              return false
          }
         

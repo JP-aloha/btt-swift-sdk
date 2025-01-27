@@ -17,7 +17,7 @@ import SwiftUI
 
 protocol SessionManagerProtocol  {
     func start(with expiry : Millisecond)
-    func getSessionData() -> SessionData
+    func getSessionData() -> SessionData?
     func stop()
 }
 
@@ -72,6 +72,7 @@ class SessionManager : SessionManagerProtocol{
     public func stop(){
         self.removeConfigObserver()
         self.sessionStore.removeSessionData()
+        self.currentSession = nil
     }
     
     private func resisterObserver() {
@@ -141,7 +142,7 @@ class SessionManager : SessionManagerProtocol{
         }
     }
     
-    public func getSessionData() -> SessionData {
+    public func getSessionData() -> SessionData? {
         lock.sync {
             let updatedSession = self.invalidateSession()
             return updatedSession
@@ -149,7 +150,9 @@ class SessionManager : SessionManagerProtocol{
     }
     
     private func updateSession(){
-        BlueTriangle.updateSession(getSessionData())
+        if let seesion = getSessionData(){
+            BlueTriangle.updateSession(seesion)
+        }
     }
     
     private func expiryDuration()-> Millisecond {
