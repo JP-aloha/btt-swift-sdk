@@ -137,6 +137,7 @@ public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     }
     
     func stop(){
+        UIViewController.removeSetUp()
         NotificationCenter.default.removeObserver(self)
     }
 }

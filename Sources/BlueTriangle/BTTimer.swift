@@ -216,7 +216,7 @@ final public class BTTimer: NSObject {
 
 extension BTTimer{
     func startNetState(){
-        if let monitor = BlueTriangle.monitorNetwork{
+        if let monitor = BlueTriangle.networkStateMonitor{
             self.networkAccumulator = BTTimerNetStateAccumulator(monitor)
             self.networkAccumulator?.start()
         }

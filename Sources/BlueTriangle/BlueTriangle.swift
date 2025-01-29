@@ -20,15 +20,95 @@ typealias SessionProvider = () -> Session
 final public class BlueTriangle: NSObject {
     
     internal static var configuration = BlueTriangleConfiguration()
-    internal static var screenTracker: BTTScreenLifecycleTracker?
-    internal static var monitorNetwork: NetworkStateMonitorProtocol?
     
-    private static var appEventObserver: AppEventObserver?
-    private static var crashReportManager: CrashReportManaging?
-    private static var launchTimeReporter : LaunchTimeReporter?
-    private static var memoryWarningWatchDog : MemoryWarningWatchDog?
-    private static var anrWatchDog : ANRWatchDog?
-    private static var sessionManager : SessionManagerProtocol?
+    private static var _screenTracker: BTTScreenLifecycleTracker?
+    internal static var screenTracker: BTTScreenLifecycleTracker?{
+        get {
+            trackingLock.sync { _screenTracker }
+        }
+        set{
+            trackingLock.sync { _screenTracker = newValue }
+        }
+    }
+    private static var _networkStateMonitor: NetworkStateMonitorProtocol?
+    internal static var networkStateMonitor: NetworkStateMonitorProtocol?{
+        get {
+            trackingLock.sync { _networkStateMonitor }
+        }
+        set{
+            trackingLock.sync { _networkStateMonitor = newValue }
+        }
+    }
+    
+    private static var _appEventObserver: AppEventObserver?
+    internal static var appEventObserver: AppEventObserver?{
+        get {
+            trackingLock.sync { _appEventObserver }
+        }
+        set{
+            trackingLock.sync { _appEventObserver = newValue }
+        }
+    }
+    
+    private static var _nsExeptionReporter: CrashReportManaging?
+    private static var nsExeptionReporter: CrashReportManaging?{
+        get {
+            trackingLock.sync { _nsExeptionReporter }
+        }
+        set{
+            trackingLock.sync { _nsExeptionReporter = newValue }
+        }
+    }
+    
+    private static var _signalCrashReporter: BTSignalCrashReporter?
+    internal static var signalCrashReporter: BTSignalCrashReporter?{
+        get {
+            trackingLock.sync { _signalCrashReporter }
+        }
+        set{
+            trackingLock.sync { _signalCrashReporter = newValue }
+        }
+    }
+    
+    private static var _launchTimeReporter : LaunchTimeReporter?
+    internal static var launchTimeReporter : LaunchTimeReporter?{
+        get {
+            trackingLock.sync { _launchTimeReporter }
+        }
+        set{
+            trackingLock.sync { _launchTimeReporter = newValue }
+        }
+    }
+    
+    private static var _memoryWarningWatchDog : MemoryWarningWatchDog?
+    internal static var memoryWarningWatchDog : MemoryWarningWatchDog?{
+        get {
+            trackingLock.sync { _memoryWarningWatchDog }
+        }
+        set{
+            trackingLock.sync { _memoryWarningWatchDog = newValue }
+        }
+    }
+    
+    private static var _anrWatchDog : ANRWatchDog?
+    internal static var anrWatchDog : ANRWatchDog?{
+        get {
+            trackingLock.sync { _anrWatchDog }
+        }
+        set{
+            trackingLock.sync { _anrWatchDog = newValue }
+        }
+    }
+    
+    private static var _sessionManager : SessionManagerProtocol?
+    private static var sessionManager : SessionManagerProtocol?{
+        get {
+            trackingLock.sync { _sessionManager }
+        }
+        set{
+            trackingLock.sync { _sessionManager = newValue }
+        }
+    }
    
     internal static var enableAllTracking: Bool = {
         let value = configRepo.isEnableAllTracking()
@@ -56,6 +136,7 @@ final public class BlueTriangle: NSObject {
     }()
     
     private static let lock = NSLock()
+    private static let trackingLock = NSRecursiveLock()
     private static var activeTimers = [BTTimer]()
 #if os(iOS)
     private static let matricKitWatchDog = MetricKitWatchDog()
@@ -122,10 +203,6 @@ final public class BlueTriangle: NSObject {
             BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
 #endif
         }
-    }
-
-    private static func resetSession() {
-        _session = configuration.makeSession()
     }
     
     private static var _session: Session? = {
@@ -204,6 +281,7 @@ final public class BlueTriangle: NSObject {
         PayloadCache.init(configuration.cacheMemoryLimit,
                           expiry: configuration.cacheExpiryDuration)
     }()
+    
     
     /// Blue Triangle Technologies-assigned site ID.
     @objc public static var siteID: String {
@@ -314,6 +392,150 @@ final public class BlueTriangle: NSObject {
     }
 }
 
+extension BlueTriangle {
+    
+    // Starts a session if it's not already started
+    private static func startSession(){
+        if _session == nil{
+            _session = configuration.makeSession()
+        }
+        
+        logger.info("BlueTriangle :: Session has started.")
+    }
+    
+    // Ends the current session and logs the action
+    private static func endSession(){
+        _session = nil
+        logger.info("BlueTriangle :: Session was ended due to SDK disable.")
+    }
+    
+    // Starts HTTP network capture and updates capture requests
+    private static func startHttpNetworkCapture(){
+        self.updateCaptureRequests()
+        logger.info("BlueTriangle :: HTTP network capture has started.")
+    }
+    
+    // Stops HTTP network capture and clears captured requests
+    private static func stopHttpNetworkCapture(){
+        capturedRequestCollector = nil
+        
+        logger.info("BlueTriangle :: HTTP network capture was stopped due to SDK disable.")
+    }
+    
+    // Starts launch time collection and reporting if not already configured
+    private static func startLaunchTime(){
+        if launchTimeReporter == nil{
+            configureLaunchTime(with: configuration.enableLaunchTime)
+        }
+        
+        logger.info("BlueTriangle :: Launch time collection and reporting has started.")
+    }
+    
+    // Stops launch time collection and reporting
+    private static func stopLaunchTime(){
+        launchTimeReporter?.stop()
+        launchTimeReporter = nil
+        
+        logger.info("BlueTriangle :: Launch time collection and reporting were stopped due to SDK disable.")
+    }
+    
+    // Starts crash tracking for both exceptions and signals
+    private static func startNsAndSignalCrashTracking(){
+        if let crashConfig = configuration.crashTracking.configuration {
+            DispatchQueue.global(qos: .utility).async {
+                if nsExeptionReporter == nil{
+                    configureCrashTracking(with: crashConfig)
+                }
+                
+                if signalCrashReporter == nil{
+                    configureSignalCrash(with: crashConfig, debugLog: configuration.enableDebugLogging)
+                }
+            }
+        }
+        
+        logger.info("BlueTriangle :: Crash tracking has started.")
+    }
+    
+    // Stops crash tracking for both exceptions and signals
+    private static func stopNsAndSignalCrashTracking(){
+        nsExeptionReporter?.stop()
+        nsExeptionReporter = nil
+        signalCrashReporter?.stop()
+        signalCrashReporter = nil
+        
+        logger.info("BlueTriangle :: Crash tracking was stopped due to SDK disable.")
+    }
+    
+    // Starts memory warning tracking if not already configured
+    private static func startMemoryWarning(){
+        if memoryWarningWatchDog == nil{
+            configureMemoryWarning(with: configuration.enableMemoryWarning)
+        }
+        
+        logger.info("BlueTriangle :: Memory warning tracking has started.")
+    }
+    
+    // Stops memory warning tracking
+    private static func stopMemoryWarning(){
+        memoryWarningWatchDog?.stop()
+        memoryWarningWatchDog = nil
+        
+        logger.info("BlueTriangle :: Memory warning tracking was stopped due to SDK disable.")
+    }
+    
+    // Starts ANR tracking if not already configured
+    private static func startANR(){
+        if anrWatchDog == nil{
+            configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
+                                 interval: configuration.ANRWarningTimeInterval)
+        }
+        
+        logger.info("BlueTriangle :: ANR tracking has started.")
+    }
+    
+    // Stops ANR tracking
+    private static func stopANR(){
+        anrWatchDog?.stop()
+        anrWatchDog = nil
+        
+        logger.info("BlueTriangle :: ANR tracking was stopped due to SDK disable.")
+    }
+    
+    // Starts screen tracking if not already configured
+    private static func startScreenTracking(){
+        if screenTracker == nil{
+            configureScreenTracking(with: configuration.enableScreenTracking)
+        }
+        
+        logger.info("BlueTriangle :: Screen tracking has started.")
+    }
+    
+    // Stops screen tracking
+    private static func stopScreenTracking(){
+        screenTracker?.stop()
+        screenTracker = nil
+        
+        logger.info("BlueTriangle :: Screen tracking was stopped due to SDK disable.")
+    }
+    
+    // Starts network state tracking if not already configured
+    private static func startNetworkStatus(){
+        if networkStateMonitor == nil{
+            configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
+        }
+        
+        logger.info("BlueTriangle :: Network state tracking has started.")
+    }
+    
+    // Stops network state tracking
+    private static func stopNetworkStatus(){
+        networkStateMonitor?.stop()
+        networkStateMonitor = nil
+        
+        logger.info("BlueTriangle :: Network state tracking was stopped due to SDK disable.")
+    }
+}
+
 // MARK: - Configuration
 extension BlueTriangle {
 
@@ -321,11 +543,15 @@ extension BlueTriangle {
     /// - Parameter configure: A closure that enables mutation of the Blue Triangle SDK configuration.
     @objc
     public static func configure(_ configure: (BlueTriangleConfiguration) -> Void) {
-       // lock.sync {
+        lock.sync {
             configure(configuration)
-            self.applyAllTrackerState()
+        }
+        
+        self.applyAllTrackerState()
+        
+        lock.sync {
             initialized.toggle()
-        //}
+        }
     }
     
     /// Applies the appropriate tracker state based on the current configuration.
@@ -341,10 +567,13 @@ extension BlueTriangle {
     ///
     internal static func applyAllTrackerState() {
         lock.sync {
+            
             self.configureSessionManager(forModeWithExpiry: configuration.sessionExpiryDuration)
+            
             if self.enableAllTracking {
                 self.startAllTrackers()
-            }else{
+            }
+            else{
                 self.stopAllTrackers()
             }
         }
@@ -360,45 +589,18 @@ extension BlueTriangle {
     ///         the SDK should be fully operational.
     ///
     private static func startAllTrackers() {
+    
+        logger.info("BlueTriangle ::  SDK is in enabled mode.")
         
-        if _session == nil{
-            self.resetSession()
-        }
+        self.startSession()
+        self.startHttpNetworkCapture()
+        self.startLaunchTime()
+        self.startNsAndSignalCrashTracking()
+        self.startMemoryWarning()
+        self.startANR()
+        self.startScreenTracking()
+        self.startNetworkStatus()
         
-        self.updateCaptureRequests()
-
-        if launchTimeReporter == nil{
-            configureLaunchTime(with: configuration.enableLaunchTime)
-        }
-        
-        if let crashConfig = configuration.crashTracking.configuration {
-            DispatchQueue.global(qos: .utility).async {
-                if crashReportManager == nil{
-                    configureCrashTracking(with: crashConfig)
-                }
-                
-                if btcrashReport == nil{
-                    configureSignalCrash(with: crashConfig, debugLog: configuration.enableDebugLogging)
-                }
-            }
-        }
-      
-        if memoryWarningWatchDog == nil{
-            configureMemoryWarning(with: configuration.enableMemoryWarning)
-        }
-        
-        if anrWatchDog == nil{
-            configureANRTracking(with: configuration.ANRMonitoring, enableStackTrace: configuration.ANRStackTrace,
-                                 interval: configuration.ANRWarningTimeInterval)
-        }
-
-        if screenTracker == nil{
-            configureScreenTracking(with: configuration.enableScreenTracking)
-        }
-        
-        if monitorNetwork == nil{
-            configureMonitoringNetworkState(with: configuration.enableTrackingNetworkState)
-        }
     }
     
     /// Stops all trackers to disable the functionality of the SDK.
@@ -413,41 +615,16 @@ extension BlueTriangle {
     ///
     private static func stopAllTrackers() {
         
-        if _session != nil{
-            self.resetSession()
-        }
+        logger.info("BlueTriangle :: SDK is in disabled mode.")
         
-        //network capture
-        capturedRequestCollector = nil
-        
-        //Stop Launch Time
-        launchTimeReporter?.stop()
-        launchTimeReporter = nil
-        
-        //Stop Crash Reporting
-        crashReportManager?.stop()
-        crashReportManager = nil
-        btcrashReport?.stop()
-        btcrashReport = nil
-        
-        //Stop Memory Warning
-        memoryWarningWatchDog?.stop()
-        memoryWarningWatchDog = nil
-        
-        //StopANR
-        anrWatchDog?.stop()
-        anrWatchDog = nil
-        
-        //Stop Screen Tracking
-#if os(iOS)
-        UIViewController.removeSetUp()
-        screenTracker?.stop()
-        screenTracker = nil
-#endif
-
-        //Stop Network Status
-        monitorNetwork?.stop()
-        monitorNetwork = nil
+        self.endSession()
+        self.stopHttpNetworkCapture()
+        self.stopLaunchTime()
+        self.stopNsAndSignalCrashTracking()
+        self.stopMemoryWarning()
+        self.stopANR()
+        self.stopScreenTracking()
+        self.stopNetworkStatus()
     }
 
     // We want to allow multiple configurations for testing
@@ -802,17 +979,15 @@ public extension BlueTriangle {
         function: StaticString = #function,
         line: UInt = #line
     ) {
-        crashReportManager?.uploadError(error, file: file, function: function, line: line)
+        nsExeptionReporter?.uploadError(error, file: file, function: function, line: line)
     }
 }
-
-private var btcrashReport: BTSignalCrashReporter?
 
 // MARK: - Crash Reporting
 extension BlueTriangle {
     static func configureCrashTracking(with crashConfiguration: CrashReportConfiguration) {
         if let session = session(){
-            crashReportManager = CrashReportManager(crashReportPersistence: CrashReportPersistence.self,
+            nsExeptionReporter = CrashReportManager(crashReportPersistence: CrashReportPersistence.self,
                                                     logger: logger,
                                                     uploader: uploader,
                                                     session: {session})
@@ -833,10 +1008,10 @@ extension BlueTriangle {
     static func configureSignalCrash(with crashConfiguration: CrashReportConfiguration, debugLog : Bool) {
         if let session = session(){
             SignalHandler.enableCrashTracking(withApp_version: Version.number, debug_log: debugLog, bttSessionID: "\(sessionID)")
-            btcrashReport = BTSignalCrashReporter(directory: SignalHandler.reportsFolderPath(), logger: logger,
+            signalCrashReporter = BTSignalCrashReporter(directory: SignalHandler.reportsFolderPath(), logger: logger,
                                                   uploader: uploader,
                                                   session: {session})
-            btcrashReport?.configureSignalCrashHandling(configuration: crashConfiguration)
+            signalCrashReporter?.configureSignalCrashHandling(configuration: crashConfiguration)
         }
     }
 
@@ -897,7 +1072,7 @@ extension BlueTriangle{
 extension BlueTriangle{
     static func configureMonitoringNetworkState(with enabled: Bool){
         if enabled {
-            monitorNetwork = NetworkStateMonitor.init(logger)
+            networkStateMonitor = NetworkStateMonitor.init(logger)
         }
     }
 }

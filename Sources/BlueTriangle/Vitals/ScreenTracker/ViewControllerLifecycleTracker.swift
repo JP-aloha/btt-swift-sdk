@@ -47,7 +47,7 @@ extension UIViewController{
                 swizzleMethod(UIViewController.self, #selector(UIViewController.viewWillAppear(_:)), #selector(UIViewController.viewWillAppear_Tracker(_:)))
                 swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidAppear(_:)), #selector(UIViewController.viewDidAppear_Tracker(_:)))
                 swizzleMethod(UIViewController.self, #selector(UIViewController.viewDidDisappear(_:)), #selector(UIViewController.viewDidDisappear_Tracker(_:)))
-              //  BlueTriangle.screenTracker?.logger?.debug("View Screen Tracker: setup removed.")
+                BlueTriangle.screenTracker?.logger?.debug("View Screen Tracker: setup removed.")
                 isSwizzled = false
             }
         }()

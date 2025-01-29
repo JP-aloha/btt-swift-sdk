@@ -41,9 +41,9 @@ struct NativeAppProperties: Equatable {
     let other: Millisecond
     var err: String?
     var type : String = NativeAppType.Regular.description
-    var netState: String = BlueTriangle.monitorNetwork?.state.value?.description.lowercased() ?? ""
+    var netState: String = BlueTriangle.networkStateMonitor?.state.value?.description.lowercased() ?? ""
     var deviceModel : String = Device.model
-    var netStateSource : String = BlueTriangle.monitorNetwork?.networkSource.value?.description ?? ""
+    var netStateSource : String = BlueTriangle.networkStateMonitor?.networkSource.value?.description ?? ""
 }
 
 extension NativeAppProperties: Codable{

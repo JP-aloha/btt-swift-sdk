@@ -14,3 +14,11 @@ extension NSLocking {
         return closure()
     }
 }
+
+extension NSRecursiveLock {
+    func sync<T>(_ closure: () -> T) -> T {
+        lock()
+        defer { unlock() }
+        return closure()
+    }
+}

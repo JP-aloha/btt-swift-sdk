@@ -80,7 +80,7 @@ class BTTimerNetStateAccumulator  : BTTimerNetStateAccumulatorProtocol {
     
     private func getNetState() -> (celluler: Millisecond, netState: String){
         
-        var nstString = BlueTriangle.monitorNetwork?.state.value?.description.lowercased() ?? ""
+        var nstString = BlueTriangle.networkStateMonitor?.state.value?.description.lowercased() ?? ""
         let offline = offline.duration
         let wifi = wifi.duration
         let cellular5G = cellular5g.duration

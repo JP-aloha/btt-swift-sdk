@@ -44,6 +44,7 @@ final class CrashReportManager: CrashReportManaging {
     }
     
     func stop(){
+        //Clear saved crash
         self.startupTask?.cancel()
         self.startupTask = nil
         CrashReportPersistence.disableExaptionHandler()
@@ -140,4 +141,5 @@ private extension CrashReportManager {
                                                        report: report, pageName: pageName)
         uploader.send(request: reportRequest)
     }
+    
 }
