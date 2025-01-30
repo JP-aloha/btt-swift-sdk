@@ -718,7 +718,7 @@ public extension BlueTriangle {
     static func endTimer(_ timer: BTTimer, purchaseConfirmation: PurchaseConfirmation? = nil) {
         timer.end()
         
-        if let session = session(), enableAllTracking {
+        if let session = session(), timer.enableAllTracking {
             purchaseConfirmation?.orderTime = timer.endTime
             let request: Request
             lock.lock()
