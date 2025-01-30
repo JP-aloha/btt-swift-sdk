@@ -15,7 +15,7 @@ protocol ConfigurationUpdater {
 
 class BTTConfigurationUpdater : ConfigurationUpdater {
     
-    private let updatePeriod: Millisecond = 0//.hour
+    private let updatePeriod: Millisecond = .hour
     private let configFetcher : ConfigurationFetcher
     private let configRepo : ConfigurationRepo
     private let logger : Logging?

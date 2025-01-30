@@ -40,6 +40,8 @@ public struct InternalTimer {
     ///
     /// The default value is `0.0`.
     public private(set) var endTime: TimeInterval = 0.0
+    
+    private let enableAllTracking = BlueTriangle.enableAllTracking
 
     init(logger: Logging,
          intervalProvider: @escaping () -> TimeInterval = { Date().timeIntervalSince1970 }
@@ -49,11 +51,19 @@ public struct InternalTimer {
     }
 
     mutating func start() {
+        guard enableAllTracking else {
+            return
+        }
+        
         handle(.start)
     }
 
     /// Ends the timer.
     public mutating func end() {
+        guard enableAllTracking else {
+            return
+        }
+        
         handle(.end)
     }
 

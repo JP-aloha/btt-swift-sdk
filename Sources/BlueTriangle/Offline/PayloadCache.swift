@@ -11,6 +11,7 @@ protocol PayloadCacheProtocol: AnyObject {
     func pickNext() throws -> Payload?
     func save(_ payload : Payload) throws
     func delete(_ payload : Payload) throws
+    func deleteAll() throws
 }
 
 class PayloadCache : PayloadCacheProtocol{
@@ -69,11 +70,15 @@ class PayloadCache : PayloadCacheProtocol{
      */
     func save(_ payload : Payload) throws {
         try payload.serialize()
-        try self.clearCache()
+        try self.clearOverSizeCache()
     }
     
     func delete(_ payload : Payload) throws  {
         try payload.delete()
+    }
+    
+    func deleteAll() throws{
+        try clearCache()
     }
 }
 
@@ -81,6 +86,13 @@ class PayloadCache : PayloadCacheProtocol{
 extension PayloadCache {
  
     private func clearCache() throws{
+        var allPayloads = try getAllCachePayload()
+        while let payload = allPayloads.popLast() {
+            try payload.delete()
+        }
+    }
+    
+    private func clearOverSizeCache() throws{
        
         while try isOverSize() {
             if let payload = try getRemovableFile(){

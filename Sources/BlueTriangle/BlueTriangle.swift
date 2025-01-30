@@ -534,6 +534,15 @@ extension BlueTriangle {
         
         logger.info("BlueTriangle :: Network state tracking was stopped due to SDK disable.")
     }
+    
+    private static func clearAllPayloadCache(){
+        do{
+            let payloadCache = BlueTriangle.payloadCache
+            try payloadCache.deleteAll()
+        }catch{
+            
+        }
+    }
 }
 
 // MARK: - Configuration
@@ -590,7 +599,7 @@ extension BlueTriangle {
     ///
     private static func startAllTrackers() {
     
-        logger.info("BlueTriangle ::  SDK is in enabled mode.")
+        logger.info("BlueTriangle :: SDK is in enabled mode.")
         
         self.startSession()
         self.startHttpNetworkCapture()
@@ -600,7 +609,6 @@ extension BlueTriangle {
         self.startANR()
         self.startScreenTracking()
         self.startNetworkStatus()
-        
     }
     
     /// Stops all trackers to disable the functionality of the SDK.
