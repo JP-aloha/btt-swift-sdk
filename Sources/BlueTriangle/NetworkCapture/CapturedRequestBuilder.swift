@@ -36,18 +36,20 @@ struct CapturedRequestBuilder {
         ]
     }
 
-    static func makeBuilder(sessionProvider: @escaping () -> Session) -> Self {
+    static func makeBuilder(sessionProvider: @escaping () -> Session?) -> Self {
         .init { startTime, page, requests in
-            let session = sessionProvider()
-            let parameters = CapturedRequestBuilder.makeParameters(
-                siteID: session.siteID,
-                sessionID: String(session.sessionID),
-                trafficSegment: session.trafficSegmentName,
-                isNewUser: !session.isReturningVisitor,
-                pageType: page.pageType,
-                pageName: page.pageName,
-                startTime: startTime
-            )
+            var parameters : [String: String]?
+            if let session = sessionProvider() {
+                 parameters = CapturedRequestBuilder.makeParameters(
+                    siteID: session.siteID,
+                    sessionID: String(session.sessionID),
+                    trafficSegment: session.trafficSegmentName,
+                    isNewUser: !session.isReturningVisitor,
+                    pageType: page.pageType,
+                    pageName: page.pageName,
+                    startTime: startTime
+                )
+            }
 
             return try Request(method: .post,
                                url: Constants.capturedRequestEndpoint,
