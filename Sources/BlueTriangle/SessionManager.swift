@@ -110,7 +110,7 @@ class SessionManager : SessionManagerProtocol{
         
         if CommandLine.arguments.contains(Constants.NEW_SESSION_ON_LAUNCH_ARGUMENT) {
             
-            if let currentSession = self.currentSession{
+            if let currentSession = self.currentSession, !hasExpired{
                 return currentSession
             }
             
