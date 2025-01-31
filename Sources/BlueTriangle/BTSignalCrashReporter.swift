@@ -73,7 +73,9 @@ class BTSignalCrashReporter {
     
     private func uploadAllStoredSignalCrashes(){
         do{
-            let session = self.session()
+            guard let session = session() else {
+                return
+            }
             let crashes = try self.getAllCrashes()
             for crash in crashes {
                 uploadSignalCrash(crash, session)

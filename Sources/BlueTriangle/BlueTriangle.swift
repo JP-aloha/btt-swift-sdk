@@ -14,7 +14,7 @@ import AppEventLogger
 import UIKit
 #endif
 
-typealias SessionProvider = () -> Session
+typealias SessionProvider = () -> Session?
 
 /// The entry point for interacting with the Blue Triangle SDK.
 final public class BlueTriangle: NSObject {
@@ -222,7 +222,7 @@ final public class BlueTriangle: NSObject {
             let collector = configuration.capturedRequestCollectorConfiguration.makeRequestCollector(
                 logger: logger,
                 networkCaptureConfiguration: .standard,
-                requestBuilder: CapturedRequestBuilder.makeBuilder { session },
+                requestBuilder: CapturedRequestBuilder.makeBuilder {session},
                 uploader: uploader)
 
             Task {
@@ -997,14 +997,12 @@ public extension BlueTriangle {
 // MARK: - Crash Reporting
 extension BlueTriangle {
     static func configureCrashTracking(with crashConfiguration: CrashReportConfiguration) {
-        if let session = session(){
-            nsExeptionReporter = CrashReportManager(crashReportPersistence: CrashReportPersistence.self,
-                                                    logger: logger,
-                                                    uploader: uploader,
-                                                    session: {session})
-            
-            CrashReportPersistence.configureCrashHandling(configuration: crashConfiguration)
-        }
+        nsExeptionReporter = CrashReportManager(crashReportPersistence: CrashReportPersistence.self,
+                                                logger: logger,
+                                                uploader: uploader,
+                                                session: {session()})
+        
+        CrashReportPersistence.configureCrashHandling(configuration: crashConfiguration)
     }
     
     
@@ -1017,13 +1015,11 @@ extension BlueTriangle {
     }
     
     static func configureSignalCrash(with crashConfiguration: CrashReportConfiguration, debugLog : Bool) {
-        if let session = session(){
-            SignalHandler.enableCrashTracking(withApp_version: Version.number, debug_log: debugLog, bttSessionID: "\(sessionID)")
-            signalCrashReporter = BTSignalCrashReporter(directory: SignalHandler.reportsFolderPath(), logger: logger,
-                                                  uploader: uploader,
-                                                  session: {session})
-            signalCrashReporter?.configureSignalCrashHandling(configuration: crashConfiguration)
-        }
+        SignalHandler.enableCrashTracking(withApp_version: Version.number, debug_log: debugLog, bttSessionID: "\(sessionID)")
+        signalCrashReporter = BTSignalCrashReporter(directory: SignalHandler.reportsFolderPath(), logger: logger,
+                                                    uploader: uploader,
+                                                    session: {session()})
+        signalCrashReporter?.configureSignalCrashHandling(configuration: crashConfiguration)
     }
 
     /// Saves an exception to upload to the Blue Triangle portal on next launch.
@@ -1041,11 +1037,10 @@ extension BlueTriangle {
 //MARK: - ANR Tracking
 extension BlueTriangle{
     static func configureANRTracking(with enabled: Bool, enableStackTrace : Bool, interval: TimeInterval){
-        if let session = session(), enabled{
-           
+        if enabled{
             self.anrWatchDog = ANRWatchDog(
                 mainThreadObserver: MainThreadObserver.live,
-                session: {session},
+                session: {session()},
                 uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
                     file: .requests,
                     logger: logger)),
@@ -1094,9 +1089,9 @@ extension BlueTriangle{
     
 
     static func configureLaunchTime(with enabled: Bool){
-        if let session = session(), enabled{
+        if enabled{
             let launchMonitor = LaunchTimeMonitor(logger: logger)
-            launchTimeReporter = LaunchTimeReporter(using: {session},
+            launchTimeReporter = LaunchTimeReporter(using: {session()},
                                                     uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
                                                         file: .requests,
                                                         logger: logger)),
@@ -1112,10 +1107,10 @@ extension BlueTriangle{
 //MARK: - Memory Warning
 extension BlueTriangle{
     static func configureMemoryWarning(with enabled: Bool){
-        if let session = session(), enabled{
+        if enabled{
 #if os(iOS)
             memoryWarningWatchDog = MemoryWarningWatchDog(
-                session: {session},
+                session: {session()},
                 uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
                     file: .requests,
                     logger: logger)),
