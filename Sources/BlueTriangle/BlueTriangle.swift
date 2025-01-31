@@ -387,7 +387,11 @@ final public class BlueTriangle: NSObject {
             lock.sync { session()?.metrics ?? [:] }
         }
         set {
-            lock.sync { self._session?.metrics = (newValue.isEmpty ? nil : newValue)}
+            lock.sync {
+                
+                self._session?.metrics = (newValue.isEmpty ? nil : newValue)
+                
+            }
         }
     }
 }
@@ -1141,7 +1145,6 @@ extension BlueTriangle{
     ///
     ///
     static func configureSessionManager(forModeWithExpiry expiry: Millisecond){
-#if os(iOS)
         if self.enableAllTracking{
             if let _ = sessionManager as? SessionManager {
                 return
@@ -1157,7 +1160,6 @@ extension BlueTriangle{
             sessionManager = disableModeSessionManager
             sessionManager?.start(with: expiry)
         }
-#endif
     }
 }
 
