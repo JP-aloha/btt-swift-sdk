@@ -543,9 +543,7 @@ extension BlueTriangle {
         do{
             let payloadCache = BlueTriangle.payloadCache
             try payloadCache.deleteAll()
-        }catch{
-            
-        }
+        }catch{}
     }
 }
 
@@ -607,12 +605,12 @@ extension BlueTriangle {
         
         self.startSession()
         self.startHttpNetworkCapture()
-        self.startLaunchTime()
         self.startNsAndSignalCrashTracking()
         self.startMemoryWarning()
         self.startANR()
         self.startScreenTracking()
         self.startNetworkStatus()
+        self.startLaunchTime()
     }
     
     /// Stops all trackers to disable the functionality of the SDK.
@@ -631,12 +629,13 @@ extension BlueTriangle {
         
         self.endSession()
         self.stopHttpNetworkCapture()
-        self.stopLaunchTime()
         self.stopNsAndSignalCrashTracking()
         self.stopMemoryWarning()
         self.stopANR()
         self.stopScreenTracking()
         self.stopNetworkStatus()
+        self.stopLaunchTime()
+        self.clearAllPayloadCache()
     }
 
     // We want to allow multiple configurations for testing
