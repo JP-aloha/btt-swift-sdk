@@ -217,12 +217,12 @@ final public class BlueTriangle: NSObject {
         return sessionManager?.getSessionData()
     }
     
-    internal static func makeCapturedRequestCollector() -> CapturedRequestCollecting? {
-        if shouldCaptureRequests {
+    private static func makeCapturedRequestCollector() -> CapturedRequestCollecting? {
+        if let _ = session(), shouldCaptureRequests {
             let collector = configuration.capturedRequestCollectorConfiguration.makeRequestCollector(
                 logger: logger,
                 networkCaptureConfiguration: .standard,
-                requestBuilder: CapturedRequestBuilder.makeBuilder {session()},
+                requestBuilder: CapturedRequestBuilder.makeBuilder {self.session()},
                 uploader: uploader)
 
             Task {
