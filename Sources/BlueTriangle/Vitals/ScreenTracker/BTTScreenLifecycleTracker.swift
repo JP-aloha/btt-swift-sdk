@@ -182,9 +182,6 @@ class TimerMapActivity {
             viewTime = timeInterval
         }
         else if type == .disapear{
-            if loadTime == nil{
-                loadTime = timeInterval
-            }
             if viewTime == nil{
                 viewTime = timeInterval
             }
