@@ -144,15 +144,19 @@ class SessionManager : SessionManagerProtocol{
     
     public func getSessionData() -> SessionData? {
         lock.sync {
+            if let session = currentSession{
+                return session
+            }
+            
             let updatedSession = self.invalidateSession()
             return updatedSession
         }
     }
+
     
     private func updateSession(){
-        if let seesion = getSessionData(){
-            BlueTriangle.updateSession(seesion)
-        }
+        let seesion = self.invalidateSession()
+        BlueTriangle.updateSession(seesion)
     }
     
     private func expiryDuration()-> Millisecond {
