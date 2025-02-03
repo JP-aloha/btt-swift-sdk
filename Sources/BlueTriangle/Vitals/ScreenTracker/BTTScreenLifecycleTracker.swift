@@ -224,6 +224,8 @@ class TimerMapActivity {
                         
             let pageInfoMessage = "View tracker timer submited for screen :\(self.pageName)"
             self.logger?.info(pageInfoMessage)
+        }else{
+            self.timer.end()
         }
     }
                 

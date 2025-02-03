@@ -233,13 +233,21 @@ final class UploaderTests: XCTestCase {
         let group = DispatchGroup()
         DispatchQueue.global().async(group: group) {
             for _ in 0 ..< requestCount {
+                group.enter()
                 uploader.send(request: Mock.request)
+                DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
+                    group.leave()
+                }
             }
         }
 
         DispatchQueue.global().async(group: group) {
             for _ in 0 ..< requestCount {
+                group.enter()
                 uploader.send(request: Mock.request)
+                DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
+                    group.leave()
+                }
             }
         }
 
@@ -249,6 +257,7 @@ final class UploaderTests: XCTestCase {
             XCTAssert(uploader.subscriptionCount > requestCount)
             
             promises.forEach { promise in
+                print("Promiss Success" )
                 promise(.success(Mock.successResponse))
             }
         }
@@ -262,5 +271,7 @@ final class UploaderTests: XCTestCase {
         wait(for: [otherExpectation], timeout: 10)
 
         XCTAssert(uploader.subscriptionCount < 3)
+        
+        promises.removeAll()
     }
 }
