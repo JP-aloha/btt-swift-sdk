@@ -22,5 +22,17 @@ Pod::Spec.new do |s|
 
     s.source_files = 'Sources/**/*.{swift,c,h,m}'
     s.resource_bundles = {"BlueTriangle" => ["Sources/**/PrivacyInfo.xcprivacy"]}
-
+    
+     # Base flavor: no Clarity dependency added.
+  
+  # Optional subspec for Clarity support.
+    s.subspec 'WithClarity' do |ss|
+       # If your SDK code doesn't change between flavors, you can leave source_files empty
+       # so it reuses the base spec's files.
+       # Optionally, you can override settings or add extra files here if needed.
+    
+       # Add the Clarity dependency. (Make sure Clarity is available as a CocoaPod.)
+       ss.dependency 'Clarity', '~> 3.0.0'
+       ss.pod_target_xcconfig = { 'SWIFT_ACTIVE_COMPILATION_CONDITIONS' => '$(inherited) WITH_CLARITY' }
+    end
   end
