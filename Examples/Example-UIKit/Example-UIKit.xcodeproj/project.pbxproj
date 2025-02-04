@@ -43,7 +43,7 @@
 		51522EE42A6042D7002D126D /* SlidePadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC12A6042D7002D126D /* SlidePadViewController.swift */; };
 		51522EE52A6042D7002D126D /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC22A6042D7002D126D /* HomeViewController.swift */; };
 		5184F30E2AC1C0AE00A34161 /* CPUUsesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5184F30D2AC1C0AE00A34161 /* CPUUsesTest.swift */; };
-		51B681642D5200B000BD18D5 /* BlueTriangle in Frameworks */ = {isa = PBXBuildFile; productRef = 51B681632D5200B000BD18D5 /* BlueTriangle */; };
+		51B6816D2D520BCD00BD18D5 /* BlueTriangle in Frameworks */ = {isa = PBXBuildFile; productRef = 51B6816C2D520BCD00BD18D5 /* BlueTriangle */; };
 		51F8578F2A8B6E8600B9F77F /* MemoryAllocationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51F8578E2A8B6E8600B9F77F /* MemoryAllocationTest.swift */; };
 		8405FECA2A40A97900CC13B5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FEC92A40A97900CC13B5 /* Constants.swift */; };
 		8405FECC2A40A98300CC13B5 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FECB2A40A98300CC13B5 /* Utils.swift */; };
@@ -168,7 +168,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				51B681642D5200B000BD18D5 /* BlueTriangle in Frameworks */,
+				51B6816D2D520BCD00BD18D5 /* BlueTriangle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -521,7 +521,7 @@
 			);
 			name = "Example-UIKit";
 			packageProductDependencies = (
-				51B681632D5200B000BD18D5 /* BlueTriangle */,
+				51B6816C2D520BCD00BD18D5 /* BlueTriangle */,
 			);
 			productName = "Example-UIKit";
 			productReference = C9015AB82719CA60003BC6C2 /* Example-UIKit.app */;
@@ -1064,7 +1064,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		51B681632D5200B000BD18D5 /* BlueTriangle */ = {
+		51B6816C2D520BCD00BD18D5 /* BlueTriangle */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = BlueTriangle;
 		};

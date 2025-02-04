@@ -25,16 +25,16 @@ let package = Package(
         .target(
             name: "BlueTriangle",
             dependencies: ["Backtrace", "AppEventLogger"],
-            path: "Sources/BlueTriangle" //
+            path: "Sources/BlueTriangle",
+            resources: [.copy("PrivacyInfo.xcprivacy")]
         ),
         .target(
             name: "BlueTriangleWithClarity",
             dependencies: [
-                "Backtrace",
-                "AppEventLogger",
+                "BlueTriangle",
                 .product(name: "Clarity", package: "clarity-apps")
             ],
-            path: "Sources/BlueTriangleWithClarity",
+            path: "Sources/BlueTriangleWithClarity", // same folder as above
             swiftSettings: [.define("WITH_CLARITY")]
         ),
         .target(
