@@ -285,7 +285,7 @@ final public class BlueTriangle: NSObject {
     
     /// Blue Triangle Technologies-assigned site ID.
     @objc public static var siteID: String {
-        lock.sync { session()?.siteID ?? configuration.siteID }
+        trackingLock.sync { session()?.siteID ?? configuration.siteID }
     }
 
     /// Global User ID.
@@ -539,11 +539,14 @@ extension BlueTriangle {
         logger.info("BlueTriangle :: Network state tracking was stopped due to SDK disable.")
     }
     
-    private static func clearAllPayloadCache(){
+    private static func clearAllCache(){
         do{
             let payloadCache = BlueTriangle.payloadCache
+            self._session?.metrics = [:]
             try payloadCache.deleteAll()
-        }catch{}
+        }catch{
+            logger.info("BlueTriangle :: Fail to clear cache \(error).")
+        }
     }
 }
 
@@ -635,7 +638,7 @@ extension BlueTriangle {
         self.stopScreenTracking()
         self.stopNetworkStatus()
         self.stopLaunchTime()
-        self.clearAllPayloadCache()
+        self.clearAllCache()
     }
 
     // We want to allow multiple configurations for testing

@@ -20,11 +20,11 @@ class BTTConfigurationFetcher : ConfigurationFetcher {
                      qos: .userInitiated,
                      autoreleaseFrequency: .workItem)
     
-    private let rootUrl :  URL
+    private let rootUrl :  URL?
     private var networking :  Networking
     private var cancellables: Set<AnyCancellable>
     
-    init(rootUrl : URL = Constants.connfigEndPoint,
+    init(rootUrl : URL? = Constants.configEndPoint(for: BlueTriangle.siteID),
          cancellable : Set<AnyCancellable> = Set<AnyCancellable>(),
          networking : @escaping Networking = URLSession.live){
         self.rootUrl = rootUrl
@@ -52,10 +52,13 @@ class BTTConfigurationFetcher : ConfigurationFetcher {
     }
     
     private func fetchRemoteConfig() -> AnyPublisher<BTTRemoteConfig, NetworkError> {
-        let parameters = [
-            "siteID": BlueTriangle.siteID
-        ]
-        let request = Request(url: rootUrl, parameters: parameters, accept: .json)
+        
+        guard let url = self.rootUrl else {
+            return Fail(error: NetworkError.malformedRequest)
+                .eraseToAnyPublisher()
+        }
+        
+        let request = Request(url: url, accept: .json)
         return networking(request)
             .tryMap { httpResponse in
                 return try httpResponse.validate()
