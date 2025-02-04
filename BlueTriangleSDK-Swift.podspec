@@ -34,6 +34,7 @@ Pod::Spec.new do |s|
        # Add the Clarity dependency. (Make sure Clarity is available as a CocoaPod.)
        ss.dependency 'Clarity', '~> 3.0.0'
        ss.source_files = 'Sources/**/*.{swift,c,h,m}'
+       ss.resource_bundles = {"BlueTriangle" => ["Sources/**/PrivacyInfo.xcprivacy"]}
        ss.pod_target_xcconfig = { 'SWIFT_ACTIVE_COMPILATION_CONDITIONS' => '$(inherited) WITH_CLARITY' }
     end
   end
