@@ -12,19 +12,30 @@ let package = Package(
     products: [
         .library(
             name: "BlueTriangle",
-            targets: ["BlueTriangle"])
+            targets: ["BlueTriangle"]),
+        .library(
+                name: "BlueTriangleWithClarity",
+                targets: ["BlueTriangleWithClarity"])
     ],
     dependencies: [
             .package(url: "https://github.com/microsoft/clarity-apps.git", from: "3.0.0")
         ],
     targets: [
+        
         .target(
-          name: "BlueTriangle",
-          dependencies: ["Backtrace",
-                         "AppEventLogger",
-                         .product(name: "Clarity", package: "clarity-apps")
-                        ],
-          resources: [.copy("PrivacyInfo.xcprivacy")]
+            name: "BlueTriangle",
+            dependencies: ["Backtrace", "AppEventLogger"],
+            path: "Sources/BlueTriangle" //
+        ),
+        .target(
+            name: "BlueTriangleWithClarity",
+            dependencies: [
+                "Backtrace",
+                "AppEventLogger",
+                .product(name: "Clarity", package: "clarity-apps")
+            ],
+            path: "Sources/BlueTriangleWithClarity",
+            swiftSettings: [.define("WITH_CLARITY")]
         ),
         .target(
             name: "Backtrace",
