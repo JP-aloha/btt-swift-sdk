@@ -44,7 +44,7 @@ final class BTTConfigurationFetcherTests: XCTestCase {
         }
         
         configurationFetcher = BTTConfigurationFetcher(
-            rootUrl: Constants.connfigEndPoint,
+            rootUrl: Constants.configEndPoint(for: BlueTriangle.siteID),
             cancellable: cancellables,
             networking: mockNetworking
         )
@@ -68,7 +68,7 @@ final class BTTConfigurationFetcherTests: XCTestCase {
         }
         
         configurationFetcher = BTTConfigurationFetcher(
-            rootUrl: Constants.connfigEndPoint,
+            rootUrl: Constants.configEndPoint(for: BlueTriangle.siteID),
             cancellable: Set<AnyCancellable>(),
             networking: mockNetworking
         )
