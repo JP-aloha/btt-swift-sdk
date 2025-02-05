@@ -701,23 +701,6 @@ To view one of the values on the portal, navigate to the path 'Menu > Native App
 [**for more detail**](https://help.bluetriangle.com/hc/en-us/articles/12299711775635-Where-can-I-see-Custom-Variables)
 
 
-### Remote Configuration
-Remote Config is a feature in the SDK that allows you to dynamically update specific configuration from a server without requiring a new application release.
-
-#### NetworkSampleRate
-The network sample rate specifies the percentage of network requests within a session that are captured for monitoring. This version introduces the ability to configure the network sample rate remotely.
-
-#### IgnoreScreens
- This feature determines whether a screen or view should be tracked for analytics or excluded based on specific rules, ensuring that only user-relevant screens are tracked while eliminating unnecessary noise.
-
- Remote configuration will be applied to a new session only if it is fetched while another session is running. If the configuration is retrieved during this ongoing session, it is stored for future use. This means that the new configuration will take effect the next time a session starts. Until that new session begins, the previous remote configuration will continue to be in effect, ensuring that the application remains stable and functional with the existing settings.
- 
- In case of failure to fetch from the server, the previous configuration will be used, or the default configuration will be applied if no previous value exists.
- 
- Since the saved configuration is used during a new session until the fetching process is complete. If there is a change in the configuration value at the time of the new session, the updated value may not be available immediately. After the updated value is fetched, the changes are applied. This creates a 1 to 2-second window between session creation and fetching, during which the updated value may not be accessible.
- 
- 
-
 ## How to Test your iOS SDK Integration
 
 ### Site ID
