@@ -10,6 +10,8 @@ import Foundation
 extension URLSession {
     static let live: Networking = {
         let configuration = URLSessionConfiguration.default
+        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData // Disable caching explicitly
+        configuration.urlCache = nil // Prevents disk/memory caching
         let userAgent = "\(Bundle.main.userAgentToken) \(Device.userAgentToken) \(Constants.sdkProductIdentifier)/\(Version.number)"
         let encodedAgent = userAgent.unicodeScalars.map { scalar -> String in
             if scalar.isASCII {
