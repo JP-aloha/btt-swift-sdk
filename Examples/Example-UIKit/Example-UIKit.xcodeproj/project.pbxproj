@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		514E1A172D5B387500ECE980 /* BlueTriangleClarity in Frameworks */ = {isa = PBXBuildFile; productRef = 514E1A162D5B387500ECE980 /* BlueTriangleClarity */; };
 		51522EC32A6042D7002D126D /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E902A6042D7002D126D /* HomeViewModel.swift */; };
 		51522EC42A6042D7002D126D /* TestPresentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E932A6042D7002D126D /* TestPresentViewController.swift */; };
 		51522EC52A6042D7002D126D /* TestFullPresentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E942A6042D7002D126D /* TestFullPresentViewController.swift */; };
@@ -43,7 +44,7 @@
 		51522EE42A6042D7002D126D /* SlidePadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC12A6042D7002D126D /* SlidePadViewController.swift */; };
 		51522EE52A6042D7002D126D /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522EC22A6042D7002D126D /* HomeViewController.swift */; };
 		5184F30E2AC1C0AE00A34161 /* CPUUsesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5184F30D2AC1C0AE00A34161 /* CPUUsesTest.swift */; };
-		51B6816D2D520BCD00BD18D5 /* BlueTriangle in Frameworks */ = {isa = PBXBuildFile; productRef = 51B6816C2D520BCD00BD18D5 /* BlueTriangle */; };
+		51A9A78B2D5A389C006A7F35 /* BlueTriangle in Frameworks */ = {isa = PBXBuildFile; productRef = 51A9A78A2D5A389C006A7F35 /* BlueTriangle */; };
 		51F8578F2A8B6E8600B9F77F /* MemoryAllocationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51F8578E2A8B6E8600B9F77F /* MemoryAllocationTest.swift */; };
 		8405FECA2A40A97900CC13B5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FEC92A40A97900CC13B5 /* Constants.swift */; };
 		8405FECC2A40A98300CC13B5 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8405FECB2A40A98300CC13B5 /* Utils.swift */; };
@@ -168,7 +169,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				51B6816D2D520BCD00BD18D5 /* BlueTriangle in Frameworks */,
+				51A9A78B2D5A389C006A7F35 /* BlueTriangle in Frameworks */,
+				514E1A172D5B387500ECE980 /* BlueTriangleClarity in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -521,7 +523,8 @@
 			);
 			name = "Example-UIKit";
 			packageProductDependencies = (
-				51B6816C2D520BCD00BD18D5 /* BlueTriangle */,
+				51A9A78A2D5A389C006A7F35 /* BlueTriangle */,
+				514E1A162D5B387500ECE980 /* BlueTriangleClarity */,
 			);
 			productName = "Example-UIKit";
 			productReference = C9015AB82719CA60003BC6C2 /* Example-UIKit.app */;
@@ -1064,7 +1067,11 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		51B6816C2D520BCD00BD18D5 /* BlueTriangle */ = {
+		514E1A162D5B387500ECE980 /* BlueTriangleClarity */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BlueTriangleClarity;
+		};
+		51A9A78A2D5A389C006A7F35 /* BlueTriangle */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = BlueTriangle;
 		};

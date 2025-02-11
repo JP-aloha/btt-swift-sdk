@@ -14,8 +14,8 @@ let package = Package(
             name: "BlueTriangle",
             targets: ["BlueTriangle"]),
         .library(
-                name: "BlueTriangleWithClarity",
-                targets: ["BlueTriangleWithClarity"])
+                name: "BlueTriangleClarity",
+                targets: ["BlueTriangleClarity"])
     ],
     dependencies: [
             .package(url: "https://github.com/microsoft/clarity-apps.git", from: "3.0.0")
@@ -29,13 +29,13 @@ let package = Package(
             resources: [.copy("PrivacyInfo.xcprivacy")]
         ),
         .target(
-            name: "BlueTriangleWithClarity",
+            name: "BlueTriangleClarity",
             dependencies: [
-                "BlueTriangle",
                 .product(name: "Clarity", package: "clarity-apps")
             ],
-            path: "Sources/BlueTriangleWithClarity", // same folder as above
-            swiftSettings: [.define("WITH_CLARITY")]
+            path: "Sources/BlueTriangleClarity", // same folder as above
+            swiftSettings: [.define("WITH_CLARITY")],
+            linkerSettings: [.linkedFramework("Clarity")]
         ),
         .target(
             name: "Backtrace",
