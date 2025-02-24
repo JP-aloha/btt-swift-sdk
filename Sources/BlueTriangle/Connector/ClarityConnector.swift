@@ -34,6 +34,7 @@ class ClarityConnector: ConnectorProtocol{
     private(set) var clarityProjectID : String?
     private(set) var clarityEnabled : Bool?
     private(set) var isConnected : Bool = false
+    private(set) var sessionURL : String?
    
     func start() {
         queue.async {
@@ -52,6 +53,12 @@ class ClarityConnector: ConnectorProtocol{
                         ClaritySDK.initialize(config: clarityConfig)
                         self.previousProjectID = self.clarityProjectID
                     }
+                    
+                    ClaritySDK.setOnSessionStartedCallback { url in
+                        self.sessionURL =  ClaritySDK.getCurrentSessionUrl()
+                        print("ClaritySDK session url \(String(describing: self.sessionURL))")
+                    }
+                    
                     self.isConnected = true
                     print("ClaritySDK connected \(projectId)")
                 }
@@ -62,9 +69,11 @@ class ClarityConnector: ConnectorProtocol{
     func stop() {
         queue.async {
             DispatchQueue.main.async {
-                ClaritySDK.pause()
-                self.isConnected = false
-                print("ClaritySDK disconnected")
+                if self.isConnected{
+                    ClaritySDK.pause()
+                    self.isConnected = false
+                    print("ClaritySDK disconnected")
+                }
             }
         }
     }
@@ -79,18 +88,8 @@ class ClarityConnector: ConnectorProtocol{
         
         guard let projectId = clarityProjectID, isConnected else { return [:] }
 
-        let sessionURL: String?
-        
-        if Thread.isMainThread {
-            sessionURL = ClaritySDK.getCurrentSessionUrl()
-        } else {
-            sessionURL = DispatchQueue.main.sync {
-                ClaritySDK.getCurrentSessionUrl()
-            }
-        }
-    
         // Construct and return the payload
-        if let sessionURL = sessionURL {
+        if let sessionURL = self.sessionURL {
             return [
                 ClarityKeys.clarityProjectID: projectId,
                 ClarityKeys.claritySessionURL: sessionURL
