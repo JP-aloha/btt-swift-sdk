@@ -44,6 +44,7 @@ struct NativeAppProperties: Equatable {
     var netState: String = BlueTriangle.networkStateMonitor?.state.value?.description.lowercased() ?? ""
     var deviceModel : String = Device.model
     var netStateSource : String = BlueTriangle.networkStateMonitor?.networkSource.value?.description ?? ""
+    var clarityProjectId : String? = BlueTriangle.clarityProjectID
 }
 
 extension NativeAppProperties: Codable{
@@ -99,6 +100,10 @@ extension NativeAppProperties: Codable{
             try con.encode(netStateSource, forKey: .netStateSource)
         }
         
+        if let projID = clarityProjectId, projID.count > 0, self.type != NativeAppType.NST.description{
+            try con.encode(projID, forKey: .clarityProjectID)
+        }
+        
         try con.encode(deviceModel, forKey: .deviceModel)
     }
     
@@ -117,6 +122,7 @@ extension NativeAppProperties: Codable{
         self.type = try container.decodeIfPresent(String.self, forKey: .type) ?? NativeAppType.NST.description
         self.deviceModel = try container.decodeIfPresent(String.self, forKey: .deviceModel) ?? Device.model
         self.netStateSource = try container.decodeIfPresent(String.self, forKey: .netStateSource) ?? ""
+        self.clarityProjectId = try container.decodeIfPresent(String.self, forKey: .clarityProjectID) ?? ""
     }
     
     enum CodingKeys: String, CodingKey {
@@ -135,6 +141,7 @@ extension NativeAppProperties: Codable{
         case err
         case deviceModel
         case netStateSource
+        case clarityProjectID
     }
 }
 

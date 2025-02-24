@@ -45,7 +45,9 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         let config = BTTRemoteConfig(networkSampleRateSDK: 75, 
                                      enableRemoteConfigAck: false, 
                                      enableAllTracking: true,
-                                     ignoreScreens: [])
+                                     ignoreScreens: [], 
+                                     clarityProjectID: nil,
+                                     clarityEnabled: true)
         mockFetcher.configToReturn = config
         
         let expectation = XCTestExpectation(description: "Completion handler called")
@@ -65,7 +67,9 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         let config = BTTRemoteConfig(networkSampleRateSDK: 75, 
                                      enableRemoteConfigAck: false, 
                                      enableAllTracking: true,
-                                     ignoreScreens: [])
+                                     ignoreScreens: [], 
+                                     clarityProjectID: nil,
+                                     clarityEnabled: true)
         mockRepo.save(config)
         
         let expectation = XCTestExpectation(description: "Completion handler called")
@@ -82,12 +86,20 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         let apiConfig = BTTRemoteConfig(networkSampleRateSDK: 75, 
                                         enableRemoteConfigAck: false, 
                                         enableAllTracking: true,
-                                        ignoreScreens: [])
+                                        ignoreScreens: [],
+                                        clarityProjectID: nil,
+                                        clarityEnabled: true)
         mockFetcher.configToReturn = apiConfig
         
         
         let currentTime = Date().timeIntervalSince1970.milliseconds
-        let storeConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 70, enableRemoteConfigAck: false, enableAllTracking: true, ignoreScreens: [], dateSaved: currentTime - Millisecond.hour * 2)
+        let storeConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 70, 
+                                               enableRemoteConfigAck: false,
+                                               enableAllTracking: true,
+                                               clarityProjectID: nil,
+                                               clarityEnabled: true,
+                                               ignoreScreens: [],
+                                               dateSaved: currentTime - Millisecond.hour * 2)
         mockRepo.store[key] = storeConfig
         
         let expectation = XCTestExpectation(description: "Completion handler called")

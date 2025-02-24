@@ -54,6 +54,10 @@ extension TimerRequest: Codable {
         try con.encode(Constants.device, forKey: .device)
         try con.encodeIfPresent(excluded, forKey: .excluded)
         try con.encode(Constants.os, forKey: .os)
+        
+      //  if let clarityId = BlueTriangle.clarityProjectId{
+          //  try con.encode(clarityId, forKey: .clarityProjectId)
+      //  }
 
         // Session
         try con.encode(session.isReturningVisitor.smallInt, forKey: .rv)
@@ -381,12 +385,13 @@ extension TimerRequest: Codable {
         case minMemory
         case maxMemory
         case avgMemory        
-
+        case clarityProjectId
         //ERR flag indicates that this request is Error or ANR
         case err = "ERR"
         //Naflg flag indicates that this request is coming from a Native APP
         case NativeAppFlag = "NAflg"
         
         case nativeApp = "NATIVEAPP"
+       
     }
 }

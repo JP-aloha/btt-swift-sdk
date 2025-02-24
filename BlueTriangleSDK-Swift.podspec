@@ -23,4 +23,7 @@ Pod::Spec.new do |s|
     s.source_files = 'Sources/**/*.{swift,c,h,m}'
     s.resource_bundles = {"BlueTriangle" => ["Sources/**/PrivacyInfo.xcprivacy"]}
 
+    # Default includes Clarity
+    s.dependency 'Clarity', '~> 3.0.0'
+ 
   end

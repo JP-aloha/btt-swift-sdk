@@ -15,13 +15,17 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
     init(networkSampleRateSDK: Int?,
          enableRemoteConfigAck : Bool?,
          enableAllTracking : Bool?,
+         clarityProjectID : String?,
+         clarityEnabled : Bool?,
          ignoreScreens : [String]?,
          dateSaved: Millisecond) {
         self.dateSaved = dateSaved
         super.init(networkSampleRateSDK: networkSampleRateSDK,
                    enableRemoteConfigAck: enableRemoteConfigAck, 
                    enableAllTracking: enableAllTracking,
-                   ignoreScreens: ignoreScreens)
+                   ignoreScreens: ignoreScreens, 
+                   clarityProjectID: clarityProjectID, 
+                   clarityEnabled: clarityEnabled)
     }
 
     required init(from decoder: Decoder) throws {

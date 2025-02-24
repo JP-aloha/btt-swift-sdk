@@ -14,15 +14,22 @@ let package = Package(
             name: "BlueTriangle",
             targets: ["BlueTriangle"])
     ],
+    dependencies: [
+            .package(url: "https://github.com/microsoft/clarity-apps.git", from: "3.0.0")
+        ],
     targets: [
         .target(
           name: "BlueTriangle",
-          dependencies: ["Backtrace","AppEventLogger"],
+          dependencies: ["Backtrace",
+                         "AppEventLogger",
+                          .product(name: "Clarity", package: "clarity-apps", condition: .when(platforms: [.iOS]))
+                        ],
           resources: [.copy("PrivacyInfo.xcprivacy")]
         ),
         .target(
             name: "Backtrace",
-            dependencies: []),
+            dependencies: []
+        ),
         .target(
             name: "AppEventLogger",
             dependencies: []),
