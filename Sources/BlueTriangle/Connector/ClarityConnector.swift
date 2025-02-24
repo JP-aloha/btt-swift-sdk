@@ -38,30 +38,28 @@ class ClarityConnector: ConnectorProtocol{
    
     func start() {
         queue.async {
-           
-            guard self.isNeedCeconnect else{
+            
+            guard let projectId = self.clarityProjectID, !self.isConnected else{
                 return
             }
             
-            if let projectId = self.clarityProjectID{
-                DispatchQueue.main.async {
-                    if ClaritySDK.isPaused(), !self.hasChange{
-                        ClaritySDK.resume()
-                    }
-                    else{
-                        let clarityConfig = ClarityConfig(projectId: projectId)
-                        ClaritySDK.initialize(config: clarityConfig)
-                        self.previousProjectID = self.clarityProjectID
-                    }
-                    
-                    ClaritySDK.setOnSessionStartedCallback { url in
-                        self.sessionURL =  ClaritySDK.getCurrentSessionUrl()
-                        print("ClaritySDK session url \(String(describing: self.sessionURL))")
-                    }
-                    
-                    self.isConnected = true
-                    print("ClaritySDK connected \(projectId)")
+            DispatchQueue.main.async {
+                
+                ClaritySDK.setOnSessionStartedCallback { url in
+                    self.sessionURL =  ClaritySDK.getCurrentSessionUrl()
+                    print("ClaritySDK session url \(String(describing: self.sessionURL))")
                 }
+                
+                if ClaritySDK.isPaused(){
+                    ClaritySDK.resume()
+                }
+                else{
+                    let clarityConfig = ClarityConfig(projectId: projectId)
+                    ClaritySDK.initialize(config: clarityConfig)
+                }
+                
+                self.isConnected = true
+                print("ClaritySDK connected \(projectId)")
             }
         }
     }
@@ -102,15 +100,7 @@ class ClarityConnector: ConnectorProtocol{
 }
 
 extension ClarityConnector{
-    
-    private var isNeedCeconnect : Bool {
-        return !isConnected || hasChange
-    }
-    
-    private var hasChange: Bool {
-        return previousProjectID != clarityProjectID
-    }
-    
+
     private var canActivate: Bool {
         return clarityEnabled == true && clarityProjectID != nil
     }
