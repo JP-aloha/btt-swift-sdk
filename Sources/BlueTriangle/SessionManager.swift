@@ -245,7 +245,7 @@ extension SessionManager {
                 session.clarityEnabled = config.clarityEnabled ?? false
                 sessionStore.saveSession(session)
                 
-                BlueTriangle.updateClarity()
+                BlueTriangle.configConnectors()
             }
         }catch{
             logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")

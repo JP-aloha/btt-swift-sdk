@@ -14,10 +14,6 @@ import AppEventLogger
 import UIKit
 #endif
 
-#if canImport(Clarity)
-import Clarity
-#endif
-
 typealias SessionProvider = () -> Session?
 
 /// The entry point for interacting with the Blue Triangle SDK.
@@ -114,13 +110,13 @@ final public class BlueTriangle: NSObject {
         }
     }
     
-    private static var _connectorManager: ConnectorManager?
-    internal static var connectorManager: ConnectorManager?{
+    private static var _connectorController: ConnectorController?
+    internal static var connectorController: ConnectorController?{
         get {
-            trackingLock.sync { _connectorManager }
+            trackingLock.sync { _connectorController }
         }
         set{
-            trackingLock.sync { _connectorManager = newValue }
+            trackingLock.sync { _connectorController = newValue }
         }
     }
     
@@ -202,8 +198,8 @@ final public class BlueTriangle: NSObject {
         }
     }
     
-    internal static func updateClarity(){
-        connectorManager?.configureConnectors()
+    internal static func configConnectors(){
+        connectorController?.configureConnectors()
     }
     
     internal static func updateCaptureRequests() {
@@ -299,6 +295,7 @@ final public class BlueTriangle: NSObject {
         PayloadCache.init(configuration.cacheMemoryLimit,
                           expiry: configuration.cacheExpiryDuration)
     }()
+    
     
     /// Blue Triangle Technologies-assigned site ID.
     @objc public static var siteID: String {
@@ -405,23 +402,25 @@ final public class BlueTriangle: NSObject {
         }
         set {
             lock.sync {
+                
                 self._session?.metrics = (newValue.isEmpty ? nil : newValue)
+                
             }
         }
     }
     
-    /// Clarity .
-     internal static var clarityProjectID: String?{
-        get {
-            _connectorManager?.getAllPayloads()[ClarityKeys.clarityProjectID] ?? nil
-        }
-    }
-    
-    internal static var claritySessionURL: String?{
+    /// Connectors .
+    internal static var getGeneralPayload: [String: String?]?{
        get {
-           _connectorManager?.getAllPayloads()[ClarityKeys.claritySessionURL] ?? nil
+           _connectorController?.getAllGeneralPayloads()
        }
    }
+    
+     internal static var getNativePayload: [String: String?]?{
+        get {
+            _connectorController?.getAllNativePayloads()
+        }
+    }
 }
 
 extension BlueTriangle {
@@ -568,7 +567,7 @@ extension BlueTriangle {
     }
     
     private static func startConnectors(){
-        if connectorManager  == nil{
+        if connectorController  == nil{
             self.configureConnectors()
         }
         
@@ -576,8 +575,8 @@ extension BlueTriangle {
     }
     
     private static func stopConnectors(){
-        connectorManager?.stopAllConnectors()
-        connectorManager = nil
+        connectorController?.stopAllConnectors()
+        connectorController = nil
         
         logger.info("BlueTriangle :: Stop connectors due to SDK disable.")
     }
@@ -1208,9 +1207,9 @@ extension BlueTriangle{
 
 extension BlueTriangle {
     static func configureConnectors(){
-        let provider = ConnectorsProvider()
-        connectorManager = ConnectorManager(connectorsProvider: provider)
-        connectorManager?.configureConnectors()
+        let provider = ConnectorsProvider(self.logger)
+        connectorController = ConnectorController(connectorsProvider: provider)
+        connectorController?.configureConnectors()
     }
 }
 

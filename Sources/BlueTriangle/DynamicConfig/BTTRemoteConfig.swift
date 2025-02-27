@@ -43,7 +43,7 @@ class BTTRemoteConfig: Codable, Equatable {
                              enableRemoteConfigAck : false, 
                              enableAllTracking: true, 
                              clarityProjectID: nil, 
-                             clarityEnabled: true,
+                             clarityEnabled: false,
                              ignoreScreens: Array(BlueTriangle.configuration.ignoreViewControllers),
                              dateSaved: Date().timeIntervalSince1970.milliseconds)
     }

@@ -15,7 +15,7 @@ let package = Package(
             targets: ["BlueTriangle"])
     ],
     dependencies: [
-            .package(url: "https://github.com/microsoft/clarity-apps.git", from: "3.0.0")
+            .package(url: "https://github.com/microsoft/clarity-apps.git", .exact("3.0.5"))
         ],
     targets: [
         .target(

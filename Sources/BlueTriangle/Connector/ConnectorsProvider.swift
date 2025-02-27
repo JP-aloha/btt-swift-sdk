@@ -13,9 +13,9 @@ class ConnectorsProvider : ConnectorsProviderProtocol{
    
     private var connectors : [ConnectorProtocol] = [ConnectorProtocol]()
     
-    init() {
+    init(_ logger : Logging) {
 #if canImport(Clarity)
-        let connector = ClarityConnector()
+        let connector = ClarityConnector(logger)
         connectors.append(connector)
 #endif
     }

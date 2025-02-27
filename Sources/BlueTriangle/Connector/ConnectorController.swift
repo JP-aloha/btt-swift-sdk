@@ -7,7 +7,7 @@
 
 import Foundation
 
-class ConnectorManager {
+class ConnectorController {
 
     private let connectorsProvider: ConnectorsProviderProtocol
 
@@ -38,17 +38,32 @@ class ConnectorManager {
         }
     }  
     
-    /// Fetches payloads from all connectors and merges them into a single dictionary.
-    /// - Returns: A dictionary containing all connector payloads, where keys are payload identifiers
-    ///   and values are optional string data.
-    func getAllPayloads() -> [String: String?] {
+    /// Retrieves all connectors payload containing platform-specific information that is sent to the **NATIVEAPP**.
+    /// - Returns: A dictionary containing key-value pairs of native-specific information.
+    func getAllNativePayloads() -> [String: String?] {
         var mergedPayload: [String: String?] = [:]
         
         let connectors = connectorsProvider.getConnectors()
         for connector in connectors {
-            let payload = connector.getPayload()
+            let payload = connector.getNativePayload()
             for (key, value) in payload {
-                mergedPayload[key] = value
+                mergedPayload[key] = value // Overwrites duplicate keys
+            }
+        }
+        
+        return mergedPayload
+    }
+
+    /// Retrieves all connectors  payload containing information that is sent to the main payload.
+    /// - Returns: A dictionary containing key-value pairs of general information.
+    func getAllGeneralPayloads() -> [String: String?] {
+        var mergedPayload: [String: String?] = [:]
+        
+        let connectors = connectorsProvider.getConnectors()
+        for connector in connectors {
+            let payload = connector.getGeneralPayload()
+            for (key, value) in payload {
+                mergedPayload[key] = value // Overwrites duplicate keys
             }
         }
         

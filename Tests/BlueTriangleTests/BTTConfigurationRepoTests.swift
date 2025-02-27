@@ -29,7 +29,7 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                      enableAllTracking: true,
                                      ignoreScreens: [],
                                      clarityProjectID: nil,
-                                     clarityEnabled: true)
+                                     clarityEnabled: false)
         configurationRepo.save(config)
         
         XCTAssertNotNil(configurationRepo.store[key])
@@ -44,7 +44,7 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                                enableRemoteConfigAck: false, 
                                                enableAllTracking: true, 
                                                clarityProjectID: nil,
-                                               clarityEnabled: true,
+                                               clarityEnabled: false,
                                                ignoreScreens: [],
                                                dateSaved: Date().timeIntervalSince1970.milliseconds)
         configurationRepo.store[key] = savedConfig

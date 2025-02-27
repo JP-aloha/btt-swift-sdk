@@ -47,7 +47,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                      enableAllTracking: true,
                                      ignoreScreens: [], 
                                      clarityProjectID: nil,
-                                     clarityEnabled: true)
+                                     clarityEnabled: false)
         mockFetcher.configToReturn = config
         
         let expectation = XCTestExpectation(description: "Completion handler called")
@@ -69,7 +69,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                      enableAllTracking: true,
                                      ignoreScreens: [], 
                                      clarityProjectID: nil,
-                                     clarityEnabled: true)
+                                     clarityEnabled: false)
         mockRepo.save(config)
         
         let expectation = XCTestExpectation(description: "Completion handler called")
@@ -88,7 +88,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                         enableAllTracking: true,
                                         ignoreScreens: [],
                                         clarityProjectID: nil,
-                                        clarityEnabled: true)
+                                        clarityEnabled: false)
         mockFetcher.configToReturn = apiConfig
         
         
@@ -97,7 +97,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                                enableRemoteConfigAck: false,
                                                enableAllTracking: true,
                                                clarityProjectID: nil,
-                                               clarityEnabled: true,
+                                               clarityEnabled: false,
                                                ignoreScreens: [],
                                                dateSaved: currentTime - Millisecond.hour * 2)
         mockRepo.store[key] = storeConfig

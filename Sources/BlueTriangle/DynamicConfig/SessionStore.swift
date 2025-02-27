@@ -69,7 +69,7 @@ class SessionData: Codable {
         self.isNewSession = true
         self.shouldNetworkCapture = false
         self.clarityProjectID = nil
-        self.clarityEnabled = true
+        self.clarityEnabled = false
         self.networkSampleRate = BlueTriangle.configuration.networkSampleRate
         self.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers
     }
