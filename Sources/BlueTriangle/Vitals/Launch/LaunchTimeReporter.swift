@@ -89,7 +89,7 @@ class LaunchTimeReporter : ObservableObject {
                                  page: page,
                                  timer: timer,
                                  trafficSegmentName: trafficSegment,
-                                 nativeAppProperties: .empty)
+                                 nativeAppProperties: .nstEmpty)
         return try Request(method: .post,
                            url: Constants.timerEndpoint,
                            model: model)
