@@ -2,8 +2,8 @@
 //  ConnectorManager.swift
 //  
 //
-//  Created by Ashok Singh on 14/02/25.
-//
+//  Created by JP on 14/02/25.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 
 import Foundation
 

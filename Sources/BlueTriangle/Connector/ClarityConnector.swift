@@ -2,8 +2,8 @@
 //  ClarityConnector.swift
 //  
 //
-//  Created by Ashok Singh on 13/02/25.
-//
+//  Created by JP on 13/02/25.
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 
 
 struct ConnectorConfig{
@@ -14,6 +14,10 @@ struct ConnectorConfig{
 internal struct ClarityRemoteConfigKeys {
     static let claritySessionURL = "claritySessionURL"
     static let clarityProjectID  = "clarityProjectID"
+}
+
+internal struct ClarityCVKeys {
+    static let claritySessionURL = "CV0"
 }
 
 /// Protocol defining the necessary methods for a connector implementation.
@@ -51,11 +55,14 @@ class ClarityConnector: ConnectorProtocol{
     private(set) var isInitialized : Bool = false
     private(set) var sessionURL : String?
     private(set) var logger: Logging
+    private(set) var cvAdapter: CustomVariableAdapterProtocol
     
-    init(_ logger : Logging){
+    init(_ logger: Logging, 
+         cvAdapter: CustomVariableAdapterProtocol) {
         self.logger = logger
+        self.cvAdapter = cvAdapter
     }
-   
+
     func start() {
         queue.async {
             
@@ -66,17 +73,12 @@ class ClarityConnector: ConnectorProtocol{
             
             ClaritySDK.setOnSessionStartedCallback { _ in
                 self.sessionURL =  ClaritySDK.getCurrentSessionUrl()
-                if let sessionURL = self.sessionURL{
-                    BlueTriangle.setCustomVariable("CV0", value: sessionURL)
-                }
+                self.cvAdapter.setConnectorCustomVariable(value: self.sessionURL, forKey: ClarityCVKeys.claritySessionURL)
             }
             
             if ClaritySDK.isPaused(){
                 ClaritySDK.resume()
-                
-                if let sessionURL = self.sessionURL{
-                    BlueTriangle.setCustomVariable("CV0", value: sessionURL)
-                }
+                self.cvAdapter.setConnectorCustomVariable(value: self.sessionURL, forKey: ClarityCVKeys.claritySessionURL)
                 self.logger.info("BlueTriangle::ClarityConnector - Successfully resume clarity")
             }
             else{
@@ -93,8 +95,8 @@ class ClarityConnector: ConnectorProtocol{
         queue.async {
             if self.isInitialized{
                 ClaritySDK.pause()
-                BlueTriangle.clearCustomVariable("CV0")
                 self.isInitialized = false
+                self.cvAdapter.clearConnectorCustomVariable(forKey: ClarityCVKeys.claritySessionURL)
                 self.logger.info("BlueTriangle::ClarityConnector - Successfully paused clarity")
             }
         }

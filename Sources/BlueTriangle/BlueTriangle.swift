@@ -252,7 +252,10 @@ final public class BlueTriangle: NSObject {
         configuration.makeLogger()
     }()
     
-
+    private static var cvAdapter: CustomVariableAdapterProtocol = {
+        CustomVariableAdapter()
+    }()
+    
     private static var uploader: Uploading = {
         configuration.uploaderConfiguration.makeUploader(
             logger: logger,
@@ -1207,7 +1210,7 @@ extension BlueTriangle{
 
 extension BlueTriangle {
     static func configureConnectors(){
-        let provider = ConnectorsProvider(self.logger)
+        let provider = ConnectorsProvider(self.logger, cvAdapter: self.cvAdapter)
         connectorController = ConnectorController(connectorsProvider: provider)
         connectorController?.configureConnectors()
     }
