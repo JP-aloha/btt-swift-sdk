@@ -147,7 +147,7 @@ private extension RemoteConfigAckReporter {
                                  page: page,
                                  timer: timer,
                                  trafficSegmentName: trafficSegment,
-                                 nativeAppProperties: .nstEmpty)
+                                 nativeAppProperties: .empty)
         return try Request(method: .post,
                            url: Constants.timerEndpoint,
                            model: model)
