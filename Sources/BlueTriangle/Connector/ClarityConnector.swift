@@ -66,7 +66,7 @@ class ClarityConnector: ConnectorProtocol{
     func start() {
         DispatchQueue.main.async {
             
-            guard let projectId = self.clarityProjectID, !self.isInitialized else{
+            guard let projectId = self.clarityProjectID, projectId.count > 0, !self.isInitialized else{
                 self.logger.info("BlueTriangle::ClarityConnector - Unable to initialize clarity")
                 return
             }
@@ -103,14 +103,14 @@ class ClarityConnector: ConnectorProtocol{
     }
 
     func configure(_ config : ConnectorConfig) {
-        self.clarityProjectID = config.clarityProjectID
+        self.clarityProjectID = config.clarityProjectID?.trimmingCharacters(in: .whitespacesAndNewlines)
         self.clarityEnabled = config.clarityEnabled
         self.updateStatus()
     }
     
     func getNativePayload() -> [String: String?] {
         
-        guard let projectId = clarityProjectID, isInitialized else { return [:] }
+        guard let projectId = clarityProjectID, projectId.count > 0,  isInitialized else { return [:] }
         
         return [
             ClarityRemoteConfigKeys.clarityProjectID: projectId
