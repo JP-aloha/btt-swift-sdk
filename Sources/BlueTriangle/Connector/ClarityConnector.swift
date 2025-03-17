@@ -51,7 +51,7 @@ import Clarity
 class ClarityConnector: ConnectorProtocol{
     private let queue = DispatchQueue(label: "com.bluetriangle.clarity.connector", qos: .userInitiated, autoreleaseFrequency: .workItem, target: DispatchQueue.main)
     private(set) var clarityProjectID : String?
-    private(set) var clarityEnabled : Bool?
+    private(set) var clarityEnabled : Bool = false
     private(set) var isInitialized : Bool = false
     private(set) var sessionURL : String?
     private(set) var logger: Logging
@@ -66,7 +66,7 @@ class ClarityConnector: ConnectorProtocol{
     func start() {
         DispatchQueue.main.async {
             
-            guard let projectId = self.clarityProjectID, projectId.count > 0, !self.isInitialized else{
+            guard let projectId = self.clarityProjectID, projectId.count > 0, self.clarityEnabled, !self.isInitialized else{
                 self.logger.info("BlueTriangle::ClarityConnector - Unable to initialize clarity")
                 return
             }
@@ -104,13 +104,13 @@ class ClarityConnector: ConnectorProtocol{
 
     func configure(_ config : ConnectorConfig) {
         self.clarityProjectID = config.clarityProjectID?.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.clarityEnabled = config.clarityEnabled
+        self.clarityEnabled = config.clarityEnabled ?? false
         self.updateStatus()
     }
     
     func getNativePayload() -> [String: String?] {
         
-        guard let projectId = clarityProjectID, projectId.count > 0,  isInitialized else { return [:] }
+        guard let projectId = clarityProjectID, projectId.count > 0, clarityEnabled, isInitialized else { return [:] }
         
         return [
             ClarityRemoteConfigKeys.clarityProjectID: projectId
@@ -119,7 +119,7 @@ class ClarityConnector: ConnectorProtocol{
     
     func getGeneralPayload() -> [String: String?] {
         
-        guard isInitialized else { return [:] }
+        guard isInitialized, clarityEnabled else { return [:] }
         
         return [:]
     }
@@ -129,7 +129,10 @@ class ClarityConnector: ConnectorProtocol{
 extension ClarityConnector{
 
     private var canActivate: Bool {
-        return clarityEnabled == true && clarityProjectID != nil
+        guard let clarityID = clarityProjectID, clarityEnabled == true , clarityID.count > 0 else {
+            return false
+        }
+        return true
     }
     
     private func updateStatus(){

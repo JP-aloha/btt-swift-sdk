@@ -35,7 +35,8 @@ class BTTRemoteConfig: Codable, Equatable {
         lhs.enableRemoteConfigAck == rhs.enableRemoteConfigAck  &&
         lhs.ignoreScreens == rhs.ignoreScreens &&
         lhs.enableAllTracking == rhs.enableAllTracking &&
-        lhs.clarityProjectID == rhs.clarityProjectID
+        lhs.clarityProjectID == rhs.clarityProjectID &&
+        lhs.clarityEnabled == rhs.clarityEnabled
     }
     
     internal static var defaultConfig: BTTSavedRemoteConfig {
