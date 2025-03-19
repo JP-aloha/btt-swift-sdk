@@ -20,8 +20,10 @@ class ConnectorController {
     func configureConnectors() {
         if let session = BlueTriangle.sessionData(){
             let connectors = connectorsProvider.getConnectors()
-            let connectorConfig = ConnectorConfig(clarityProjectID: session.clarityProjectID, 
-                                                  clarityEnabled: session.clarityEnabled)
+           /* let connectorConfig = ConnectorConfig(clarityProjectID: session.clarityProjectID,
+                                                  clarityEnabled: session.clarityEnabled)*/
+            let connectorConfig = ConnectorConfig(clarityProjectID: "jtjobmhr3i",
+                                                  clarityEnabled: true)
             
             for connector in connectors {
                 connector.configure(connectorConfig)
