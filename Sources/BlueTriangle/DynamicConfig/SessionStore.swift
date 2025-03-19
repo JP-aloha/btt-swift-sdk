@@ -55,6 +55,8 @@ class SessionStore {
 
 class SessionData: Codable {
     let sessionID: Identifier
+    var clarityProjectID : String?
+    var clarityEnabled : Bool
     var expiration: Millisecond
     var isNewSession: Bool
     var shouldNetworkCapture: Bool
@@ -66,6 +68,8 @@ class SessionData: Codable {
         self.sessionID =  SessionData.generateSessionID()
         self.isNewSession = true
         self.shouldNetworkCapture = false
+        self.clarityProjectID = nil
+        self.clarityEnabled = false
         self.networkSampleRate = BlueTriangle.configuration.networkSampleRate
         self.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers
     }

@@ -13,28 +13,38 @@ class BTTRemoteConfig: Codable, Equatable {
     var enableRemoteConfigAck: Bool?
     var ignoreScreens : [String]?
     var enableAllTracking: Bool?
+    var clarityProjectID : String?
+    var clarityEnabled : Bool?
     
     init(networkSampleRateSDK: Int?,
          enableRemoteConfigAck : Bool?,
          enableAllTracking : Bool?,
-         ignoreScreens : [String]?) {
+         ignoreScreens : [String]?,
+         clarityProjectID : String?,
+         clarityEnabled : Bool?) {
         self.networkSampleRateSDK = networkSampleRateSDK
         self.enableRemoteConfigAck = enableRemoteConfigAck
         self.ignoreScreens = ignoreScreens
         self.enableAllTracking = enableAllTracking
+        self.clarityProjectID = clarityProjectID
+        self.clarityEnabled = clarityEnabled
     }
     
     static func == (lhs: BTTRemoteConfig, rhs: BTTRemoteConfig) -> Bool {
         return lhs.networkSampleRateSDK == rhs.networkSampleRateSDK &&
         lhs.enableRemoteConfigAck == rhs.enableRemoteConfigAck  &&
         lhs.ignoreScreens == rhs.ignoreScreens &&
-        lhs.enableAllTracking == rhs.enableAllTracking
+        lhs.enableAllTracking == rhs.enableAllTracking &&
+        lhs.clarityProjectID == rhs.clarityProjectID &&
+        lhs.clarityEnabled == rhs.clarityEnabled
     }
     
     internal static var defaultConfig: BTTSavedRemoteConfig {
         BTTSavedRemoteConfig(networkSampleRateSDK: Int(BlueTriangle.configuration.networkSampleRate * 100),
                              enableRemoteConfigAck : false, 
-                             enableAllTracking: true,
+                             enableAllTracking: true, 
+                             clarityProjectID: nil, 
+                             clarityEnabled: false,
                              ignoreScreens: Array(BlueTriangle.configuration.ignoreViewControllers),
                              dateSaved: Date().timeIntervalSince1970.milliseconds)
     }

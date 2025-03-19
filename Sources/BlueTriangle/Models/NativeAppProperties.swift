@@ -99,6 +99,14 @@ extension NativeAppProperties: Codable{
             try con.encode(netStateSource, forKey: .netStateSource)
         }
         
+        if let payloads = BlueTriangle.getNativePayload, self.type != NativeAppType.NST.description{
+            for key in payloads.keys{
+                if let value = payloads[key], let codingKey = NativeAppProperties.CodingKeys(rawValue: key){
+                    try con.encode(value, forKey: codingKey)
+                }
+            }
+        }
+        
         try con.encode(deviceModel, forKey: .deviceModel)
     }
     
@@ -135,6 +143,7 @@ extension NativeAppProperties: Codable{
         case err
         case deviceModel
         case netStateSource
+        case clarityProjectID
     }
 }
 

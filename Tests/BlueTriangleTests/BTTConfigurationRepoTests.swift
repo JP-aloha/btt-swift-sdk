@@ -27,7 +27,9 @@ final class BTTConfigurationRepoTests: XCTestCase {
         let config = BTTRemoteConfig(networkSampleRateSDK: 5, 
                                      enableRemoteConfigAck: false, 
                                      enableAllTracking: true,
-                                     ignoreScreens: [])
+                                     ignoreScreens: [],
+                                     clarityProjectID: nil,
+                                     clarityEnabled: false)
         configurationRepo.save(config)
         
         XCTAssertNotNil(configurationRepo.store[key])
@@ -41,6 +43,8 @@ final class BTTConfigurationRepoTests: XCTestCase {
         let savedConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 5,
                                                enableRemoteConfigAck: false, 
                                                enableAllTracking: true, 
+                                               clarityProjectID: nil,
+                                               clarityEnabled: false,
                                                ignoreScreens: [],
                                                dateSaved: Date().timeIntervalSince1970.milliseconds)
         configurationRepo.store[key] = savedConfig

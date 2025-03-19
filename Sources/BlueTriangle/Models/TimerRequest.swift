@@ -381,12 +381,12 @@ extension TimerRequest: Codable {
         case minMemory
         case maxMemory
         case avgMemory        
-
         //ERR flag indicates that this request is Error or ANR
         case err = "ERR"
         //Naflg flag indicates that this request is coming from a Native APP
         case NativeAppFlag = "NAflg"
         
         case nativeApp = "NATIVEAPP"
+       
     }
 }

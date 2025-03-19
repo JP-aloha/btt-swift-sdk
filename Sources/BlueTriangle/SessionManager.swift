@@ -152,7 +152,6 @@ class SessionManager : SessionManagerProtocol{
             return updatedSession
         }
     }
-
     
     private func updateSession(){
         let seesion = self.invalidateSession()
@@ -193,11 +192,7 @@ extension SessionManager {
                 
         if let session = currentSession {
             if session.isNewSession{
-                configSyncer.syncConfigurationFromStorage()
-                session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
-                session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
-                session.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers
-                sessionStore.saveSession(session)
+                self.syncConfigurationFromStorage()
             }else{
                 BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
                 BlueTriangle.updateIgnoreVcs(session.ignoreViewControllers)
@@ -207,6 +202,55 @@ extension SessionManager {
 }
 
 extension SessionManager {
+    
+    func syncConfigurationFromStorage(){
+        do{
+            if let config = try configRepo.get(), let session = currentSession{
+                
+                //Sync Sample Rate
+                let sampleRate = config.networkSampleRateSDK ?? configRepo.defaultConfig.networkSampleRateSDK
+                
+                if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
+                    BlueTriangle.updateNetworkSampleRate(1.0)
+                }
+                else if let rate = sampleRate{
+                    if rate == 0 {
+                        BlueTriangle.updateNetworkSampleRate(0.0)
+                    }else{
+                        BlueTriangle.updateNetworkSampleRate(Double(rate) / 100.0)
+                    }
+                }
+                
+                session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
+                session.shouldNetworkCapture =  .random(probability: BlueTriangle.configuration.networkSampleRate)
+
+               // Sync Ignore Screens
+                let ignoreScreens = config.ignoreScreens ?? configRepo.defaultConfig.ignoreScreens
+                
+                if let ignoreVcs = ignoreScreens{
+                                       
+                    var unianOfIgnoreScreens = Set(ignoreVcs)
+                    
+                    if let defaultScreens = configRepo.defaultConfig.ignoreScreens{
+                        unianOfIgnoreScreens = unianOfIgnoreScreens.union(Set(defaultScreens))
+                    }
+                   
+                    BlueTriangle.updateIgnoreVcs(unianOfIgnoreScreens)
+                }
+                
+                session.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers
+                
+                // Clarity sync
+                session.clarityProjectID = config.clarityProjectID
+                session.clarityEnabled = config.clarityEnabled ?? false
+                sessionStore.saveSession(session)
+                
+                BlueTriangle.configConnectors()
+            }
+        }catch{
+            logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
+        }
+    }
     
     private func removeConfigObserver(){
         if let observer = foregroundObserver {

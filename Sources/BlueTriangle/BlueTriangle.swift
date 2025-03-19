@@ -109,7 +109,17 @@ final public class BlueTriangle: NSObject {
             trackingLock.sync { _sessionManager = newValue }
         }
     }
-   
+    
+    private static var _connectorController: ConnectorController?
+    internal static var connectorController: ConnectorController?{
+        get {
+            trackingLock.sync { _connectorController }
+        }
+        set{
+            trackingLock.sync { _connectorController = newValue }
+        }
+    }
+    
     internal static var enableAllTracking: Bool = {
         let value = configRepo.isEnableAllTracking()
         return  value
@@ -188,6 +198,10 @@ final public class BlueTriangle: NSObject {
         }
     }
     
+    internal static func configConnectors(){
+        connectorController?.configureConnectors()
+    }
+    
     internal static func updateCaptureRequests() {
         if let sessionData = sessionData(){
             shouldCaptureRequests = sessionData.shouldNetworkCapture
@@ -238,7 +252,10 @@ final public class BlueTriangle: NSObject {
         configuration.makeLogger()
     }()
     
-
+    private static var cvAdapter: CustomVariableAdapterProtocol = {
+        CustomVariableAdapter()
+    }()
+    
     private static var uploader: Uploading = {
         configuration.uploaderConfiguration.makeUploader(
             logger: logger,
@@ -394,6 +411,19 @@ final public class BlueTriangle: NSObject {
             }
         }
     }
+    
+    /// Connectors .
+    internal static var getGeneralPayload: [String: String?]?{
+       get {
+           _connectorController?.getAllGeneralPayloads()
+       }
+   }
+    
+     internal static var getNativePayload: [String: String?]?{
+        get {
+            _connectorController?.getAllNativePayloads()
+        }
+    }
 }
 
 extension BlueTriangle {
@@ -539,6 +569,21 @@ extension BlueTriangle {
         logger.info("BlueTriangle :: Network state tracking was stopped due to SDK disable.")
     }
     
+    private static func startConnectors(){
+        if connectorController  == nil{
+            self.configureConnectors()
+        }
+        
+        logger.info("BlueTriangle :: Start connectors.")
+    }
+    
+    private static func stopConnectors(){
+        connectorController?.stopAllConnectors()
+        connectorController = nil
+        
+        logger.info("BlueTriangle :: Stop connectors due to SDK disable.")
+    }
+    
     private static func clearAllCache(){
         do{
             let payloadCache = BlueTriangle.payloadCache
@@ -614,6 +659,7 @@ extension BlueTriangle {
         self.startScreenTracking()
         self.startNetworkStatus()
         self.startLaunchTime()
+        self.startConnectors()
     }
     
     /// Stops all trackers to disable the functionality of the SDK.
@@ -639,6 +685,8 @@ extension BlueTriangle {
         self.stopNetworkStatus()
         self.stopLaunchTime()
         self.clearAllCache()
+        self.stopANR()
+        self.stopConnectors()
     }
 
     // We want to allow multiple configurations for testing
@@ -1157,6 +1205,14 @@ extension BlueTriangle{
             sessionManager = disableModeSessionManager
             sessionManager?.start(with: expiry)
         }
+    }
+}
+
+extension BlueTriangle {
+    static func configureConnectors(){
+        let provider = ConnectorsProvider(self.logger, cvAdapter: self.cvAdapter)
+        connectorController = ConnectorController(connectorsProvider: provider)
+        connectorController?.configureConnectors()
     }
 }
 
