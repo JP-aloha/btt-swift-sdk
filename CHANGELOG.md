@@ -1,4 +1,8 @@
-# Blue Triangle 3.13.2, Latest
+# Blue Triangle 3.14.0, Latest
+### New Features
+  - Introduced the ability for the BlueTriangle SDK to support Microsoft Clarity integration.
+
+# Blue Triangle 3.13.2, Feb 7 2015
 ### New Features
   - Added ability to disabling or enabling the SDK through the remote configuration system, providing full control over its functionality in real-time. When the SDK is disabled, all features, including data collection, processing, and network operations, are suspended.
 ### Bug Fixes and Improvements

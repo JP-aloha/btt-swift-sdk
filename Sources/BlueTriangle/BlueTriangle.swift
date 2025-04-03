@@ -109,6 +109,8 @@ final public class BlueTriangle: NSObject {
             trackingLock.sync { _sessionManager = newValue }
         }
     }
+    
+    internal static var clarityConnector = ClaritySessionConnector(logger: logger)
    
     internal static var enableAllTracking: Bool = {
         let value = configRepo.isEnableAllTracking()
@@ -723,6 +725,8 @@ public extension BlueTriangle {
     @objc
     static func endTimer(_ timer: BTTimer, purchaseConfirmation: PurchaseConfirmation? = nil) {
         timer.end()
+        
+        self.clarityConnector.refreshClaritySessionUrlCustomVariable()
         
         if let session = session(), timer.enableAllTracking {
             purchaseConfirmation?.orderTime = timer.endTime
