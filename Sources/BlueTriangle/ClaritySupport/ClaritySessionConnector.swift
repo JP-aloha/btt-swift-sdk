@@ -2,7 +2,8 @@
 //  File.swift
 //
 //
-//  Created by Ashok Singh on 31/03/25.
+//  Created by Ashok Singh on 31/03/25..
+//  Copyright © 2023 Blue Triangle. All rights reserved.
 //
 
 import Foundation
@@ -16,10 +17,12 @@ class ClaritySessionConnector {
     }
     
     func refreshClaritySessionUrlCustomVariable(){
-        if let claritySessionUrl = self.getClaritySessionUrl(){
-            self.setClaritySessionUrlToCustomVariable(claritySessionUrl)
-        }else{
-            self.removeClaritySessionUrlFromCustomVariable()
+        DispatchQueue.main.sync {
+            if let claritySessionUrl = self.getClaritySessionUrl(){
+                self.setClaritySessionUrlToCustomVariable(claritySessionUrl)
+            }else{
+                self.removeClaritySessionUrlFromCustomVariable()
+            }
         }
     }
 }
