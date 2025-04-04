@@ -736,12 +736,7 @@ func testCrashTracking() {  let array = NSArray()  array.object(at: 99)  }
 
 ### Clarity Support
 
-Blue Triangle provides support for Microsoft Clarity to enhance session recording analysis. To enable this integration, developers must follow the steps outlined below.
-
-1. Adding Clarity to the App
-
-You can integrate Microsoft Clarity into your app by following the instruction by [Microsoft Clarity documentation](https://learn.microsoft.com/en-us/clarity/mobile-sdk/ios-sdk?tabs=swift-package-manager%2Cswift).
-
+Blue Triangle provides support for Microsoft Clarity to get better insights into user journey. To enable this integration, setup Microsoft Clarity into your app by following the instructions in the [Microsoft Clarity Documentation](https://learn.microsoft.com/en-us/clarity/mobile-sdk/ios-sdk?tabs=swift-package-manager%2Cswift).
 
 
 ## Troubleshooting

@@ -42,7 +42,6 @@ extension ClaritySessionConnector{
     
     private func removeClaritySessionUrlFromCustomVariable() {
         BlueTriangle.clearCustomVariable(ClarityCVKeys.claritySessionURL)
-        self.logger.info("BlueTriangle:ClaritySessionConnector : Removed clarity session URL")
     }
     
     private func getClaritySessionUrl() -> String? {
