@@ -63,9 +63,33 @@ final class TimerRequestBuilderTests: XCTestCase {
 
         let actualBody = try sut.builder(Mock.session, timer, nil).body!
         wait(for: [errorExpectation], timeout: 0.1)
-        let actualString = String(decoding: actualBody.base64DecodedData()!, as: UTF8.self)
+        let timerRequest = try JSONDecoder().decode(TimerRequest.self, from: actualBody.base64DecodedData()!)
         
-        XCTAssertTrue(actualString == expectedString1 || actualString == expectedString2)
+        let appVersion = Bundle.main.releaseVersionNumber ?? "0.0"
+        XCTAssertEqual(timerRequest.session.abTestID, "MY_AB_TEST_ID")
+        XCTAssertEqual(timerRequest.session.campaign, nil)
+        XCTAssertEqual(timerRequest.session.campaignName, "MY_CAMPAIGN_NAME")
+        XCTAssertEqual(timerRequest.session.campaignMedium, "MY_CAMPAIGN_MEDIUM")
+        XCTAssertEqual(timerRequest.session.campaignSource, "MY_CAMPAIGN_SOURCE")
+        XCTAssertEqual(timerRequest.session.appVersion, "Native App-\(appVersion)-\(Device.os) \(Device.osVersion)")
+        XCTAssertEqual(timerRequest.session.wcd, 1)
+        XCTAssertEqual(timerRequest.session.eventType, 9)
+        XCTAssertEqual(timerRequest.session.navigationType, 9)
+        XCTAssertEqual(timerRequest.session.sessionID, 999999999999999999)
+        XCTAssertEqual(timerRequest.session.siteID, "MY_SITE_ID")
+        XCTAssertEqual(timerRequest.session.dataCenter, "MY_DATA_CENTER")
+        XCTAssertEqual(timerRequest.session.trafficSegmentName, "MY_SEGMENT_NAME")
+        XCTAssertEqual(timerRequest.session.isReturningVisitor,true)
+        XCTAssertEqual(timerRequest.session.osInfo, Device.os)
+        XCTAssertEqual(timerRequest.session.globalUserID,888888888888888888)
+        
+        
+        XCTAssertEqual(timerRequest.page.pageName, "MY_PAGE_NAME")
+        XCTAssertEqual(timerRequest.page.pageType, "MY_PAGE_TYPE")
+        XCTAssertEqual(timerRequest.page.referringURL, "MY_REFERRING_URL")
+        XCTAssertEqual(timerRequest.page.brandValue, 0.51)
+        XCTAssertEqual(timerRequest.page.url, "MY_URL")
+        XCTAssertEqual(timerRequest.page.referringURL, "MY_REFERRING_URL")
     }
 
     func testMetrics() throws {

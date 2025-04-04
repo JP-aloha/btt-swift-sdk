@@ -50,7 +50,7 @@ extension ClaritySessionConnector{
         var claritySessionUrl : String?
         
         guard let clarityClass = NSClassFromString(ClarityReflectionKeys.clarityClass) as? NSObject.Type else {
-            logger.error("BlueTriangle: \(ClarityReflectionKeys.clarityClass) class not found")
+            self.logger.info("BlueTriangle: \(ClarityReflectionKeys.clarityClass) class not found")
             return claritySessionUrl
         }
         
@@ -60,6 +60,9 @@ extension ClaritySessionConnector{
             if let clarityUrl = clarityClass.perform(getSessionSelector)?.takeUnretainedValue() as? String {
                 claritySessionUrl = clarityUrl
             }
+        }
+        else{
+            self.logger.info("BlueTriangle:ClaritySessionConnector : \(ClarityReflectionKeys.getSessionUrl) method not found")
         }
         
         return claritySessionUrl
