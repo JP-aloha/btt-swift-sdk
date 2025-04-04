@@ -17,12 +17,10 @@ class ClaritySessionConnector {
     }
     
     func refreshClaritySessionUrlCustomVariable(){
-        DispatchQueue.main.sync {
-            if let claritySessionUrl = self.getClaritySessionUrl(){
-                self.setClaritySessionUrlToCustomVariable(claritySessionUrl)
-            }else{
-                self.removeClaritySessionUrlFromCustomVariable()
-            }
+        if let claritySessionUrl = self.getClaritySessionUrl(){
+            self.setClaritySessionUrlToCustomVariable(claritySessionUrl)
+        }else{
+            self.removeClaritySessionUrlFromCustomVariable()
         }
     }
 }
