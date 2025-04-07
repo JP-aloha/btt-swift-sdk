@@ -1,6 +1,7 @@
 # Blue Triangle 3.14.0, Latest
 ### New Features
-  - Introduced the ability for the BlueTriangle SDK to support Microsoft Clarity integration.
+  - Added support for Blutriange and Microsoft clarity session mapping. 
+  - Added ability to detect clarity sdk present in host app, if present associate clarity session url with timers
 
 # Blue Triangle 3.13.2, Feb 7 2015
 ### New Features
