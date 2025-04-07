@@ -734,7 +734,7 @@ func testCrashTracking() {  let array = NSArray()  array.object(at: 99)  }
 
 ```
 
-### Clarity Support
+### Microsoft Clarity Integration
 
 Blue Triangle offers session playback via Microsoft Clarity integration. For help with this process, please reach out to your Blue Triangle representative.
 
