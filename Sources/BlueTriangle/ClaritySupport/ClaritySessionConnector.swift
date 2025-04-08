@@ -16,7 +16,7 @@ class ClaritySessionConnector {
     
     init(logger: Logging) {
         self.logger = logger
-        self.verifyClaritySetup()
+        self.initializeClarityMethods()
     }
     
     func refreshClaritySessionUrlCustomVariable(){
@@ -50,7 +50,7 @@ extension ClaritySessionConnector{
         static let clarityClassName = "Clarity.ClaritySDK"
     }
     
-    private func verifyClaritySetup(){
+    private func initializeClarityMethods(){
         
         if let clarityClass = NSClassFromString(ClaritySDKConstants.clarityClassName) as? NSObject.Type{
            
