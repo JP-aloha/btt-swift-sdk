@@ -1,4 +1,4 @@
-# Blue Triangle 3.15.0, Aug 1 2025
+# Blue Triangle 3.15.0, Latest
 ### New Features
 - Automated Grouping of all single-screen Views/Controllers.
 - Automated group name through screen title or class name.
@@ -9,7 +9,7 @@
 - Sending groupingCause field in NativeApp (timeout, tap, manual)
 - Entry type sent as “screen” for controllers/views in WCD.
 
-# Blue Triangle 3.14.2, Latest
+# Blue Triangle 3.14.2, Aug 1 2025
 ### New Features
  - Added the ability to remotely enable or disable screen tracking through the remote configuration system, allowing dynamic control over this feature in real-time for tracking both SwiftUI and UIKit views.
  - Improved sdkVersion and appVersion reporting.
