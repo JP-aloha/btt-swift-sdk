@@ -1624,7 +1624,7 @@ extension BlueTriangle {
 
 public extension BlueTriangle {
     
-    static func makeTimer(_ pageName: String, brandValue: Decimal = 0.0, referringURL : String = "", url: String = "", timerType: BTTrackTimer.TimerType = .main)  async -> BTTrackTimer {
+    static func makeTimer(_ pageName: String, brandValue: Decimal = 0.0, referringURL : String = "", url: String = "", timerType: BTTrackTimer.TimerType = .main) -> BTTrackTimer {
         let page = Page(pageName: pageName, brandValue: brandValue, referringURL: referringURL, url: url)
         let timer = BTTrackTimer(timer: timerFactory(page, timerType.btTimerType, false))
         return timer

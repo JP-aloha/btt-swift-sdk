@@ -167,10 +167,11 @@ extension UIViewController{
     
     @objc dynamic func viewDidLoad_Tracker() {
         let time  = Date().timeIntervalSince1970
+        let title = self.pageTitle()
         if shouldTrackScreen(){
             UIViewController.screenTrackingTask.enqueue { [weak self] in
                 if let self = self {
-                    await BlueTriangle.getScreenTracker()?.loadStarted(String(describing: self), "\(type(of: self))",  self.pageTitle(), time)
+                    await BlueTriangle.getScreenTracker()?.loadStarted(String(describing: self), "\(type(of: self))",  title, time)
                 }
             }
         }
@@ -179,10 +180,11 @@ extension UIViewController{
     
     @objc dynamic func viewWillAppear_Tracker(_ animated: Bool) {
         let time  = Date().timeIntervalSince1970
+        let title = self.pageTitle()
         if shouldTrackScreen(){
             UIViewController.screenTrackingTask.enqueue { [weak self] in
                 if let self = self {
-                    await BlueTriangle.getScreenTracker()?.loadFinish(String(describing: self),"\(type(of: self))", self.pageTitle(), time)
+                    await BlueTriangle.getScreenTracker()?.loadFinish(String(describing: self),"\(type(of: self))", title, time)
                 }
             }
         }
@@ -191,10 +193,11 @@ extension UIViewController{
                                 
     @objc dynamic func viewDidAppear_Tracker(_ animated: Bool) {
         let time  = Date().timeIntervalSince1970
+        let title = self.pageTitle()
         if shouldTrackScreen(){
             UIViewController.screenTrackingTask.enqueue { [weak self] in
                 if let self = self {
-                    await BlueTriangle.getScreenTracker()?.viewStart(String(describing: self), "\(type(of: self))", self.pageTitle(), time)
+                    await BlueTriangle.getScreenTracker()?.viewStart(String(describing: self), "\(type(of: self))", title, time)
                 }
             }
         }
@@ -203,10 +206,11 @@ extension UIViewController{
     
     @objc dynamic func viewDidDisappear_Tracker(_ animated: Bool) {
         let time  = Date().timeIntervalSince1970
+        let title = self.pageTitle()
         if shouldTrackScreen(){
             UIViewController.screenTrackingTask.enqueue { [weak self] in
                 if let self = self {
-                    await BlueTriangle.getScreenTracker()?.viewingEnd(String(describing: self), "\(type(of: self))", self.pageTitle(), time)
+                    await BlueTriangle.getScreenTracker()?.viewingEnd(String(describing: self), "\(type(of: self))", title, time)
                 }
             }
         }
