@@ -63,6 +63,7 @@ NSMutableArray *observers;
         [[NSNotificationCenter defaultCenter] removeObserver:observer];
     }
     observers = nil;
+    [appNotifications removeAllObjects];
 }
 
 @end

@@ -39,15 +39,24 @@ class BTTConfigurationRepo : ConfigurationRepo, @unchecked Sendable {
     
     func save(_ config: BTTRemoteConfig) throws {
         
-        let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
-                                             groupedViewSampleRate: config.groupedViewSampleRate,
-                                             enableRemoteConfigAck : config.enableRemoteConfigAck,
-                                             enableAllTracking: config.enableAllTracking,
-                                             enableScreenTracking: config.enableScreenTracking,
-                                             enableGrouping: config.enableGrouping,
-                                             groupingIdleTime: config.groupingIdleTime,
-                                             ignoreScreens: config.ignoreScreens,
-                                             dateSaved: Date().timeIntervalSince1970.milliseconds)
+        let newConfig = BTTSavedRemoteConfig(
+              networkSampleRateSDK: config.networkSampleRateSDK,
+              groupedViewSampleRate: config.groupedViewSampleRate,
+              enableRemoteConfigAck: config.enableRemoteConfigAck,
+              enableAllTracking: config.enableAllTracking,
+              enableScreenTracking: config.enableScreenTracking,
+              enableGrouping: config.enableGrouping,
+              groupingIdleTime: config.groupingIdleTime,
+              ignoreScreens: config.ignoreScreens,
+              enableCrashTracking: config.enableCrashTracking,
+              enableANRTracking: config.enableANRTracking,
+              enableMemoryWarning: config.enableMemoryWarning,
+              enableLaunchTime: config.enableLaunchTime,
+              enableWebViewStitching: config.enableWebViewStitching,
+              enableNetworkStateTracking: config.enableNetworkStateTracking,
+              enableGroupingTapDetection: config.enableGroupingTapDetection,
+              dateSaved: Date().timeIntervalSince1970.milliseconds
+          )
         
         try queue.sync(flags: .barrier) {
             do {
@@ -60,15 +69,24 @@ class BTTConfigurationRepo : ConfigurationRepo, @unchecked Sendable {
     
     func hasChange( _ config : BTTRemoteConfig) -> Bool{
         
-        let newConfig = BTTSavedRemoteConfig(networkSampleRateSDK: config.networkSampleRateSDK,
-                                             groupedViewSampleRate: config.groupedViewSampleRate,
-                                             enableRemoteConfigAck : config.enableRemoteConfigAck,
-                                             enableAllTracking: config.enableAllTracking,
-                                             enableScreenTracking: config.enableScreenTracking,
-                                             enableGrouping: config.enableGrouping,
-                                             groupingIdleTime: config.groupingIdleTime,
-                                             ignoreScreens: config.ignoreScreens,
-                                             dateSaved: Date().timeIntervalSince1970.milliseconds)
+        let newConfig = BTTSavedRemoteConfig(
+             networkSampleRateSDK: config.networkSampleRateSDK,
+             groupedViewSampleRate: config.groupedViewSampleRate,
+             enableRemoteConfigAck: config.enableRemoteConfigAck,
+             enableAllTracking: config.enableAllTracking,
+             enableScreenTracking: config.enableScreenTracking,
+             enableGrouping: config.enableGrouping,
+             groupingIdleTime: config.groupingIdleTime,
+             ignoreScreens: config.ignoreScreens,
+             enableCrashTracking: config.enableCrashTracking,
+             enableANRTracking: config.enableANRTracking,
+             enableMemoryWarning: config.enableMemoryWarning,
+             enableLaunchTime: config.enableLaunchTime,
+             enableWebViewStitching: config.enableWebViewStitching,
+             enableNetworkStateTracking: config.enableNetworkStateTracking,
+             enableGroupingTapDetection: config.enableGroupingTapDetection,
+             dateSaved: Date().timeIntervalSince1970.milliseconds
+         )
         
         if let current = getCurrentConfig(), newConfig == current{
             return false

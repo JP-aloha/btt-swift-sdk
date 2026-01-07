@@ -41,10 +41,12 @@ int sig_reg_status[SIG_COUNT] = {0};
 static bool __debug_log = false;
 static char* __app_version = "unknown";
 static char* __report_folder_path = NULL;
-static NSString* __current_page_name = @"";
+static char * __current_page_name = NULL;
 static NSString* __btt_session_id = @"unknown";
 static int __max_cache_files = 5;
 static bool __is_register = false;
+
+static pthread_mutex_t page_name_lock   = PTHREAD_MUTEX_INITIALIZER;
 
 void register_btt_tracker(void){
     
@@ -320,14 +322,6 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
             break;
     }
     
-    const char* btt_pageName = "";
-    NSString *nspagename = __current_page_name;
-    if(__current_page_name != nil){
-        btt_pageName = [nspagename cStringUsingEncoding:NSASCIIStringEncoding];
-        if (btt_pageName == NULL)
-            btt_pageName = "";
-    }
-    
     const char* btt_sessionid = "";
     NSString *bttsessionid = __btt_session_id;
     if(__btt_session_id != nil){
@@ -340,6 +334,8 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
     unsigned long bufferSize = strlen(report_templet) + (size_of_values * 3); //take size of values 3 times more just for safety
     char* report = calloc( bufferSize, sizeof(char));
     
+    pthread_mutex_lock(&page_name_lock);
+    const char *current_page_name = __current_page_name ? __current_page_name : "";
     int actual_len = snprintf(report, bufferSize, report_templet,
                               crash_title,
                               sinfo->si_signo,
@@ -349,8 +345,9 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
                               crash_time,
                               __app_version,
                               btt_sessionid,
-                              btt_pageName);
-
+                              current_page_name);
+    pthread_mutex_unlock(&page_name_lock);
+    
     if (actual_len > bufferSize)
         [SignalHandler debug_log:[NSString stringWithFormat:@"bttcrash report buffer is shorter then expected Expected %d found %lu", actual_len, bufferSize]];
     
@@ -527,10 +524,18 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
      }
 }
 
-+ (void) setCurrentPageName:(NSString*) page_name{
-    @synchronized(self) {
-        __current_page_name = [page_name copy];
++ (void)setCurrentPageName:(NSString *)pageName {
+    if (!pageName) return;
+    const char *pageNameutf8 = pageName.UTF8String;
+    if (!pageNameutf8) return;
+    
+    pthread_mutex_lock(&page_name_lock);
+    if (__current_page_name ) {
+        free(__current_page_name);
+        __current_page_name = NULL;
     }
+    __current_page_name = strdup(pageNameutf8);
+    pthread_mutex_unlock(&page_name_lock);
 }
 
 + (void) updateSessionID:(NSString*) session_id{

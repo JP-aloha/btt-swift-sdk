@@ -38,56 +38,124 @@ class BTTStoredConfigSyncer {
     /// - Notes:
     ///   - This function ensures that the Blue triangle configuration is kept up-to-date.
     ///
+    
     func syncConfigurationFromStorage() {
-        do{
-            if let config = try configRepo.get() {
-                
-                //Sync Sample Rate
-                let sampleRate = config.networkSampleRateSDK ?? configRepo.defaultConfig.networkSampleRateSDK
-                if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
-                    BlueTriangle.updateNetworkSampleRate(1.0)
-                } else if let rate = sampleRate {
-                    if rate == 0 {
-                        BlueTriangle.updateNetworkSampleRate(0.0)
-                    } else {
-                        BlueTriangle.updateNetworkSampleRate(rate / 100.0)
-                    }
-                }
-                
-                //Sync Grouped View Sample Rate
-                let groupedViewRate = config.groupedViewSampleRate ?? configRepo.defaultConfig.groupedViewSampleRate
-                if let rate = groupedViewRate {
-                    if rate == 0 {
-                        BlueTriangle.updateGroupedViewSampleRate(0.0)
-                    } else {
-                        BlueTriangle.updateGroupedViewSampleRate(rate / 100.0)
-                    }
-                }
-                
-               // Sync Ignore Screens
-                let ignoreScreens = config.ignoreScreens ?? configRepo.defaultConfig.ignoreScreens
-                if let ignoreVcs = ignoreScreens {
-                    var unianOfIgnoreScreens = Set(ignoreVcs)
-                    if let defaultScreens = configRepo.defaultConfig.ignoreScreens {
-                        unianOfIgnoreScreens = unianOfIgnoreScreens.union(Set(defaultScreens))
-                    }
-                    BlueTriangle.updateIgnoreVcs(unianOfIgnoreScreens)
-                }
-
-                // Sync Enable Screen tracking
-                if let enableScreenTracking = config.enableScreenTracking ?? configRepo.defaultConfig.enableScreenTracking {
-                    BlueTriangle.updateScreenTracking(enableScreenTracking)
-                }
-                
-                // Sync Grouping
-                if let enableGrouping = config.enableGrouping ?? configRepo.defaultConfig.enableGrouping, let groupingIdleTime = config.groupingIdleTime ?? configRepo.defaultConfig.groupingIdleTime {
-                    BlueTriangle.updateGrouping(enableGrouping, idleTime: groupingIdleTime)
-                }
-            }
+        do {
+            guard let config = try configRepo.get() else { return }
+            let defaultConfig = configRepo.defaultConfig
+            syncNetworkSampleRate(from: config, defaultConfig: defaultConfig)
+            syncGroupedViewSampleRate(from: config, defaultConfig: defaultConfig)
+            syncIgnoreScreens(from: config, defaultConfig: defaultConfig)
+            syncScreenTracking(from: config, defaultConfig: defaultConfig)
+            syncGrouping(from: config, defaultConfig: defaultConfig)
+            syncLaunchTime(from: config, defaultConfig: defaultConfig)
+            syncNetworkStateTracking(from: config, defaultConfig: defaultConfig)
+            syncCrashTracking(from: config, defaultConfig: defaultConfig)
+            syncANRTracking(from: config, defaultConfig: defaultConfig)
+            syncMemoryWarning(from: config, defaultConfig: defaultConfig)
+            syncWebViewStitching(from: config, defaultConfig: defaultConfig)
+            syncGroupingTapDetection(from: config, defaultConfig: defaultConfig)
         } catch {
             logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
         }
     }
+    
+    // MARK: - Individual sync helpers
+    
+    private func syncNetworkSampleRate(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        let sampleRate = config.networkSampleRateSDK ?? defaultConfig.networkSampleRateSDK
+        
+        if CommandLine.arguments.contains(Constants.FULL_SAMPLE_RATE_ARGUMENT) {
+            BlueTriangle.updateNetworkSampleRate(1.0)
+            return
+        }
+        
+        if let rate = sampleRate {
+            if rate == 0 {
+                BlueTriangle.updateNetworkSampleRate(0.0)
+            } else {
+                BlueTriangle.updateNetworkSampleRate(Double(rate) / 100.0)
+            }
+        }
+    }
+    
+    private func syncGroupedViewSampleRate(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        let groupedViewRate = config.groupedViewSampleRate ?? defaultConfig.groupedViewSampleRate
+        if let rate = groupedViewRate {
+            if rate == 0 {
+                BlueTriangle.updateGroupedViewSampleRate(0.0)
+            } else {
+                BlueTriangle.updateGroupedViewSampleRate(Double(rate) / 100.0)
+            }
+        }
+    }
+    
+    private func syncIgnoreScreens(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        let ignoreScreens = config.ignoreScreens ?? defaultConfig.ignoreScreens
+        if let ignoreVcs = ignoreScreens {
+            var unionOfIgnoreScreens = Set(ignoreVcs)
+            if let defaultScreens = defaultConfig.ignoreScreens {
+                unionOfIgnoreScreens = unionOfIgnoreScreens.union(Set(defaultScreens))
+            }
+            BlueTriangle.updateIgnoreVcs(unionOfIgnoreScreens)
+        }
+    }
+    
+    private func syncScreenTracking(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableScreenTracking = config.enableScreenTracking ?? defaultConfig.enableScreenTracking {
+            BlueTriangle.updateScreenTracking(enableScreenTracking)
+        }
+    }
+    
+    private func syncGrouping(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableGrouping = config.enableGrouping ?? defaultConfig.enableGrouping,
+           let groupingIdleTime = config.groupingIdleTime ?? defaultConfig.groupingIdleTime {
+            BlueTriangle.updateGrouping(enableGrouping, idleTime: groupingIdleTime)
+        }
+    }
+    
+    private func syncLaunchTime(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableLaunchTime = config.enableLaunchTime ?? defaultConfig.enableLaunchTime {
+            BlueTriangle.updateLaunchTime(enableLaunchTime)
+        }
+    }
+    
+    private func syncNetworkStateTracking(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableNetworkStateTracking = config.enableNetworkStateTracking ?? defaultConfig.enableNetworkStateTracking {
+            BlueTriangle.updateTrackingNetworkState(enableNetworkStateTracking)
+        }
+    }
+    
+    private func syncCrashTracking(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableCrashTracking = config.enableCrashTracking ?? defaultConfig.enableCrashTracking {
+            BlueTriangle.updateCrashTracking(enableCrashTracking)
+        }
+    }
+    
+    private func syncANRTracking(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableANRTracking = config.enableANRTracking ?? defaultConfig.enableANRTracking {
+            BlueTriangle.updateAnrMonitoring(enableANRTracking)
+        }
+    }
+    
+    private func syncMemoryWarning(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableMemoryWarning = config.enableMemoryWarning ?? defaultConfig.enableMemoryWarning {
+            BlueTriangle.updateMemoryWarning(enableMemoryWarning)
+        }
+    }
+    
+    private func syncWebViewStitching(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableWebViewStitching = config.enableWebViewStitching ?? defaultConfig.enableWebViewStitching {
+            BlueTriangle.updateWebViewStitching(enableWebViewStitching)
+        }
+    }
+    
+    private func syncGroupingTapDetection(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableGroupingTapDetection = config.enableGroupingTapDetection ?? defaultConfig.enableGroupingTapDetection {
+            BlueTriangle.updateGroupingTapDetection(enableGroupingTapDetection)
+        }
+    }
+    
     /// Evaluates the SDK's state based on the latest configuration and updates it accordingly.
     ///
     /// This method checks whether the SDK should be enabled or disabled based on the retrieved remote

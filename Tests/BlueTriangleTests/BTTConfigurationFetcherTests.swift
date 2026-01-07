@@ -11,9 +11,9 @@ import Combine
 
 @MainActor
 final class BTTConfigurationFetcherTests: XCTestCase {
-
     var configurationFetcher: ConfigurationFetcher!
     var cancellables: Set<AnyCancellable>!
+
 }
 
 

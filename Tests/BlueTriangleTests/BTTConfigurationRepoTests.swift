@@ -31,7 +31,15 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                      enableScreenTracking: true,
                                      enableGrouping: true,
                                      groupingIdleTime: 2,
-                                     ignoreScreens: [])
+                                     ignoreScreens: [],
+                                     enableCrashTracking: true,
+                                     enableANRTracking: true,
+                                     enableMemoryWarning: true,
+                                     enableLaunchTime: true,
+                                     enableWebViewStitching: true,
+                                     enableNetworkStateTracking: true,
+                                     enableGroupingTapDetection: true)
+        
         configurationRepo.save(config)
         
         XCTAssertNotNil(configurationRepo.store[key])
@@ -41,16 +49,23 @@ final class BTTConfigurationRepoTests: XCTestCase {
     }
     
     func testGetConfigSuccess() {
-        
         let savedConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 5,
-                                               groupedViewSampleRate: 5,
-                                               enableRemoteConfigAck: false,
-                                               enableAllTracking: true,
-                                               enableScreenTracking: true,
-                                               enableGrouping: true,
-                                               groupingIdleTime: 2,
-                                               ignoreScreens: [],
-                                               dateSaved: Date().timeIntervalSince1970.milliseconds)
+                                         groupedViewSampleRate: 5,
+                                         enableRemoteConfigAck: false,
+                                         enableAllTracking: true,
+                                         enableScreenTracking: true,
+                                         enableGrouping: true,
+                                         groupingIdleTime: 2,
+                                         ignoreScreens: [],
+                                         enableCrashTracking: true,
+                                         enableANRTracking: true,
+                                         enableMemoryWarning: true,
+                                         enableLaunchTime: true,
+                                         enableWebViewStitching: true,
+                                         enableNetworkStateTracking: true,
+                                         enableGroupingTapDetection: true,
+                                         dateSaved: Date().timeIntervalSince1970.milliseconds)
+
         configurationRepo.store[key] = savedConfig
         
         let fetchedConfig = configurationRepo.get()

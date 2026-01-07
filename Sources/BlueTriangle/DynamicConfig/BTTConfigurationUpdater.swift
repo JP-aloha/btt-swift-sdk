@@ -68,7 +68,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                         self.reportAck(enableRemoteConfigAck, config, nil)
                     }
                     
-                    self.logger?.info("BlueTriangle:BTTConfigurationUpdater - Remote config fetched successfully sample rate : \(config.networkSampleRateSDK ?? 0) grouping rate : \(config.groupedViewSampleRate ?? 0) - sdk enable \(config.enableAllTracking ?? true ? "true" : "false") - grouping : \(config.enableGrouping ?? false ? "true" : "false") , screenTracking: \(config.enableScreenTracking ?? false ? "true" : "false") ")
+                    self.logger?.info("BlueTriangle:BTTConfigurationUpdater - Remote config fetched successfully sampleRate: \(config.networkSampleRateSDK ?? 0) groupingRate: \(config.groupedViewSampleRate ?? 0) - sdkAllTrackingEnable: \(config.enableAllTracking ?? true ? "true" : "false") - groupingEnable: \(config.enableGrouping ?? false ? "true" : "false") , screenTracking: \(config.enableScreenTracking ?? false ? "true" : "false") , launchTime: \(config.enableLaunchTime ?? false ? "true" : "false"), anrTracking: \(config.enableANRTracking ?? false ? "true" : "false"), crashTracking: \(config.enableCrashTracking ?? false ? "true" : "false"), memoryWarning: \(config.enableMemoryWarning ?? false ? "true" : "false"), networkState: \(config.enableNetworkStateTracking ?? false ? "true" : "false"), webStiching: \(config.enableWebViewStitching ?? false ? "true" : "false") , groupTapDetection: \(config.enableGroupingTapDetection ?? false ? "true" : "false")")
                 }
                 catch{
                     self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to save fetch remote config: \(error.localizedDescription)")

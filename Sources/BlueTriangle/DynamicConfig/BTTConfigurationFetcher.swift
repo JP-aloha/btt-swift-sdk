@@ -20,13 +20,15 @@ class BTTConfigurationFetcher : ConfigurationFetcher {
                      qos: .userInitiated,
                      autoreleaseFrequency: .workItem)
     
+    private let logger: Logging
     private let rootUrl :  URL?
     private var networking :  Networking
     private var cancellables: Set<AnyCancellable>
     
-    init(rootUrl : URL? = Constants.configEndPoint(for: BlueTriangle.siteID),
+    init(logger: Logging, rootUrl : URL? = Constants.configEndPoint(for: BlueTriangle.siteID),
          cancellable : Set<AnyCancellable> = Set<AnyCancellable>(),
          networking : @escaping Networking = URLSession.live){
+        self.logger = logger
         self.rootUrl = rootUrl
         self.cancellables = cancellable
         self.networking = networking
@@ -61,6 +63,7 @@ class BTTConfigurationFetcher : ConfigurationFetcher {
         let request = Request(url: url, accept: .json)
         return networking(request)
             .tryMap { httpResponse in
+                self.logger.info("BlueTriangle:BTTConfigurationFetcher - Fetched remote configuration JSON: \(String(data: httpResponse.value, encoding: .utf8) ?? "")")
                 return try httpResponse.validate()
                     .decode(with: self.decoder)
             }

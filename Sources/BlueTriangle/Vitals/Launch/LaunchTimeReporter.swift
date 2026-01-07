@@ -26,10 +26,15 @@ class LaunchTimeReporter : ObservableObject, @unchecked Sendable {
         self.session    = session
         self.start()
     }
-
+    
     func start(){
+        self.registerLaunchEvent()
         self.monitor.start()
-        self.monitor.launchEventPubliser
+        logger.info("Setup to receive launch event")
+    }
+    
+    private func registerLaunchEvent() {
+        self.monitor.launchEventPublisher
             .receive(on: DispatchQueue.main)
             .sink { event in
                 if let event = event{
@@ -43,8 +48,6 @@ class LaunchTimeReporter : ObservableObject, @unchecked Sendable {
                     }
                 }
             }.store(in: &self.cancellables)
-        
-        logger.info("Setup to receive launch event")
     }
     
     func stop(){

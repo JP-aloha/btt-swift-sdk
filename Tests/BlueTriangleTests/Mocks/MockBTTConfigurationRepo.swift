@@ -27,6 +27,13 @@ class MockBTTConfigurationRepo: ConfigurationRepo {
                                              enableGrouping: config.enableGrouping,
                                              groupingIdleTime: config.groupingIdleTime,
                                              ignoreScreens: config.ignoreScreens,
+                                             enableCrashTracking: config.enableCrashTracking,
+                                             enableANRTracking: config.enableANRTracking,
+                                             enableMemoryWarning: config.enableMemoryWarning,
+                                             enableLaunchTime: config.enableLaunchTime,
+                                             enableWebViewStitching: config.enableWebViewStitching,
+                                             enableNetworkStateTracking: config.enableNetworkStateTracking,
+                                             enableGroupingTapDetection: config.enableGroupingTapDetection,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         store[key] = newConfig
     }

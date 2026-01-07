@@ -13,6 +13,7 @@ public final class BTTWebViewTracker : Sendable {
     final class Storage: @unchecked Sendable {
         private let lock = NSLock()
         private var _shouldCaptureRequests: Bool = false
+        private var _enableWebViewStitching = true
         private var _logger: Logging?
         private var _webViews: [WeakWebView] = []
 
@@ -21,6 +22,11 @@ public final class BTTWebViewTracker : Sendable {
         internal var shouldCaptureRequests: Bool {
             get { lock.sync { _shouldCaptureRequests } }
             set { lock.sync { _shouldCaptureRequests = newValue } }
+        }
+        
+        internal var enableWebViewStitching: Bool {
+            get { lock.sync { _enableWebViewStitching } }
+            set { lock.sync { _enableWebViewStitching = newValue } }
         }
 
         internal var logger: Logging? {
@@ -53,6 +59,15 @@ public final class BTTWebViewTracker : Sendable {
         }
     }
     
+    internal static var enableWebViewStitching : Bool {
+        get {
+            return storage.enableWebViewStitching
+        }
+        set{
+            storage.enableWebViewStitching = newValue
+        }
+    }
+    
     internal static var logger : Logging? {
         get {
             return storage.logger
@@ -64,7 +79,7 @@ public final class BTTWebViewTracker : Sendable {
     
     public static func webView( _ webView: WKWebView, didCommit navigation: WKNavigation!){
         
-        guard BlueTriangle.enableAllTracking else{
+        guard BlueTriangle.enableAllTracking, enableWebViewStitching else{
             return
         }
         
@@ -77,7 +92,7 @@ public final class BTTWebViewTracker : Sendable {
     
     public static func updateSessionId(_ sessionID : Identifier){
         Task {
-            guard BlueTriangle.enableAllTracking else{
+            guard BlueTriangle.enableAllTracking, enableWebViewStitching else{
                 return
             }
             tracker.cleanUpWebViews()
@@ -92,7 +107,7 @@ public final class BTTWebViewTracker : Sendable {
     @MainActor
     public static func verifySessionStitchingOnWebView( _ webView: WKWebView, completion: @escaping (String?, Error?) -> Void){
         
-        guard BlueTriangle.enableAllTracking else{
+        guard BlueTriangle.enableAllTracking, enableWebViewStitching else{
             return
         }
         

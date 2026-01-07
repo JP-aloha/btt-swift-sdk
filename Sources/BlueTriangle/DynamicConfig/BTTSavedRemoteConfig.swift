@@ -11,7 +11,6 @@ import Foundation
 
 class BTTSavedRemoteConfig: BTTRemoteConfig {
     var dateSaved: Millisecond
-
     init(networkSampleRateSDK: Double?,
          groupedViewSampleRate: Double?,
          enableRemoteConfigAck : Bool?,
@@ -20,6 +19,13 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
          enableGrouping : Bool?,
          groupingIdleTime : Double?,
          ignoreScreens : [String]?,
+         enableCrashTracking: Bool?,
+         enableANRTracking: Bool?,
+         enableMemoryWarning: Bool?,
+         enableLaunchTime: Bool?,
+         enableWebViewStitching: Bool?,
+         enableNetworkStateTracking: Bool?,
+         enableGroupingTapDetection: Bool?,
          dateSaved: Millisecond) {
         self.dateSaved = dateSaved
         super.init(networkSampleRateSDK: networkSampleRateSDK,
@@ -29,7 +35,15 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
                    enableScreenTracking: enableScreenTracking,
                    enableGrouping: enableGrouping,
                    groupingIdleTime: groupingIdleTime,
-                   ignoreScreens: ignoreScreens)
+                   ignoreScreens: ignoreScreens,
+                   enableCrashTracking: enableCrashTracking,
+                   enableANRTracking: enableANRTracking,
+                   enableMemoryWarning: enableMemoryWarning,
+                   enableLaunchTime: enableLaunchTime,
+                   enableWebViewStitching: enableWebViewStitching,
+                   enableNetworkStateTracking: enableNetworkStateTracking,
+                   enableGroupingTapDetection: enableGroupingTapDetection
+        )
     }
 
     required init(from decoder: Decoder) throws {

@@ -459,14 +459,14 @@ final class Store: @unchecked Sendable {
     }
     
     internal lazy var disableModeSessionManager : SessionManagerProtocol = {
-        let configFetcher  =  BTTConfigurationFetcher()
+        let configFetcher  =  BTTConfigurationFetcher(logger: logger)
         let configSyncer = BTTStoredConfigSyncer(configRepo: configRepo, logger: logger)
         let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: nil)
         return DisableModeSessionManager(logger, configRepo, updater, configSyncer)
     }()
     
     internal lazy var enabledModeSessionManager : SessionManagerProtocol = {
-        let configFetcher  =  BTTConfigurationFetcher()
+        let configFetcher  =  BTTConfigurationFetcher(logger: logger)
         let configSyncer = BTTStoredConfigSyncer(configRepo: configRepo, logger: logger)
         let configAck  =  RemoteConfigAckReporter(logger: logger, uploader: uploader)
         let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: configAck)
@@ -1570,6 +1570,62 @@ extension BlueTriangle {
                  setGroupRequestCapture(store.makeCapturedGroupRequestCollector())
             }
         }
+    }
+    
+    internal static func updateLaunchTime(_ enabled : Bool) {
+        configuration.enableLaunchTime = enabled
+        if enabled {
+            self.startLaunchTime()
+        } else {
+            self.stopLaunchTime()
+        }
+    }
+    
+    internal static func updateTrackingNetworkState(_ enabled : Bool) {
+        configuration.enableTrackingNetworkState = enabled
+        if enabled {
+            self.startNetworkStatus()
+        } else {
+            self.stopNetworkStatus()
+        }
+    }
+    
+    internal static func updateCrashTracking(_ enabled : Bool) {
+        configuration.crashTracking = enabled ? .nsException : .none
+        if enabled {
+            self.startNsAndSignalCrashTracking()
+        } else {
+            self.stopNsAndSignalCrashTracking()
+        }
+    }
+    
+    internal static func updateAnrMonitoring(_ enabled : Bool) {
+        configuration.ANRMonitoring = enabled
+        if enabled {
+            self.startANR()
+        } else {
+            self.stopANR()
+        }
+    }
+    
+    internal static func updateMemoryWarning(_ enabled : Bool) {
+        configuration.enableMemoryWarning = enabled
+        if enabled {
+            self.startMemoryWarning()
+        } else {
+            self.stopMemoryWarning()
+        }
+    }
+
+    internal static func updateWebViewStitching(_ enabled : Bool) {
+        configuration.enableWebViewStitching = enabled
+#if os(iOS)
+        BTTWebViewTracker.enableWebViewStitching = enabled
+#endif
+    }
+    
+    internal static func updateGroupingTapDetection(_ enabled : Bool) {
+        configuration.enableGroupingTapDetection = enabled
     }
 }
 

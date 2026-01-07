@@ -210,6 +210,13 @@ extension SessionManager {
                 session.shouldNetworkCapture = .random(probability: BlueTriangle.configuration.networkSampleRate)
                 session.shouldGroupedViewCapture = .random(probability: BlueTriangle.configuration.groupedViewSampleRate)
                 session.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers
+                session.enableCrashTracking = BlueTriangle.configuration.crashTracking == .nsException
+                session.enableANRTracking = BlueTriangle.configuration.ANRMonitoring
+                session.enableMemoryWarning = BlueTriangle.configuration.enableMemoryWarning
+                session.enableLaunchTime = BlueTriangle.configuration.enableLaunchTime
+                session.enableWebViewStitching = BlueTriangle.configuration.enableWebViewStitching
+                session.enableNetworkStateTracking = BlueTriangle.configuration.enableTrackingNetworkState
+                session.enableGroupingTapDetection = BlueTriangle.configuration.enableGroupingTapDetection
                 sessionStore.saveSession(session)
             } else {
                 BlueTriangle.updateGroupedViewSampleRate(session.groupedViewSampleRate)
@@ -217,6 +224,13 @@ extension SessionManager {
                 BlueTriangle.updateScreenTracking(session.enableScreenTracking)
                 BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
                 BlueTriangle.updateIgnoreVcs(session.ignoreViewControllers)
+                BlueTriangle.updateLaunchTime(session.enableLaunchTime)
+                BlueTriangle.updateTrackingNetworkState(session.enableNetworkStateTracking)
+                BlueTriangle.updateCrashTracking(session.enableCrashTracking)
+                BlueTriangle.updateAnrMonitoring(session.enableANRTracking)
+                BlueTriangle.updateMemoryWarning(session.enableMemoryWarning)
+                BlueTriangle.updateWebViewStitching(session.enableWebViewStitching)
+                BlueTriangle.updateGroupingTapDetection(session.enableGroupingTapDetection)
                 sessionStore.saveSession(session)
             }
         }

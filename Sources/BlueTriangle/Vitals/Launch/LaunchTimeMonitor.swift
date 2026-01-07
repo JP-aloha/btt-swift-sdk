@@ -1,6 +1,6 @@
 //
 //  LaunchTimeMonitor.swift
-//  
+//
 //
 //  Created by Ashok Singh on 06/05/24.
 //
@@ -21,7 +21,7 @@ import UIKit
 import SwiftUI
 #endif
 
-enum LaunchEvent{
+enum LaunchEvent {
     case Cold(Date, TimeInterval)
     case Hot(Date, TimeInterval)
 }
@@ -32,96 +32,76 @@ enum SystemEvent {
     case didBecomeActive(Date)
 }
 
-class LaunchTimeMonitor : ObservableObject{
+class LaunchTimeMonitor : ObservableObject, @unchecked Sendable {
     
+    internal var launchEventPublisher = CurrentValueSubject<LaunchEvent?, Never>(nil)
+    private let serialQueue = DispatchQueue(label: "com.launchtimemonitor.queue")
     private let logger: Logging
-    private var  systemEventLog = [SystemEvent]()
-    internal var  launchEventPubliser = CurrentValueSubject<LaunchEvent?, Never>(nil)
-    
+    private var systemEventLog = [SystemEvent]()
     private var launchObserver: NSObjectProtocol?
     private var foregroundObserver: NSObjectProtocol?
     private var activeObserver: NSObjectProtocol?
+    private var sceneActiveObserver: NSObjectProtocol?
+    private var didReportCold: Bool = false
+    private var didReportHot = false
     
     init(logger: Logging) {
         self.logger  = logger
     }
     
-    func start(){
-        self.restoreNotificationLogs()
+    func start() {
         self.registerNotifications()
+        self.restoreNotificationLogs()
     }
     
-    func stop(){
+    func stop() {
         self.removeNotifications()
     }
     
-    private func restoreNotificationLogs(){
-        AppNotificationLogger.getNotifications().forEach { notification in
+    private func restoreNotificationLogs() {
+        let appNotificationLogs = AppNotificationLogger.getNotifications()
+        let hasNotifications = appNotificationLogs.count > 0
+        
+        appNotificationLogs.forEach { notification in
             if let notificationLog = notification as? NotificationLog {
-                self.processNonification(notificationLog.notification, date: notificationLog.time)
+                self.processNotification(notificationLog.notification, date: notificationLog.time)
             }
         }
-    }
-    
-    private func notifyCold(){
         
-        let firstEvent = self.systemEventLog.first
-        let lastEvent = self.systemEventLog.last
-        
-        switch firstEvent {
-        case .didFinishLaunch(let startTime):
-            switch lastEvent {
-            case .didBecomeActive(let endTime):
-                let processTime = processStartTime()
-                let duration = endTime.timeIntervalSince1970 - processTime
-                self.launchEventPubliser.send(LaunchEvent.Cold(startTime, duration))
-                self.logger.info("Notify cold launch at \(startTime)")
-            default:
-                self.logger.error("Somthing went wrong to notify cold launch")
+        //fallback
+        serialQueue.async {
+            if hasNotifications && !self.didReportCold && !self.didReportHot {
+                self.notifyLaunchTime()
             }
-        default: 
-            //Ignore continous active/inactive notifications
-            break
         }
+        
+        AppNotificationLogger.removeObserver()
     }
     
-    private func notifyHot(){
-        
-        let firstEvent = self.systemEventLog.first
-        let lastEvent = self.systemEventLog.last
-        
-        switch firstEvent {
-        case .didEnterForeground(let startTime):
-            switch lastEvent {
-            case .didBecomeActive(let endTime):
-                let duration = endTime.timeIntervalSince1970 - startTime.timeIntervalSince1970
-                self.launchEventPubliser.send(LaunchEvent.Hot(startTime, duration))
-                self.logger.info("Notify hot launch at \(startTime)")
-            default:
-                self.logger.error("Somthing went wrong to notify hot launch")
-            }
-        default: 
-            //Ignore continous active/inactive notifications
-            break
-        }
-    }
-    
-    private func reset(){
+    /// Must be called only on `serialQueue`
+    private func reset() {
         self.systemEventLog.removeAll()
     }
 }
 
 extension LaunchTimeMonitor {
     
-    private func processNonification(_ notification: Notification, date : Date) {
+    private func processNotification(_ notification: Notification, date : Date) {
 #if os(iOS)
         if notification.name == UIApplication.didFinishLaunchingNotification {
-            self.systemEventLog.append(SystemEvent.didFinishLaunch(date))
+            serialQueue.async {
+                self.systemEventLog.append(SystemEvent.didFinishLaunch(date))
+            }
         } else if notification.name == UIApplication.willEnterForegroundNotification {
-            self.systemEventLog.append(SystemEvent.didEnterForeground(date))
-        }else if notification.name == UIApplication.didBecomeActiveNotification {
-            self.systemEventLog.append(SystemEvent.didBecomeActive(date))
-            self.notifyLaunchTime()
+            serialQueue.async {
+                self.didReportHot = false
+                self.systemEventLog.append(SystemEvent.didEnterForeground(date))
+            }
+        } else if notification.name == UIApplication.didBecomeActiveNotification {
+            serialQueue.async {
+                self.systemEventLog.append(SystemEvent.didBecomeActive(date))
+                self.notifyLaunchTime(date)
+            }
         }
 #endif
     }
@@ -131,19 +111,32 @@ extension LaunchTimeMonitor {
         let box = WeakBox(self)
         launchObserver = NotificationCenter.default.addObserver(forName: UIApplication.didFinishLaunchingNotification, object: nil, queue: nil) { notification in
             guard let strong = box.value else { return }
-            strong.processNonification(notification, date: Date())
+            strong.processNotification(notification, date: Date())
         }
         foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
             guard let strong = box.value else { return }
-            strong.processNonification(notification, date: Date())
+            strong.processNotification(notification, date: Date())
         }
         activeObserver = NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { notification in
             guard let strong = box.value else { return }
-            strong.processNonification(notification, date: Date())
+            strong.processNotification(notification, date: Date())
         }
+        
+        //fall back if missed hot or cold launch
+        sceneActiveObserver = NotificationCenter.default.addObserver(forName: UIScene.didActivateNotification, object: nil, queue: nil) { notification in
+            guard let strong = box.value else { return }
+            strong.serialQueue.async {
+                guard !strong.didReportHot else {
+                    return
+                }
+                let activationDate = Date()
+                strong.systemEventLog.append(.didBecomeActive(activationDate))
+                strong.notifyLaunchTime(activationDate)
+            }
+        }
+        
         logger.info("Launch time monitor started listining to system event")
 #endif
-        
     }
     
     private func removeNotifications() {
@@ -152,39 +145,62 @@ extension LaunchTimeMonitor {
              NotificationCenter.default.removeObserver(observer)
             launchObserver = nil
         }
-        
         if let observer = foregroundObserver {
              NotificationCenter.default.removeObserver(observer)
             foregroundObserver = nil
         }
-        
         if let observer = activeObserver {
              NotificationCenter.default.removeObserver(observer)
             activeObserver = nil
         }
-        logger.info("Launch time monitor started listining to system event")
-#endif
+        if let observer = sceneActiveObserver {
+             NotificationCenter.default.removeObserver(observer)
+            sceneActiveObserver = nil
+        }
         
+        logger.info("Launch time monitor removed listining to system event")
+#endif
     }
     
-    private func notifyLaunchTime(){
-        let firstEvent = self.systemEventLog.first
-        let lastEvent = self.systemEventLog.last
-     
-        switch firstEvent {
-        case .didFinishLaunch:
-            switch lastEvent {
-            case .didBecomeActive:
-                notifyCold()
-            default:
-                self.logger.error("Somthing went wrong to notify cold launch")
-            }
-        default:
-            notifyHot()
+    private func notifyHotLaunch(_ foregroundEvent: SystemEvent, _ activeTime: Date) {
+        if case .didEnterForeground(let startTime) = foregroundEvent {
+            let duration = activeTime.timeIntervalSince(startTime)
+            launchEventPublisher.send(.Hot(startTime, duration))
+            logger.info("Notify hot launch at \(startTime)")
         }
+    }
+    
+    private func notifyColdLaunch(_ finishLaunchEvent: SystemEvent, _ activeTime: Date) {
+        if case .didFinishLaunch(let startTime) = finishLaunchEvent {
+            let processStart  = processStartTime()
+            let actualStartTime = Date(timeIntervalSince1970: processStart)
+            let duration = activeTime.timeIntervalSince(actualStartTime)
+            launchEventPublisher.send(.Cold(actualStartTime, duration))
+            logger.info("Notify cold launch at \(startTime)")
+        }
+    }
+    
+    private func flushLaunchEvents(_ activeTime: Date) {
+        let events = systemEventLog
+        let finishLaunchEvent = events.first { if case .didFinishLaunch = $0 { true } else { false } }
+        let foregroundEvent = events.last { if case .didEnterForeground = $0 { true } else { false } }
+        
+        if let finishLaunchEvent, !didReportCold {
+            didReportCold = true
+            notifyColdLaunch(finishLaunchEvent, activeTime)
+        } else if let foregroundEvent , !didReportHot {
+            didReportHot = true
+            notifyHotLaunch(foregroundEvent, activeTime)
+        }
+        
         reset()
     }
     
+    /// Must be called only on `serialQueue`
+    private func notifyLaunchTime(_ activeTime: Date = Date()) {
+        flushLaunchEvents(activeTime)
+    }
+
     private func processStartTime() -> Double {
         var kinfo = kinfo_proc()
         var size = MemoryLayout<kinfo_proc>.stride
