@@ -42,9 +42,11 @@ struct NativeAppProperties: Equatable {
     let ethernet: Millisecond
     let other: Millisecond
     var confidenceRate: Int32?
+    var autoCheckout: Bool = false
     var confidenceMsg: String?
     var grouped: Bool?
     var err: String?
+    var eventId: String?
     var groupingCause: String?
     var groupingCauseInterval: Millisecond?
     var sdkVersion: String = Device.sdkVersion
@@ -129,10 +131,17 @@ extension NativeAppProperties: Codable{
             try con.encode(cause, forKey: .groupingCause)
         }
         
+        if let eventId = eventId, !eventId.isEmpty {
+            try con.encode(eventId, forKey: .eventID)
+        }
+        
         if let interval  = groupingCauseInterval {
             try con.encode(interval, forKey: .groupingCauseInterval)
         }
         
+        if autoCheckout {
+            try con.encode(autoCheckout, forKey: .autoCheckout)
+        }
         try con.encode(deviceModel, forKey: .deviceModel)
         try con.encode(appVersion, forKey: .appVersion)
         try con.encode(sdkVersion, forKey: .sdkVersion)
@@ -162,6 +171,8 @@ extension NativeAppProperties: Codable{
         self.confidenceMsg = try container.decodeIfPresent(String.self, forKey: .confidenceMsg) ?? ""
         self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause) ?? ""
         self.groupingCauseInterval = try container.decodeIfPresent(Millisecond.self, forKey: .groupingCauseInterval) ?? 0
+        self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID) ?? ""
+        self.autoCheckout = try container.decodeIfPresent(Bool.self, forKey: .autoCheckout) ?? false
     }
     
     enum CodingKeys: String, CodingKey {
@@ -190,6 +201,8 @@ extension NativeAppProperties: Codable{
         case confidenceMsg
         case groupingCause
         case groupingCauseInterval
+        case eventID
+        case autoCheckout
     }
 }
 

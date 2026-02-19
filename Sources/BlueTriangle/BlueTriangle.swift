@@ -22,6 +22,8 @@ final public class BlueTriangle: NSObject {
     
     internal static var groupTimer : BTTimerGroupManager = BTTimerGroupManager(logger: logger)
     internal static var configuration = BlueTriangleConfiguration()
+    internal static let globleProperty = GlobalProperties()
+    internal static let checkoutEvent = CheckoutEventReporter(logger: logger)
     
     private static var _screenTracker: BTTScreenLifecycleTracker?
     internal static var screenTracker: BTTScreenLifecycleTracker?{
@@ -259,8 +261,12 @@ final public class BlueTriangle: NSObject {
         configuration.internalTimerConfiguration.makeTimerFactory(logger: logger)
     }()
 
-    private static var shouldCaptureRequests: Bool = {
+    internal static var shouldCaptureRequests: Bool = {
         sessionData()?.shouldNetworkCapture ?? false
+    }()
+    
+    internal static var shouldCheckoutTracking: Bool = {
+        sessionData()?.checkoutTrackingEnabled ?? false
     }()
     
     /// A Boolean value indicating  whether the SDK has been successfully configured and initialized.
@@ -347,14 +353,35 @@ final public class BlueTriangle: NSObject {
             lock.sync {_session?.isReturningVisitor = newValue }
         }
     }
-
-    /// A/B testing identifier.
-    @objc public static var abTestID: String {
-        get {
-            lock.sync { session()?.abTestID ?? configuration.abTestID}
+    
+    /// Traffic segment.
+    @objc public static var trafficSegmentName: String {
+         get {
+            lock.sync { session()?.trafficSegmentName ?? "" }
         }
         set {
-            lock.sync { _session?.abTestID = newValue }
+            lock.sync { _session?.trafficSegmentName = newValue }
+        }
+    }
+    
+    /// page type
+    @objc public static var pageType: String {
+         get {
+            lock.sync { session()?.pageType ?? "" }
+        }
+        set {
+            lock.sync { _session?.pageType = newValue }
+        }
+    }
+
+    /// A/B testing identifier.
+    @available(*, deprecated, message: "Use `func setAbTestID:` instead.")
+    public static var abTestID: String {
+        get {
+            lock.sync { globleProperty.getGlobalProperties().abTestID ?? configuration.abTestID}
+        }
+        set {
+            lock.sync { globleProperty.updateAbTestID(newValue) }
         }
     }
 
@@ -370,53 +397,187 @@ final public class BlueTriangle: NSObject {
     }
 
     /// Campaign medium.
-    @objc public static var campaignMedium: String {
+    @available(*, deprecated, message: "Use `func setCampaignMedium:` instead.")
+     public static var campaignMedium: String {
         get {
-            lock.sync { session()?.campaignMedium ?? ""}
+            lock.sync { globleProperty.getGlobalProperties().campaignMedium ?? ""}
         }
         set {
-            lock.sync { _session?.campaignMedium = newValue}
+            lock.sync { globleProperty.updateCampaignMedium(newValue) }
         }
     }
 
     /// Campaign name.
-    @objc public static var campaignName: String {
+    @available(*, deprecated, message: "Use `func setCampaignName:` instead.")
+    public static var campaignName: String {
         get {
-            lock.sync { session()?.campaignName ?? "" }
+            lock.sync { globleProperty.getGlobalProperties().campaignName ?? "" }
         }
         set {
-            lock.sync { _session?.campaignName = newValue }
+            lock.sync { globleProperty.updateCampaignName(newValue)}
         }
     }
 
     /// Campaign source.
-    @objc public static var campaignSource: String {
+    @available(*, deprecated, message: "Use `func setCampaignSource:` instead.")
+    public static var campaignSource: String {
         get {
-            lock.sync { session()?.campaignSource ?? "" }
+            lock.sync { globleProperty.getGlobalProperties().campaignSource ?? "" }
         }
         set {
-            lock.sync { _session?.campaignSource = newValue}
+            lock.sync { globleProperty.updateCampaignSource(newValue)}
         }
     }
 
     /// Data center.
-    @objc public static var dataCenter: String {
+    @available(*, deprecated, message: "Use `func setDataCenter:` instead.")
+    public static var dataCenter: String {
         get {
-            lock.sync { session()?.dataCenter ?? "" }
+            lock.sync { globleProperty.getGlobalProperties().dataCenter ?? "" }
         }
         set {
-            lock.sync { _session?.dataCenter = newValue }
+            lock.sync { globleProperty.updateDataCenter(newValue) }
         }
     }
+    
+    /// Sets the value for AbTestID.
+    ///
+    /// This value is applied to all timers submitted after this call.
+    /// The setting remains active until it is explicitly changed.
+    ///
+    /// Use `nil` to clear the current value.
+    ///
+    /// - Parameter value: The AbTestID value, or `nil` to reset.
+    ///
+    @objc(setAbTestID:)
+    public static func setAbTestID(_ id: String?) {
+        lock.sync { globleProperty.updateAbTestID(id) }
+    }
+    
+    /// Sets the value for CampaignMedium.
+    ///
+    /// This value is applied to all timers submitted after this call.
+    /// The setting remains active until it is explicitly changed.
+    ///
+    /// Use `nil` to clear the current value.
+    ///
+    /// - Parameter value: The CampaignMedium value, or `nil` to reset.
+    ///
+    @objc(setCampaignMedium:)
+    public static func setCampaignMedium(_ value: String?) {
+        lock.sync { globleProperty.updateCampaignMedium(value) }
+    }
+    
+    /// Sets the value for CampaignName.
+    ///
+    /// This value is applied to all timers submitted after this call.
+    /// The setting remains active until it is explicitly changed.
+    ///
+    /// Use `nil` to clear the current value.
+    ///
+    /// - Parameter value: The CampaignName value, or `nil` to reset.
+    ///
+    @objc(setCampaignName:)
+    public static func setCampaignName(_ value: String?) {
+        lock.sync { globleProperty.updateCampaignName(value)}
+    }
+    
+    /// Sets the value for CampaignSource.
+    ///
+    /// This value is applied to all timers submitted after this call.
+    /// The setting remains active until it is explicitly changed.
+    ///
+    /// Use `nil` to clear the current value.
+    ///
+    /// - Parameter value: The CampaignSource value, or `nil` to reset.
+    ///
+    @objc(setCampaignSource:)
+    public static func setCampaignSource(_ value: String?) {
+        lock.sync { globleProperty.updateCampaignSource(value)}
+    }
 
-    /// Traffic segment.
-    @objc public static var trafficSegmentName: String {
-        get {
-            lock.sync { session()?.trafficSegmentName ?? "" }
-        }
-        set {
-            lock.sync { _session?.trafficSegmentName = newValue }
-        }
+    /// Sets the value for DataCenter.
+    ///
+    /// This value is applied to all timers submitted after this call.
+    /// The setting remains active until it is explicitly changed.
+    ///
+    /// Use `nil` to clear the current value.
+    ///
+    /// - Parameter value: The DataCenter value, or `nil` to reset.
+    ///
+    @objc(setDataCenter:)
+    public static func setDataCenter(_ value: String?) {
+        lock.sync { globleProperty.updateDataCenter(value)}
+    }
+    
+    /// Sets the value for Custom Category 1.
+    ///
+    /// This value is applied to all timers submitted after this call.
+    /// The setting remains active until it is explicitly changed.
+    ///
+    /// Use `nil` to clear the current value.
+    ///
+    /// - Parameter value: The custom category value, or `nil` to reset.
+    ///
+    @objc(setCustomCategory1:)
+    public static func setCustomCategory1(_ value: String?) {
+        lock.sync { globleProperty.updateCustomCategory1(value)}
+    }
+    
+    /// Sets the value for Custom Category 2.
+    ///
+    /// This value is applied to all timers submitted after this call.
+    /// The setting remains active until it is explicitly changed.
+    ///
+    /// Use `nil` to clear the current value.
+    ///
+    /// - Parameter value: The custom category value, or `nil` to reset.
+    ///
+    @objc(setCustomCategory2:)
+    public static func setCustomCategory2(_ value: String?) {
+        lock.sync { globleProperty.updateCustomCategory2(value)}
+    }
+    
+    /// Sets the value for Custom Category 3.
+    ///
+    /// This value is applied to all timers submitted after this call.
+    /// The setting remains active until it is explicitly changed.
+    ///
+    /// Use `nil` to clear the current value.
+    ///
+    /// - Parameter value: The custom category value, or `nil` to reset.
+    ///
+    @objc(setCustomCategory3:)
+    public static func setCustomCategory3(_ value: String?) {
+        lock.sync { globleProperty.updateCustomCategory3(value)}
+    }
+    
+    /// Sets the value for Custom Category 4.
+    ///
+    /// This value is applied to all timers submitted after this call.
+    /// The setting remains active until it is explicitly changed.
+    ///
+    /// Use `nil` to clear the current value.
+    ///
+    /// - Parameter value: The custom category value, or `nil` to reset.
+    ///
+    @objc(setCustomCategory4:)
+    public static func setCustomCategory4(_ value: String?) {
+        lock.sync { globleProperty.updateCustomCategory4(value)}
+    }
+    
+    /// Sets the value for Custom Category 5.
+    ///
+    /// This value is applied to all timers submitted after this call.
+    /// The setting remains active until it is explicitly changed.
+    ///
+    /// Use `nil` to clear the current value.
+    ///
+    /// - Parameter value: The custom category value, or `nil` to reset.
+    ///
+    @objc(setCustomCategory5:)
+    public static func setCustomCategory5(_ value: String?) {
+        lock.sync { globleProperty.updateCustomCategory5(value)}
     }
 
     /// Custom metrics.
@@ -1002,7 +1163,7 @@ public extension BlueTriangle {
     }
     /// Returns a timer for network capture.
     static func startRequestTimer() -> InternalTimer? {
-        guard shouldCaptureRequests else {
+        guard shouldCaptureRequests || shouldCheckoutTracking else {
             return nil
         }
         var timer = internalTimerFactory()
@@ -1031,12 +1192,14 @@ public extension BlueTriangle {
     static func captureRequest(timer: InternalTimer, response: URLResponse?) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, response: response)
+            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
         }
     }
 
     internal static func captureRequest(timer: InternalTimer, response: CustomResponse) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, response: response)
+            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
         }
     }
 
@@ -1047,21 +1210,27 @@ public extension BlueTriangle {
     static func captureRequest(timer: InternalTimer, tuple: (Data, URLResponse)) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, response: tuple.1)
+            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1))
         }
     }
     
     static func captureRequest(timer: InternalTimer, request : URLRequest, error: Error?) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, request: request, error: error)
+            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, request: request, error: error))
         }
     }
-
     /// Captures a network request.
     /// - Parameter metrics: An object encapsulating the metrics for a session task.
     static func captureRequest(metrics: URLSessionTaskMetrics, error : Error?) {
         Task {
             await getNetworkRequestCapture()?.collect(metrics: metrics, error: error)
+            await reportAutoCheckoutFor(CapturedRequest(metrics: metrics, relativeTo: 0, error: error))
         }
+    }
+    
+    private static func reportAutoCheckoutFor(_ request: CapturedRequest) async {
+        await BlueTriangle.checkoutEvent.onCheckoutEvent(NetworkCheckoutEvent(url: request.url, statusCode: request.statusCode))
     }
     
     internal static func startGroupTimerRequest(page : Page, startTime : Millisecond) async {
@@ -1390,5 +1559,37 @@ extension BlueTriangle {
     
     internal static func updateGroupingTapDetection(_ enabled : Bool) {
         configuration.enableGroupingTapDetection = enabled
+    }
+    
+    internal static func updateCheckoutTracking(_ enabled: Bool) {
+        configuration.checkoutTrackingEnabled = enabled
+    }
+
+    internal static func updateCheckoutClassNames(_ classNames: [String]) {
+        configuration.checkoutClassName = classNames
+    }
+
+    internal static func updateCheckoutURL(_ url: String) {
+        configuration.checkoutURL = url
+    }
+
+    internal static func updateCheckoutAmount(_ amount: Double) {
+        configuration.checkoutAmount = amount
+    }
+
+    internal static func updateCheckoutCartCount(_ count: Int) {
+        configuration.checkoutCartCount = count
+    }
+
+    internal static func updateCheckoutCartCountCheckout(_ count: Int) {
+        configuration.checkoutCartCountCheckout = count
+    }
+
+    internal static func updateCheckoutOrderNumber(_ orderNumber: String) {
+        configuration.checkoutOrderNumber = orderNumber
+    }
+
+    internal static func updateCheckoutTimeValue(_ timeValue: Int) {
+        configuration.checkoutTimeValue = timeValue
     }
 }

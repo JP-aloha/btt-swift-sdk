@@ -49,7 +49,7 @@
     CustomVariables *customVariables = [[CustomVariables alloc] initWithCv1:@"" cv2:@"" cv3:@"" cv4:@"" cv5:@"" cv11:@"" cv12:@"" cv13:@"" cv14:@"" cv15:@""];
 
     NSNumber *brandValue = [NSNumber numberWithDouble:20.89];
-    Page *page = [[Page alloc] initWithPageName:@"MY_SITE_ID" pageTitle:@"" brandValue:brandValue.decimalValue pageType:@"PAGE_TYPE" referringURL:@"REFERRING_URL" url:@"URL" customVariables:customVariables customCategories:customCategories customNumbers:customNumbers];
+    Page *page = [[Page alloc] initWithPageName:@"MY_SITE_ID" pageTitle:@"" brandValue:brandValue.decimalValue pageType:@"PAGE_TYPE" referringURL:@"REFERRING_URL" url:@"URL" customVariables:customVariables customCategories:customCategories customNumbers:customNumbers trafficSegment: @""];
 
     NSNumber *cartValue = [NSNumber numberWithDouble:10.99];
     

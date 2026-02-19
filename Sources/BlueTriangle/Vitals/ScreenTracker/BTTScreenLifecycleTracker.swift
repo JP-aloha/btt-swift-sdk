@@ -86,8 +86,10 @@ public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
             }
             else if (type == .load || type == .view){
                 SignalHandler.setCurrentPageName(pageName)
-                SignalHandler.setPageType(Constants.SCREEN_TRACKING_PAGE_GROUP)
-                SignalHandler.setTraficSegment(Constants.SCREEN_TRACKING_PAGE_GROUP)
+                let traficSegment = BlueTriangle.trafficSegmentName == Constants.defaultTraficSegment ? Constants.SCREEN_TRACKING_TRAFFIC_SEGMENT : BlueTriangle.trafficSegmentName
+                let pageType = BlueTriangle.pageType == Constants.defaultPageType ? Constants.SCREEN_TRACKING_PAGE_TYPE : BlueTriangle.pageType
+                SignalHandler.setTraficSegment(traficSegment)
+                SignalHandler.setPageType(pageType)
             }
         }
     }
@@ -111,6 +113,7 @@ public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     
     private func stopActiveTimersWhenAppWentToBackground() {
         var items: [(key: String, page: String, title: String)] = []
+        
         lock.sync {
             guard self.enableLifecycleTracker else { return }
 
@@ -120,11 +123,13 @@ public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
                 startTimerPages[key] = (page, title)
                 items.append((key: key, page: page, title: title))
             }
-            btTimeActivityrMap.removeAll()
         }
-
+        
         for item in items {
             viewingEnd(item.key, item.page, item.title)
+        }
+        lock.sync {
+            btTimeActivityrMap.removeAll()
         }
 
         logger?.info("Stop active timer when app went to background")
@@ -183,11 +188,22 @@ class TimerMapActivity {
         self.screenType = screenType
         self.logger = logger
         
+        let trafficSegment = BlueTriangle.trafficSegmentName == Constants.defaultTraficSegment ? Constants.SCREEN_TRACKING_TRAFFIC_SEGMENT : BlueTriangle.trafficSegmentName
+        let pageType = BlueTriangle.pageType == Constants.defaultPageType ? Constants.SCREEN_TRACKING_PAGE_TYPE : BlueTriangle.pageType
+        
         if BlueTriangle.configuration.enableGrouping {
             BlueTriangle.groupTimer.startGroupIfNeeded(pageTitle.isEmpty ? pageName : pageTitle)
-            self.timer = BlueTriangle.startTimer(page:Page(pageName: pageName, pageTitle: pageTitle, pageType: Constants.SCREEN_TRACKING_PAGE_GROUP), timerType: .custom, isGroupedTimer: true)
+            self.timer = BlueTriangle.startTimer(page:Page(pageName: pageName, pageTitle: pageTitle, pageType: pageType, trafficSegment: trafficSegment), timerType: .custom, isGroupedTimer: true)
         } else {
-            self.timer = BlueTriangle.startTimer(page:Page(pageName: pageName, pageType: Constants.SCREEN_TRACKING_PAGE_GROUP))
+            self.timer = BlueTriangle.startTimer(page:Page(pageName: pageName, pageType: pageType, trafficSegment: trafficSegment))
+        }
+        
+        self.checkOutEvent(pageName)
+    }
+    
+    func checkOutEvent(_ pageName : String) {
+        Task {
+            await BlueTriangle.checkoutEvent.onCheckoutEvent(ClassCheckoutEvent(name: pageName))
         }
     }
     
@@ -333,7 +349,8 @@ class TimerMapActivity {
             return calculatedLoadTime
         }
         
-        timer.setTrafficSegment(Constants.SCREEN_TRACKING_TRAFFIC_SEGMENT)
+        let traficSegment = BlueTriangle.trafficSegmentName == Constants.defaultTraficSegment ? Constants.SCREEN_TRACKING_TRAFFIC_SEGMENT : BlueTriangle.trafficSegmentName
+        timer.setTrafficSegment(traficSegment)
         timer.nativeAppProperties = NativeAppProperties(
             fullTime: disapearTime - loadTime,
             loadTime: calculatedLoadTime,

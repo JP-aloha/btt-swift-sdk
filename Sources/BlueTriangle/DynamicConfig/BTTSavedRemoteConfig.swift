@@ -25,6 +25,14 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
          enableWebViewStitching: Bool?,
          enableNetworkStateTracking: Bool?,
          enableGroupingTapDetection: Bool?,
+         checkoutTrackingEnabled : Bool?,
+         checkoutClassName : [String]?,
+         checkoutURL : String?,
+         checkoutAmount : Double?,
+         checkoutCartCount : Int?,
+         checkoutCartCountCheckout: Int?,
+         checkoutOrderNumber : String?,
+         checkoutTimeValue : Int?,
          dateSaved: Millisecond) {
         self.dateSaved = dateSaved
         super.init(networkSampleRateSDK: networkSampleRateSDK,
@@ -40,7 +48,15 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
                    enableLaunchTime: enableLaunchTime,
                    enableWebViewStitching: enableWebViewStitching,
                    enableNetworkStateTracking: enableNetworkStateTracking,
-                   enableGroupingTapDetection: enableGroupingTapDetection
+                   enableGroupingTapDetection: enableGroupingTapDetection,
+                   checkoutTrackingEnabled: checkoutTrackingEnabled,
+                   checkoutClassName: checkoutClassName,
+                   checkoutURL: checkoutURL,
+                   checkoutAmount: checkoutAmount,
+                   checkoutCartCount: checkoutCartCount,
+                   checkoutCartCountCheckout: checkoutCartCountCheckout,
+                   checkoutOrderNumber: checkoutOrderNumber,
+                   checkoutTimeValue: checkoutTimeValue
         )
     }
 

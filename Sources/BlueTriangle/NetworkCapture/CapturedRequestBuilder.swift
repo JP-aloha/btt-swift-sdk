@@ -43,7 +43,7 @@ struct CapturedRequestBuilder {
                  parameters = CapturedRequestBuilder.makeParameters(
                     siteID: session.siteID,
                     sessionID: String(session.sessionID),
-                    trafficSegment: session.trafficSegmentName,
+                    trafficSegment: !page.trafficSegment.isEmpty ? page.trafficSegment : session.trafficSegmentName,
                     isNewUser: !session.isReturningVisitor,
                     pageType: !page.pageType.isEmpty ? page.pageType : session.pageType,
                     pageName: page.pageName,

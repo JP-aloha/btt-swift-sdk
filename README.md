@@ -405,12 +405,13 @@ The following fields can be used to identify and segment users for optimized ana
 | trafficSegmentName="MY_SEGMENT_NAME"         | This can be used to segment environment type.  For instance, we can use this to understand if you have beta vs prod but both are live versions of the app.            | 
 
 ```swift
+BlueTriangle.setAbTestID("MY_AB_TEST_ID")
+BlueTriangle.setCampaignName("MY_CAMPAIGN_NAME")
+BlueTriangle.setCampaignMedium("MY_CAMPAIGN_MEDIUM")
+BlueTriangle.setCampaignSource("MY_CAMPAIGN_SOURCE")
+BlueTriangle.setDataCenter("MY_DATA_CENTER")
+
 BlueTriangle.configure { config in
-    config.abTestID = "MY_AB_TEST_ID"
-    config.campaignMedium = "MY_CAMPAIGN_MEDIUM"
-    config.campaignName = "MY_CAMPAIGN_NAME"
-    config.campaignSource = "MY_CAMPAIGN_SOURCE"
-    config.dataCenter = "MY_DATA_CANTER "
     config.trafficSegmentName = "MY_TRAFFIC_SEGEMENT_NAME"
 }
 ```
@@ -699,6 +700,30 @@ Once the value is set, it will be sent with each page view until it is cleared b
 
 To view one of the values on the portal, navigate to the path 'Menu > Native App Monitoring > Native App Performance Detail' or go to the Session Lookup Page. Then, search by session ID and see the Performance Measurement Details for the specific page.
 [**for more detail**](https://help.bluetriangle.com/hc/en-us/articles/12299711775635-Where-can-I-see-Custom-Variables)
+
+### Custom Categories
+
+Custom Categories are developer-defined filter fields that are attached to screen views. They allow you to filter and break down native screen analytics inside the Blue Triangle portal.
+
+The SDK supports up to five Custom Category fields, which can be set as follows:
+
+```swift
+     BlueTriangle.setCustomCategory1("Value_1")
+     BlueTriangle.setCustomCategory2("Value_2")
+     BlueTriangle.setCustomCategory3("Value_3")
+     BlueTriangle.setCustomCategory4("Value_4")
+     BlueTriangle.setCustomCategory5("Value_5")
+```
+
+Once set, Custom Category values are persisted locally and will be included with every subsequent Screen View event until overridden or cleared by setting null.
+
+Common use cases include Logged-in vs guest users, Feature flag segmentation, Different versions of the same screen flow.
+
+Custom Categories can be used as filters in the Blue Triangle portal after data has been processed.
+
+```
+Custom Category currently requires help from a Blue Triangle representative for configuration. Please reach out and they will be able to help you with this!
+```
 
 ### Grouping 
 

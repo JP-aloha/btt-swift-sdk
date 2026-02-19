@@ -54,6 +54,7 @@ class BTTStoredConfigSyncer {
             syncMemoryWarning(from: config, defaultConfig: defaultConfig)
             syncWebViewStitching(from: config, defaultConfig: defaultConfig)
             syncGroupingTapDetection(from: config, defaultConfig: defaultConfig)
+            syncAutoCheckout(from: config, defaultConfig: defaultConfig)
         } catch {
             logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
         }
@@ -141,6 +142,49 @@ class BTTStoredConfigSyncer {
     private func syncGroupingTapDetection(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
         if let enableGroupingTapDetection = config.enableGroupingTapDetection ?? defaultConfig.enableGroupingTapDetection {
             BlueTriangle.updateGroupingTapDetection(enableGroupingTapDetection)
+        }
+    }
+    
+    private func syncAutoCheckout(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig ) {
+        
+        if let enabled = config.checkoutTrackingEnabled
+            ?? defaultConfig.checkoutTrackingEnabled {
+            BlueTriangle.updateCheckoutTracking(enabled)
+        }
+        
+        if let classNames = config.checkoutClassName
+            ?? defaultConfig.checkoutClassName {
+            BlueTriangle.updateCheckoutClassNames(classNames)
+        }
+        
+        if let url = config.checkoutURL
+            ?? defaultConfig.checkoutURL {
+            BlueTriangle.updateCheckoutURL(url)
+        }
+        
+        if let amount = config.checkoutAmount
+            ?? defaultConfig.checkoutAmount {
+            BlueTriangle.updateCheckoutAmount(amount)
+        }
+        
+        if let cartCount = config.checkoutCartCount
+            ?? defaultConfig.checkoutCartCount {
+            BlueTriangle.updateCheckoutCartCount(cartCount)
+        }
+        
+        if let cartCountCheckout = config.checkoutCartCountCheckout
+            ?? defaultConfig.checkoutCartCountCheckout {
+            BlueTriangle.updateCheckoutCartCountCheckout(cartCountCheckout)
+        }
+        
+        if let orderNumber = config.checkoutOrderNumber
+            ?? defaultConfig.checkoutOrderNumber {
+            BlueTriangle.updateCheckoutOrderNumber(orderNumber)
+        }
+        
+        if let timeValue = config.checkoutTimeValue
+            ?? defaultConfig.checkoutTimeValue {
+            BlueTriangle.updateCheckoutTimeValue(timeValue)
         }
     }
     

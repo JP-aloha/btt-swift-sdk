@@ -72,6 +72,15 @@ class SessionData: Codable {
     var enableNetworkStateTracking: Bool
     var enableGroupingTapDetection: Bool
     
+    var checkoutTrackingEnabled : Bool
+    var checkoutClassName : [String]
+    var checkoutURL : String
+    var checkoutAmount : Double
+    var checkoutCartCount : Int
+    var checkoutCartCountCheckout: Int
+    var checkoutOrderNumber : String
+    var checkoutTimeValue : Int
+    
     init(expiration: Millisecond) {
         self.expiration = expiration
         self.sessionID =  SessionData.generateSessionID()
@@ -90,6 +99,15 @@ class SessionData: Codable {
         self.enableWebViewStitching =  BlueTriangle.configuration.enableWebViewStitching
         self.enableNetworkStateTracking = BlueTriangle.configuration.enableTrackingNetworkState
         self.enableGroupingTapDetection =  BlueTriangle.configuration.enableGroupingTapDetection
+        
+        self.checkoutTrackingEnabled = BlueTriangle.configuration.checkoutTrackingEnabled
+        self.checkoutClassName = BlueTriangle.configuration.checkoutClassName
+        self.checkoutURL = BlueTriangle.configuration.checkoutURL
+        self.checkoutAmount = BlueTriangle.configuration.checkoutAmount
+        self.checkoutCartCount = BlueTriangle.configuration.checkoutCartCount
+        self.checkoutCartCountCheckout = BlueTriangle.configuration.checkoutCartCountCheckout
+        self.checkoutOrderNumber = BlueTriangle.configuration.checkoutOrderNumber
+        self.checkoutTimeValue = BlueTriangle.configuration.checkoutTimeValue
     }
     
     private static func generateSessionID()-> Identifier {

@@ -45,7 +45,15 @@ final class BTTConfigurationFetcherTests: XCTestCase {
                                              enableLaunchTime: true,
                                              enableWebViewStitching: true,
                                              enableNetworkStateTracking: true,
-                                             enableGroupingTapDetection: true)
+                                             enableGroupingTapDetection: true,
+                                             checkoutTrackingEnabled: false,
+                                             checkoutClassName: [],
+                                             checkoutURL: "",
+                                             checkoutAmount: 1.0,
+                                             checkoutCartCount: 1,
+                                             checkoutCartCountCheckout: 1,
+                                             checkoutOrderNumber: "",
+                                             checkoutTimeValue: 100)
             
             let mockData = try! JSONEncoder().encode(mockConfig)
             

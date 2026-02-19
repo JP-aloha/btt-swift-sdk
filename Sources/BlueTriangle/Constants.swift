@@ -18,6 +18,7 @@ enum Constants {
     static let device = "Mobile"
     static let os = "iOS"
     static let globalUserIDKey = "com.bluetriangle.kGlobalUserIDUserDefault"
+    static let globalPropertiesStoreKey = "com.bluetriangle.analytics.GlobalPropertiesStore"
     static let persistenceDirectory = "com.bluetriangle.sdk"
     static let sdkProductIdentifier = "btt-swift-sdk"
     static let cacheRequestsDirectory = "CacheRequests"
@@ -41,10 +42,10 @@ enum Constants {
     }
 
     // Crash Tracking
+    static let autoCheckoutPageName = "PurchaseConfirmation"
     static let defaultTraficSegment = "Main Segment"
     static let defaultPageType = "Main Group"
     static let bttConfigUpdate = "BTTConfigUpdate"
-    static let crashID = "iOS Crash"
     static let crashReportFilename = "com.bluetriangle.crash"
     static let crashReportLineSeparator = "~~"
     static let excludedValue = "20"
@@ -59,11 +60,9 @@ enum Constants {
     static let loggingSubsystem = "com.bluetriangle.sdk"
     static let loggingCategory = "tracker"
     
-    static let COLD_LAUNCH_PAGE_NAME = "ColdLaunchTime"
-    static let HOT_LAUNCH_PAGE_NAME = "HotLaunchTime"
     static let LAUNCH_TIME_PAGE_GROUP = "LaunchTime"
     static let LAUNCH_TIME_TRAFFIC_SEGMENT = "LaunchTime"
-    static let SCREEN_TRACKING_PAGE_GROUP = "ScreenTracker"
+    static let SCREEN_TRACKING_PAGE_TYPE = "ScreenTracker"
     static let SCREEN_TRACKING_TRAFFIC_SEGMENT = "ScreenTracker"
     
     //Dynamic Config

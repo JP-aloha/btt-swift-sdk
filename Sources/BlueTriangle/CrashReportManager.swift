@@ -63,7 +63,8 @@ final class CrashReportManager: CrashReportManaging {
         sessionCopy.sessionID = crashReport.sessionID
 
         do {
-            try upload(session: sessionCopy, report: crashReport.report, pageName: crashReport.pageName, segment: crashReport.segment ?? session.trafficSegmentName, pageType: crashReport.pageType ?? session.pageType)
+            let event = BTTEvents.iOSCrash
+            try upload(session: sessionCopy, report: crashReport.report, pageName: crashReport.pageName, segment: crashReport.segment ?? session.trafficSegmentName, pageType: crashReport.pageType ?? session.pageType, event: event)
 
             crashReportPersistence.clear()
         } catch {
@@ -90,8 +91,8 @@ final class CrashReportManager: CrashReportManaging {
             } else {
                 let nativeApp = NativeAppProperties.nstEmpty
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error, line: line, time: intervalProvider().milliseconds)
-                let pageName = Constants.crashID
-                try upload(session:session , report: report, pageName: pageName, segment: session.trafficSegmentName, pageType: session.pageType)
+                let event = BTTEvents.iOSCrash
+                try upload(session:session , report: report, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
             }
 
         } catch {
@@ -107,10 +108,11 @@ final class CrashReportManager: CrashReportManaging {
                 }
                 
                 let nativeApp = NativeAppProperties.nstEmpty
+                let event = BTTEvents.iOSCrash
                 let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: errorMetric.message])
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error , line: errorMetric.line, time: errorMetric.time.milliseconds, eCnt: errorMetric.eCount)
                 let reportRequest = try makeErrorReportRequest(session: session,
-                                                               report: report, pageName: pageName, segment: segment, pageType: pageType)
+                                                               report: report, pageName: pageName, segment: segment, pageType: pageType, event: event)
                 uploader.send(request: reportRequest)
             } catch {
                 self.logger.error(error.localizedDescription)
@@ -121,12 +123,13 @@ final class CrashReportManager: CrashReportManaging {
 
 // MARK: - Private
 private extension CrashReportManager {
-    func makeTimerRequest(session: Session, report: ErrorReport, pageName : String?, segment : String , pageType : String) throws -> Request {
+    func makeTimerRequest(session: Session, report: ErrorReport, pageName : String?, segment : String , pageType : String, event: BTTEvent) throws -> Request {
         let trafficSegment = !segment.isEmpty ? segment : session.trafficSegmentName
         let pageType = !pageType.isEmpty ? pageType :  session.pageType
-        let page = Page(pageName: pageName ?? Constants.crashID, pageType: pageType)
+        let page = Page(pageName: pageName ?? event.defaultPageName, pageType: pageType)
         let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
-        let nativeProperty =  report.nativeApp.copy(.Regular)
+        var nativeProperty =  report.nativeApp.copy(.Regular)
+        if  pageName == nil { nativeProperty.eventId = event.id }
         let customMetrics = session.customVarriables(logger: logger)
         let model = TimerRequest(session: session,
                                  page: page,
@@ -144,14 +147,14 @@ private extension CrashReportManager {
                            model: model)
     }
 
-    func makeErrorReportRequest(session: Session, report: ErrorReport, pageName : String?, segment : String, pageType : String) throws -> Request {
+    func makeErrorReportRequest(session: Session, report: ErrorReport, pageName : String?, segment : String, pageType : String, event: BTTEvent) throws -> Request {
         let trafficSegment = !segment.isEmpty ? segment : session.trafficSegmentName
         let pageType = !pageType.isEmpty ? pageType :  session.pageType
         
         let params: [String: String] = [
             "siteID": session.siteID,
             "nStart": String(report.time),
-            "pageName": pageName ?? Constants.crashID,
+            "pageName": pageName ?? event.defaultPageName,
             "txnName": trafficSegment,
             "sessionID": String(session.sessionID),
             "pgTm": String(Constants.minPgTm),
@@ -173,13 +176,13 @@ private extension CrashReportManager {
                            model: [report])
     }
 
-    func upload(session: Session, report: ErrorReport, pageName : String?, segment : String, pageType : String) throws {
+    func upload(session: Session, report: ErrorReport, pageName : String?, segment : String, pageType : String, event: BTTEvent) throws {
         let timerRequest = try makeTimerRequest(session: session,
-                                                report: report, pageName: pageName, segment : segment, pageType: pageType)
+                                                report: report, pageName: pageName, segment : segment, pageType: pageType, event: event)
         uploader.send(request: timerRequest)
 
         let reportRequest = try makeErrorReportRequest(session: session,
-                                                       report: report, pageName: pageName, segment : segment, pageType: pageType)
+                                                       report: report, pageName: pageName, segment : segment, pageType: pageType, event: event)
         uploader.send(request: reportRequest)
     }
 }

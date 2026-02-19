@@ -33,6 +33,14 @@ class MockBTTConfigurationRepo: ConfigurationRepo {
                                              enableWebViewStitching: config.enableWebViewStitching,
                                              enableNetworkStateTracking: config.enableNetworkStateTracking,
                                              enableGroupingTapDetection: config.enableGroupingTapDetection,
+                                             checkoutTrackingEnabled: config.checkoutTrackingEnabled,
+                                             checkoutClassName: config.checkoutClassName,
+                                             checkoutURL: config.checkoutURL,
+                                             checkoutAmount: config.checkoutAmount,
+                                             checkoutCartCount: config.checkoutCartCount,
+                                             checkoutCartCountCheckout: config.checkoutCartCountCheckout,
+                                             checkoutOrderNumber: config.checkoutOrderNumber,
+                                             checkoutTimeValue: config.checkoutTimeValue,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         store[key] = newConfig
     }

@@ -93,6 +93,15 @@ final public class BlueTriangleConfiguration: NSObject {
     
     internal var enableWebViewStitching: Bool  = true
     internal var enableGroupingTapDetection: Bool  = true
+    
+    internal var checkoutTrackingEnabled : Bool = false
+    internal var checkoutClassName : [String] = []
+    internal var checkoutURL : String = ""
+    internal var checkoutAmount : Double = 1.0
+    internal var checkoutCartCount : Int = 1
+    internal var checkoutCartCountCheckout: Int = 1
+    internal var checkoutOrderNumber : String = ""
+    internal var checkoutTimeValue : Int = 100 // Millisecond
 
     /// When enabled tasks running on main thread are monitored for there run duration time.
     ///
@@ -176,16 +185,17 @@ extension BlueTriangleConfiguration {
     func makeSession() -> Session? {
         
         if let sessionId = BlueTriangleConfiguration.currentSessionId{
+            let globleVariables = BlueTriangle.globleProperty.getGlobalProperties()
             return Session(siteID: siteID,
                            globalUserID: customGlobalUserID ?? globalUserID,
                            sessionID: sessionId,
                            isReturningVisitor: isReturningVisitor,
-                           abTestID: abTestID,
-                           campaign: customCampaign,
-                           campaignMedium: campaignMedium,
-                           campaignName: campaignName,
-                           campaignSource: campaignSource,
-                           dataCenter: dataCenter,
+                           abTestID: globleVariables.abTestID ?? "",
+                           campaign: globleVariables.campaignName ?? "",
+                           campaignMedium: globleVariables.campaignMedium ?? "",
+                           campaignName: globleVariables.campaignName ?? "",
+                           campaignSource: globleVariables.campaignSource ?? "",
+                           dataCenter: globleVariables.dataCenter ?? "",
                            trafficSegmentName: trafficSegmentName,
                            pageType: pageType
             )

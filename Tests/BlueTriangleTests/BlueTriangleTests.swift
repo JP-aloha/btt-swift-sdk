@@ -178,19 +178,12 @@ extension BlueTriangleTests {
         let timerRequest = try JSONDecoder().decode(TimerRequest.self, from: base64Decoded)
                 
         let appVersion = Bundle.main.releaseVersionNumber ?? "0.0"
-        XCTAssertEqual(timerRequest.session.abTestID, "MY_AB_TEST_ID")
-        XCTAssertEqual(timerRequest.session.campaign, nil)
-        XCTAssertEqual(timerRequest.session.campaignName, "MY_CAMPAIGN_NAME")
-        XCTAssertEqual(timerRequest.session.campaignMedium, "MY_CAMPAIGN_MEDIUM")
-        XCTAssertEqual(timerRequest.session.campaignSource, "MY_CAMPAIGN_SOURCE")
         XCTAssertEqual(timerRequest.session.appVersion, "Native App-\(appVersion)-\(Device.os) \(Device.osVersion)")
         XCTAssertEqual(timerRequest.session.wcd, 1)
         XCTAssertEqual(timerRequest.session.eventType, 9)
         XCTAssertEqual(timerRequest.session.navigationType, 9)
         XCTAssertEqual(timerRequest.session.sessionID, 999999999999999999)
         XCTAssertEqual(timerRequest.session.siteID, "MY_SITE_ID")
-        XCTAssertEqual(timerRequest.session.dataCenter, "MY_DATA_CENTER")
-        XCTAssertEqual(timerRequest.session.trafficSegmentName, "MY_SEGMENT_NAME")
         XCTAssertEqual(timerRequest.session.isReturningVisitor,true)
         XCTAssertEqual(timerRequest.session.osInfo, Device.os)
         XCTAssertEqual(timerRequest.session.globalUserID,888888888888888888)
@@ -202,30 +195,6 @@ extension BlueTriangleTests {
         XCTAssertEqual(timerRequest.page.brandValue, 0.51)
         XCTAssertEqual(timerRequest.page.url, "MY_URL")
         XCTAssertEqual(timerRequest.page.referringURL, "MY_REFERRING_URL")
-        
-     
-        
-        if let cv = timerRequest.page.customVariables {
-            XCTAssertEqual(cv.cv1, "CV1")
-            XCTAssertEqual(cv.cv2, "CV2")
-            XCTAssertEqual(cv.cv3, "CV3")
-            XCTAssertEqual(cv.cv4, "CV4")
-            XCTAssertEqual(cv.cv5, "CV5")
-            XCTAssertEqual(cv.cv11, "CV11")
-            XCTAssertEqual(cv.cv12, "CV12")
-            XCTAssertEqual(cv.cv13, "CV13")
-            XCTAssertEqual(cv.cv14, "CV14")
-            XCTAssertEqual(cv.cv15, "CV15")
-            XCTAssertEqual(cv.cv1, "CV1")
-        }
-        
-        if let cv = timerRequest.page.customCategories {
-            XCTAssertEqual(cv.cv6, "CV6")
-            XCTAssertEqual(cv.cv7, "CV7")
-            XCTAssertEqual(cv.cv8, "CV8")
-            XCTAssertEqual(cv.cv9, "CV9")
-            XCTAssertEqual(cv.cv10, "CV10")
-        }
         
         
         if let cn = timerRequest.page.customNumbers {
@@ -343,19 +312,12 @@ extension BlueTriangleTests {
         let timerRequest = try JSONDecoder().decode(TimerRequest.self, from: base64Decoded)
                 
         let appVersion = Bundle.main.releaseVersionNumber ?? "0.0"
-        XCTAssertEqual(timerRequest.session.abTestID, "MY_AB_TEST_ID")
-        XCTAssertEqual(timerRequest.session.campaign, nil)
-        XCTAssertEqual(timerRequest.session.campaignName, "MY_CAMPAIGN_NAME")
-        XCTAssertEqual(timerRequest.session.campaignMedium, "MY_CAMPAIGN_MEDIUM")
-        XCTAssertEqual(timerRequest.session.campaignSource, "MY_CAMPAIGN_SOURCE")
         XCTAssertEqual(timerRequest.session.appVersion, "Native App-\(appVersion)-\(Device.os) \(Device.osVersion)")
         XCTAssertEqual(timerRequest.session.wcd, 1)
         XCTAssertEqual(timerRequest.session.eventType, 9)
         XCTAssertEqual(timerRequest.session.navigationType, 9)
         XCTAssertEqual(timerRequest.session.sessionID, 999999999999999999)
         XCTAssertEqual(timerRequest.session.siteID, "MY_SITE_ID")
-        XCTAssertEqual(timerRequest.session.dataCenter, "MY_DATA_CENTER")
-        XCTAssertEqual(timerRequest.session.trafficSegmentName, "MY_SEGMENT_NAME")
         XCTAssertEqual(timerRequest.session.isReturningVisitor,true)
         XCTAssertEqual(timerRequest.session.osInfo, Device.os)
         XCTAssertEqual(timerRequest.session.globalUserID,888888888888888888)
@@ -383,15 +345,6 @@ extension BlueTriangleTests {
             XCTAssertEqual(cv.cv15, "CV15")
             XCTAssertEqual(cv.cv1, "CV1")
         }
-        
-        if let cv = timerRequest.page.customCategories {
-            XCTAssertEqual(cv.cv6, "CV6")
-            XCTAssertEqual(cv.cv7, "CV7")
-            XCTAssertEqual(cv.cv8, "CV8")
-            XCTAssertEqual(cv.cv9, "CV9")
-            XCTAssertEqual(cv.cv10, "CV10")
-        }
-        
         
         if let cn = timerRequest.page.customNumbers {
             XCTAssert( cn.cn1 == 1.11 || cn.cn1 == 1.1100000000000001)

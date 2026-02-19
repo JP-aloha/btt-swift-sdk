@@ -206,6 +206,14 @@ extension SessionManager {
                 session.enableWebViewStitching = BlueTriangle.configuration.enableWebViewStitching
                 session.enableNetworkStateTracking = BlueTriangle.configuration.enableTrackingNetworkState
                 session.enableGroupingTapDetection = BlueTriangle.configuration.enableGroupingTapDetection
+                session.checkoutTrackingEnabled = BlueTriangle.configuration.checkoutTrackingEnabled
+                session.checkoutClassName = BlueTriangle.configuration.checkoutClassName
+                session.checkoutURL = BlueTriangle.configuration.checkoutURL
+                session.checkoutAmount = BlueTriangle.configuration.checkoutAmount
+                session.checkoutCartCount = BlueTriangle.configuration.checkoutCartCount
+                session.checkoutCartCountCheckout = BlueTriangle.configuration.checkoutCartCountCheckout
+                session.checkoutOrderNumber = BlueTriangle.configuration.checkoutOrderNumber
+                session.checkoutTimeValue = BlueTriangle.configuration.checkoutTimeValue
                 sessionStore.saveSession(session)
             } else {
                 BlueTriangle.updateGrouping(session.enableGrouping, idleTime: session.groupingIdleTime)
@@ -219,6 +227,14 @@ extension SessionManager {
                 BlueTriangle.updateMemoryWarning(session.enableMemoryWarning)
                 BlueTriangle.updateWebViewStitching(session.enableWebViewStitching)
                 BlueTriangle.updateGroupingTapDetection(session.enableGroupingTapDetection)
+                BlueTriangle.updateCheckoutTracking(session.checkoutTrackingEnabled)
+                BlueTriangle.updateCheckoutClassNames(session.checkoutClassName)
+                BlueTriangle.updateCheckoutURL(session.checkoutURL)
+                BlueTriangle.updateCheckoutAmount(session.checkoutAmount)
+                BlueTriangle.updateCheckoutCartCount(session.checkoutCartCount)
+                BlueTriangle.updateCheckoutCartCountCheckout(session.checkoutCartCountCheckout)
+                BlueTriangle.updateCheckoutOrderNumber(session.checkoutOrderNumber)
+                BlueTriangle.updateCheckoutTimeValue(session.checkoutTimeValue)
                 sessionStore.saveSession(session)
             }
         }

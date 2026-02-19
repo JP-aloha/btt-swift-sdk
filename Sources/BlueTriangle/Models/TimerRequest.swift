@@ -47,7 +47,8 @@ struct TimerRequest: Equatable {
 extension TimerRequest: Codable {
     func encode(to enc: Encoder) throws {
         var con = enc.container(keyedBy: CodingKeys.self)
-
+        let globleProp = BlueTriangle.globleProperty.getGlobalProperties()
+        
         // Additional
         try con.encode(Constants.browser, forKey: .browser)
         try con.encode(Version.number, forKey: .ver)
@@ -65,12 +66,12 @@ extension TimerRequest: Codable {
         try con.encode(session.siteID, forKey: .siteID)
         try con.encode(session.globalUserID, forKey: .globalUserID)
         try con.encode(session.sessionID, forKey: .sessionID)
-        try con.encode(session.abTestID, forKey: .abTestID)
-        try con.encode(session.campaign, forKey: .campaign)
-        try con.encode(session.campaignMedium, forKey: .campaignMedium)
-        try con.encode(session.campaignName, forKey: .campaignName)
-        try con.encode(session.campaignSource, forKey: .campaignSource)
-        try con.encode(session.dataCenter, forKey: .dataCenter)
+        try con.encode(globleProp.abTestID, forKey: .abTestID)
+        try con.encode(globleProp.campaignName, forKey: .campaign)
+        try con.encode(globleProp.campaignMedium, forKey: .campaignMedium)
+        try con.encode(globleProp.campaignName, forKey: .campaignName)
+        try con.encode(globleProp.campaignSource, forKey: .campaignSource)
+        try con.encode(globleProp.dataCenter, forKey: .dataCenter)
         try con.encode(!trafficSegmentName.isEmpty ? trafficSegmentName : session.trafficSegmentName, forKey: .trafficSegmentName)
 
         // Page
@@ -113,12 +114,20 @@ extension TimerRequest: Codable {
             try con.encode(customVars.cv15, forKey: .cv15)
         }
 
-        if let customCats = page.customCategories {
-            try con.encode(customCats.cv6, forKey: .cv6)
-            try con.encode(customCats.cv7, forKey: .cv7)
-            try con.encode(customCats.cv8, forKey: .cv8)
-            try con.encode(customCats.cv9, forKey: .cv9)
-            try con.encode(customCats.cv10, forKey: .cv10)
+        if let cv6 = globleProp.customCategory.cv6 {
+            try con.encode(cv6, forKey: .cv6)
+        }
+        if let cv7 = globleProp.customCategory.cv7 {
+            try con.encode(cv7, forKey: .cv7)
+        }
+        if let cv8 = globleProp.customCategory.cv8 {
+            try con.encode(cv8, forKey: .cv8)
+        }
+        if let cv9 = globleProp.customCategory.cv9 {
+            try con.encode(cv9, forKey: .cv9)
+        }
+        if let cv10 = globleProp.customCategory.cv10 {
+            try con.encode(cv10, forKey: .cv10)
         }
 
         if let customNums = page.customNumbers {

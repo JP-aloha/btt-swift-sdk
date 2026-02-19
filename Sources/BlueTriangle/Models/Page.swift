@@ -16,7 +16,8 @@ final public class Page: NSObject, @unchecked Sendable {
     private var _brandValue: Decimal
     private var _pageName: String
     private var _pageTitle: String
-    private var _pageType: String
+    private var _pageType: String 
+    private var _trafficSegment: String
     private var _referringURL: String
     private var _url: String
 
@@ -67,6 +68,10 @@ final public class Page: NSObject, @unchecked Sendable {
         get { lock.sync { _url } }
         set { lock.sync { _url = newValue } }
     }
+    
+    internal var trafficSegment : String {
+        get { lock.sync { _trafficSegment } }
+    }
 
     /// Custom textual data that is relevant to individual views but is not aggregated.
     @available(*, deprecated, message: "Use BlueTriangle 'setCustomVariables(_ variables : [:] )' methods instead.")
@@ -101,7 +106,8 @@ final public class Page: NSObject, @unchecked Sendable {
         url: String = "",
         customVariables: CustomVariables? = nil,
         customCategories: CustomCategories? = nil,
-        customNumbers: CustomNumbers? = nil
+        customNumbers: CustomNumbers? = nil,
+        trafficSegment: String = ""
     ) {
         self._brandValue = brandValue
         self._pageName = pageName
@@ -112,6 +118,7 @@ final public class Page: NSObject, @unchecked Sendable {
         self._customVariables = customVariables
         self._customCategories = customCategories
         self._customNumbers = customNumbers
+        self._trafficSegment = trafficSegment
         super.init()
     }
 
@@ -121,13 +128,15 @@ final public class Page: NSObject, @unchecked Sendable {
         brandValue: Decimal = 0.0,
         pageType: String = "",
         referringURL: String = "",
-        url: String = ""
+        url: String = "",
+        trafficSegment: String = ""
     ) {
         self._brandValue = brandValue
         self._pageName = pageName
         self._pageTitle = pageTitle
         self._pageType = pageType
         self._referringURL = referringURL
+        self._trafficSegment = trafficSegment
         self._url = url
         super.init()
     }

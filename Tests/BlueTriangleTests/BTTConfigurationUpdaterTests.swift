@@ -1,6 +1,6 @@
 //
 //  BTTConfigurationUpdaterTests.swift
-//  
+//
 //
 //  Created by Ashok Singh on 09/09/24.
 //
@@ -29,7 +29,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         configAck = RemoteConfigAckReporter(logger: loger, uploader: mocUpdater)
         configUpdater = BTTConfigurationUpdater(configFetcher: mockFetcher,
                                                 configRepo: mockRepo,
-                                                logger: loger, 
+                                                logger: loger,
                                                 configAck: configAck)
     }
     
@@ -39,24 +39,32 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
         configUpdater = nil
         super.tearDown()
     }
-
+    
     func testUpdatePerformsFetchIfNewSession() {
-
+        
         let config = BTTRemoteConfig(networkSampleRateSDK: 75,
-                                         enableRemoteConfigAck: false,
-                                         enableAllTracking: true,
-                                         enableScreenTracking: true,
-                                         enableGrouping: true,
-                                         groupingIdleTime: 2,
-                                         ignoreScreens: [],
-                                         enableCrashTracking: true,
-                                         enableANRTracking: true,
-                                         enableMemoryWarning: true,
-                                         enableLaunchTime: true,
-                                         enableWebViewStitching: true,
-                                         enableNetworkStateTracking: true,
-                                         enableGroupingTapDetection: true)
-
+                                     enableRemoteConfigAck: false,
+                                     enableAllTracking: true,
+                                     enableScreenTracking: true,
+                                     enableGrouping: true,
+                                     groupingIdleTime: 2,
+                                     ignoreScreens: [],
+                                     enableCrashTracking: true,
+                                     enableANRTracking: true,
+                                     enableMemoryWarning: true,
+                                     enableLaunchTime: true,
+                                     enableWebViewStitching: true,
+                                     enableNetworkStateTracking: true,
+                                     enableGroupingTapDetection: true,
+                                     checkoutTrackingEnabled: false,
+                                     checkoutClassName: [],
+                                     checkoutURL: "",
+                                     checkoutAmount: 1.0,
+                                     checkoutCartCount: 1,
+                                     checkoutCartCountCheckout: 1,
+                                     checkoutOrderNumber: "",
+                                     checkoutTimeValue: 100)
+        
         mockFetcher.configToReturn = config
         
         let expectation = XCTestExpectation(description: "Completion handler called")
@@ -74,20 +82,28 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     func testUpdateSkipsFetchIfNotNewSessionAndWithinUpdatePeriod() {
         
         let config = BTTRemoteConfig(networkSampleRateSDK: 75,
-                                         enableRemoteConfigAck: false,
-                                         enableAllTracking: true,
-                                         enableScreenTracking: true,
-                                         enableGrouping: true,
-                                         groupingIdleTime: 2,
-                                         ignoreScreens: [],
-                                         enableCrashTracking: true,
-                                         enableANRTracking: true,
-                                         enableMemoryWarning: true,
-                                         enableLaunchTime: true,
-                                         enableWebViewStitching: true,
-                                         enableNetworkStateTracking: true,
-                                         enableGroupingTapDetection: true)
-
+                                     enableRemoteConfigAck: false,
+                                     enableAllTracking: true,
+                                     enableScreenTracking: true,
+                                     enableGrouping: true,
+                                     groupingIdleTime: 2,
+                                     ignoreScreens: [],
+                                     enableCrashTracking: true,
+                                     enableANRTracking: true,
+                                     enableMemoryWarning: true,
+                                     enableLaunchTime: true,
+                                     enableWebViewStitching: true,
+                                     enableNetworkStateTracking: true,
+                                     enableGroupingTapDetection: true,
+                                     checkoutTrackingEnabled: false,
+                                     checkoutClassName: [],
+                                     checkoutURL: "",
+                                     checkoutAmount: 1.0,
+                                     checkoutCartCount: 1,
+                                     checkoutCartCountCheckout: 1,
+                                     checkoutOrderNumber: "",
+                                     checkoutTimeValue: 100)
+        
         mockRepo.save(config)
         
         let expectation = XCTestExpectation(description: "Completion handler called")
@@ -102,38 +118,54 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     func testUpdatePerformsFetchIfNotNewSessionAndUpdatePeriodElapsed() {
         
         let apiConfig = BTTRemoteConfig(networkSampleRateSDK: 75,
-                                         enableRemoteConfigAck: false,
-                                         enableAllTracking: true,
-                                         enableScreenTracking: true,
-                                         enableGrouping: true,
-                                         groupingIdleTime: 2,
-                                         ignoreScreens: [],
-                                         enableCrashTracking: true,
-                                         enableANRTracking: true,
-                                         enableMemoryWarning: true,
-                                         enableLaunchTime: true,
-                                         enableWebViewStitching: true,
-                                         enableNetworkStateTracking: true,
-                                         enableGroupingTapDetection: true)
+                                        enableRemoteConfigAck: false,
+                                        enableAllTracking: true,
+                                        enableScreenTracking: true,
+                                        enableGrouping: true,
+                                        groupingIdleTime: 2,
+                                        ignoreScreens: [],
+                                        enableCrashTracking: true,
+                                        enableANRTracking: true,
+                                        enableMemoryWarning: true,
+                                        enableLaunchTime: true,
+                                        enableWebViewStitching: true,
+                                        enableNetworkStateTracking: true,
+                                        enableGroupingTapDetection: true,
+                                        checkoutTrackingEnabled: false,
+                                        checkoutClassName: [],
+                                        checkoutURL: "",
+                                        checkoutAmount: 1.0,
+                                        checkoutCartCount: 1,
+                                        checkoutCartCountCheckout: 1,
+                                        checkoutOrderNumber: "",
+                                        checkoutTimeValue: 100)
         mockFetcher.configToReturn = apiConfig
         
         
         let currentTime = Date().timeIntervalSince1970.milliseconds
         let storeConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 70,
-                                         enableRemoteConfigAck: false,
-                                         enableAllTracking: true,
-                                         enableScreenTracking: true,
-                                         enableGrouping: true,
-                                         groupingIdleTime: 2,
-                                         ignoreScreens: [],
-                                         enableCrashTracking: true,
-                                         enableANRTracking: true,
-                                         enableMemoryWarning: true,
-                                         enableLaunchTime: true,
-                                         enableWebViewStitching: true,
-                                         enableNetworkStateTracking: true,
-                                         enableGroupingTapDetection: true,
-                                         dateSaved: currentTime - Millisecond.hour * 2)
+                                               enableRemoteConfigAck: false,
+                                               enableAllTracking: true,
+                                               enableScreenTracking: true,
+                                               enableGrouping: true,
+                                               groupingIdleTime: 2,
+                                               ignoreScreens: [],
+                                               enableCrashTracking: true,
+                                               enableANRTracking: true,
+                                               enableMemoryWarning: true,
+                                               enableLaunchTime: true,
+                                               enableWebViewStitching: true,
+                                               enableNetworkStateTracking: true,
+                                               enableGroupingTapDetection: true,
+                                               checkoutTrackingEnabled: false,
+                                               checkoutClassName: [],
+                                               checkoutURL: "",
+                                               checkoutAmount: 1.0,
+                                               checkoutCartCount: 1,
+                                               checkoutCartCountCheckout: 1,
+                                               checkoutOrderNumber: "",
+                                               checkoutTimeValue: 100,
+                                               dateSaved: currentTime - Millisecond.hour * 2)
         mockRepo.store[key] = storeConfig
         
         let expectation = XCTestExpectation(description: "Completion handler called")

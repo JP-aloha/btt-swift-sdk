@@ -153,7 +153,8 @@ extension MetricKitSubscriber {
             return timer
         }
         else {
-            return SavedTimer(pageName: Constants.crashID, startTime: Date().timeIntervalSince1970, sessionId: BlueTriangle.sessionID)
+            let event = BTTEvents.iOSCrash
+            return SavedTimer(pageName: event.defaultPageName, startTime: Date().timeIntervalSince1970, sessionId: BlueTriangle.sessionID)
         }
     }
     
@@ -172,7 +173,8 @@ extension MetricKitSubscriber {
             return timer
         }
         else {
-            return SavedTimer(pageName: Constants.crashID, startTime: Date().timeIntervalSince1970, sessionId: BlueTriangle.sessionID)
+            let event = BTTEvents.iOSCrash
+            return SavedTimer(pageName: event.defaultPageName, startTime: Date().timeIntervalSince1970, sessionId: BlueTriangle.sessionID)
         }
     }
 }

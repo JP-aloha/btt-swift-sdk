@@ -47,7 +47,7 @@ final public class BTTimer: NSObject, @unchecked Sendable {
     private var networkAccumulator : BTTimerNetStateAccumulatorProtocol?
     private var nativeAppProp : NativeAppProperties?
     
-    @objc public var isGroupTimer: Bool = false
+    @objc internal var isGroupTimer: Bool = false
     
     /// The type of the timer.
     @objc public let type: TimerType

@@ -31,3 +31,9 @@ extension Millisecond {
         day * Self(Constants.userSessionTimeoutInDays)
     }
 }
+
+extension Int {
+    var asTimeInterval: TimeInterval {
+        TimeInterval(self) / 1000.0
+    }
+}

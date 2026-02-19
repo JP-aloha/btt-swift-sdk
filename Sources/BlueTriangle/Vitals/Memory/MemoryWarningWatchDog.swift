@@ -11,10 +11,7 @@ import Foundation
 import UIKit
 #endif
 
-class MemoryWarningWatchDog {
-
-    static let DEFAULT_PAGE_NAME = BT_ErrorType.MemoryWarning.rawValue
-    
+class MemoryWarningWatchDog {    
     let session: SessionProvider
     let uploader: Uploading
     let logger: Logging
@@ -53,10 +50,10 @@ class MemoryWarningWatchDog {
                 await self.errorMetricStore.addMemoryWarning(id: timer.uuid, message: message)
             }
         } else {
-            let pageName = MemoryWarningWatchDog.DEFAULT_PAGE_NAME
+            let event = BTTEvents.memoryWarning
             let report = CrashReport(sessionID: BlueTriangle.sessionID,
-                                     memoryWarningMessage: message, pageName: pageName, segment: session.trafficSegmentName, pageType: session.pageType)
-            uploadReports(session: session, report: report, segment: session.trafficSegmentName, pageType: session.pageType)
+                                     memoryWarningMessage: message, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType)
+            uploadReports(session: session, report: report, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
         }
         logger.debug(message)
     }
@@ -93,7 +90,7 @@ class MemoryWarningWatchDog {
 
 extension MemoryWarningWatchDog {
    
-    private func uploadReports(session: Session, report: CrashReport, segment : String, pageType: String) {
+    private func uploadReports(session: Session, report: CrashReport, segment : String, pageType: String, event: BTTEvent) {
         DispatchQueue.global(qos: .utility).async { [weak self] in
             do {
                 guard let strongSelf = self else {
@@ -101,11 +98,11 @@ extension MemoryWarningWatchDog {
                 }
                 
                 let timerRequest = try strongSelf.makeTimerRequest(session: session,
-                                                                   report: report.report, pageName: report.pageName, segment: segment, pageType: pageType)
+                                                                   report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
                  strongSelf.uploader.send(request: timerRequest)
                 
                 let reportRequest = try strongSelf.makeCrashReportRequest(session: session,
-                                                                          report: report.report, pageName: report.pageName, segment: segment, pageType: pageType)
+                                                                          report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
                 strongSelf.uploader.send(request: reportRequest)
             } catch {
                 self?.logger.error(error.localizedDescription)
@@ -119,9 +116,10 @@ extension MemoryWarningWatchDog {
                 guard let session = self.session(), let errorMetric = await self.errorMetricStore.flushMemoryWarning(id: uuid) else {
                     return
                 }
+                let event = BTTEvents.memoryWarning
                 let report = CrashReport(sessionID: BlueTriangle.sessionID, memoryWarningMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, intervalProvider: errorMetric.time)
                 let reportRequest = try self.makeCrashReportRequest(session: session,
-                                                                    report: report.report, pageName: report.pageName, segment: segment, pageType: pageType)
+                                                                    report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
                 self.uploader.send(request: reportRequest)
             } catch {
                 self.logger.error(error.localizedDescription)
@@ -129,12 +127,13 @@ extension MemoryWarningWatchDog {
         }
     }
     
-    private func makeTimerRequest(session: Session, report: ErrorReport, pageName: String?, segment : String, pageType : String ) throws -> Request {
+    private func makeTimerRequest(session: Session, report: ErrorReport, pageName: String?, segment : String, pageType : String, event: BTTEvent ) throws -> Request {
         let trafficSegment = !segment.isEmpty ? segment : session.trafficSegmentName
         let pageTypeValue = !pageType.isEmpty ? pageType :  session.pageType
-        let page = Page(pageName: pageName ?? MemoryWarningWatchDog.DEFAULT_PAGE_NAME, pageType: pageTypeValue)
+        let page = Page(pageName: pageName ?? event.defaultPageName, pageType: pageTypeValue)
         let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
-        let nativeProperty = BlueTriangle.recentTimer()?.nativeAppProperties ?? .empty
+        var nativeProperty = BlueTriangle.recentTimer()?.nativeAppProperties ?? .empty
+        nativeProperty.eventId = event.id
         let customMetrics = session.customVarriables(logger: logger)
         let model = TimerRequest(session: session,
                                  page: page,
@@ -152,13 +151,13 @@ extension MemoryWarningWatchDog {
                            model: model)
     }
         
-    private func makeCrashReportRequest(session: Session, report: ErrorReport, pageName: String?, segment : String, pageType : String) throws -> Request {
+    private func makeCrashReportRequest(session: Session, report: ErrorReport, pageName: String?, segment : String, pageType : String, event: BTTEvent) throws -> Request {
         let trafficSegment = !segment.isEmpty ? segment : session.trafficSegmentName
         let pageType = !pageType.isEmpty ? pageType :  session.pageType
         let params: [String: String] = [
             "siteID": session.siteID,
             "nStart": String(report.time),
-            "pageName": pageName ?? MemoryWarningWatchDog.DEFAULT_PAGE_NAME,
+            "pageName": pageName ?? event.defaultPageName,
             "txnName": trafficSegment,
             "sessionID": String(session.sessionID),
             "pgTm": String(Constants.minPgTm),

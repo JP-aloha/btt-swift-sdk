@@ -37,7 +37,15 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                      enableLaunchTime: true,
                                      enableWebViewStitching: true,
                                      enableNetworkStateTracking: true,
-                                     enableGroupingTapDetection: true)
+                                     enableGroupingTapDetection: true,
+                                     checkoutTrackingEnabled: false,
+                                     checkoutClassName: [],
+                                     checkoutURL: "",
+                                     checkoutAmount: 1.0,
+                                     checkoutCartCount: 1,
+                                     checkoutCartCountCheckout: 1,
+                                     checkoutOrderNumber: "",
+                                     checkoutTimeValue: 100)
         
         configurationRepo.save(config)
         
@@ -49,20 +57,28 @@ final class BTTConfigurationRepoTests: XCTestCase {
     
     func testGetConfigSuccess() {
         let savedConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 5,
-                                         enableRemoteConfigAck: false,
-                                         enableAllTracking: true,
-                                         enableScreenTracking: true,
-                                         enableGrouping: true,
-                                         groupingIdleTime: 2,
-                                         ignoreScreens: [],
-                                         enableCrashTracking: true,
-                                         enableANRTracking: true,
-                                         enableMemoryWarning: true,
-                                         enableLaunchTime: true,
-                                         enableWebViewStitching: true,
-                                         enableNetworkStateTracking: true,
-                                         enableGroupingTapDetection: true,
-                                         dateSaved: Date().timeIntervalSince1970.milliseconds)
+                                               enableRemoteConfigAck: false,
+                                               enableAllTracking: true,
+                                               enableScreenTracking: true,
+                                               enableGrouping: true,
+                                               groupingIdleTime: 2,
+                                               ignoreScreens: [],
+                                               enableCrashTracking: true,
+                                               enableANRTracking: true,
+                                               enableMemoryWarning: true,
+                                               enableLaunchTime: true,
+                                               enableWebViewStitching: true,
+                                               enableNetworkStateTracking: true,
+                                               enableGroupingTapDetection: true,
+                                               checkoutTrackingEnabled: false,
+                                               checkoutClassName: [],
+                                               checkoutURL: "",
+                                               checkoutAmount: 1.0,
+                                               checkoutCartCount: 1,
+                                               checkoutCartCountCheckout: 1,
+                                               checkoutOrderNumber: "",
+                                               checkoutTimeValue: 100,
+                                               dateSaved: Date().timeIntervalSince1970.milliseconds)
 
         configurationRepo.store[key] = savedConfig
         
