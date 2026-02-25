@@ -77,12 +77,14 @@ class SessionManager : SessionManagerProtocol{
     
     private func resisterObserver() {
 #if os(iOS)
-        foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
+        backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
             self.appOffScreen()
+            BlueTriangle.breadcrumCollector.collect(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.backfround))
         }
         
-        backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
+        foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
             self.onLaunch()
+            BlueTriangle.breadcrumCollector.collect(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.forground))
         }
 #endif
         self.observeRemoteConfig()

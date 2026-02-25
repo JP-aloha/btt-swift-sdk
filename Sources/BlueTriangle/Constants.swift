@@ -8,7 +8,20 @@
 import Foundation
 
 enum Constants {
-    
+    enum Breadcrums {
+        enum UILifeCycle {
+            static let viewDidLoad = "viewDidLoad"
+            static let viewWillAppear = "viewWillAppear"
+            static let viewDidAppear = "viewDidAppear"
+            static let viewDidDisappear = "viewDidDisappear"
+        }
+        
+        enum AppLifeCycle {
+            static let backfround = "backfround"
+            static let forground = "forground"
+        }
+    }
+        
     enum EntryType {
         static let resource = "resource"
         static let screen = "screen"

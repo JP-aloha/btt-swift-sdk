@@ -24,6 +24,7 @@ final public class BlueTriangle: NSObject {
     internal static var configuration = BlueTriangleConfiguration()
     internal static let globleProperty = GlobalProperties()
     internal static let checkoutEvent = CheckoutEventReporter(logger: logger)
+    internal static let breadcrumCollector = BreadcrumCollector(logger: logger)
     
     private static var _screenTracker: BTTScreenLifecycleTracker?
     internal static var screenTracker: BTTScreenLifecycleTracker?{
