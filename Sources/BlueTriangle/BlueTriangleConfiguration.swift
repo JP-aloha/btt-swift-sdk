@@ -155,8 +155,6 @@ final public class BlueTriangleConfiguration: NSObject {
     
     var capturedGroupRequestCollectorConfiguration: CapturedGroupRequestCollector.Configuration = .live
     
-    var capturedActionsRequestCollectorConfiguration: CapturedActionRequestCollector.Configuration = .live
-
     var performanceMonitorBuilder: PerformanceMonitorBuilder = .live
 
     lazy var requestBuilder: TimerRequestBuilder = {

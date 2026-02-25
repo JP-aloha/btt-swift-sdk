@@ -227,19 +227,6 @@ final public class BlueTriangle: NSObject {
         }
     }
     
-    internal static func makeCapturedActionRequestCollector() -> CapturedActionRequestCollecting? {
-        if let _ = session(), shouldCaptureRequests {
-            let actionsCollector = configuration.capturedActionsRequestCollectorConfiguration.makeRequestCollector(
-                logger: logger,
-                networkCaptureConfiguration: .standard,
-                requestBuilder: CapturedRequestBuilder.makeBuilder {self.session()},
-                uploader: uploader)
-            return actionsCollector
-        } else {
-            return nil
-        }
-    }
-    
     private static var logger: Logging = {
         configuration.makeLogger()
     }()
@@ -291,10 +278,6 @@ final public class BlueTriangle: NSObject {
     
     private static var _capturedGroupedViewRequestCollector: CapturedGroupRequestCollecting? = {
         return makeCapturedGroupRequestCollector()
-    }()
-    
-    private static var capturedActionsViewRequestCollector: CapturedActionRequestCollector? = {
-        return makeCapturedActionRequestCollector() as! CapturedActionRequestCollector
     }()
     
     private static func getNetworkRequestCapture() -> CapturedRequestCollecting? {
@@ -1244,19 +1227,6 @@ public extension BlueTriangle {
     
     internal static func uploadGroupedViewCollectedRequests() async {
         await getGroupRequestCapture()?.uploadCollectedRequests()
-    }
-    
-    //Actions
-    internal static func startActionTimerRequest(page : Page, startTime : Millisecond) async{
-        await capturedActionsViewRequestCollector?.start(page: page, startTime: startTime)
-    }
-    
-    internal static func captureActionRequest(startTime : Millisecond, endTime: Millisecond, groupStartTime: Millisecond, action: UserAction) async {
-            await capturedActionsViewRequestCollector?.collect(startTime: startTime, endTime: endTime, groupStartTime: groupStartTime, action: action)
-    }
-    
-    internal static func uploadActionViewCollectedRequests() async{
-        await capturedActionsViewRequestCollector?.uploadCollectedRequests()
     }
 }
 
