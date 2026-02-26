@@ -89,7 +89,8 @@ final class CrashReportManager: CrashReportManaging {
                     await errorMetricStore.addError(id: timer.uuid, message: message, line: line)
                 }
             } else {
-                let nativeApp = NativeAppProperties.nstEmpty
+                var nativeApp = NativeAppProperties.nstEmpty
+                nativeApp.breadcrumbs = BlueTriangle.breadcrumbCollector.breadrumbsString()
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error, line: line, time: intervalProvider().milliseconds)
                 let event = BTTEvents.iOSCrash
                 try upload(session:session , report: report, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
@@ -107,7 +108,8 @@ final class CrashReportManager: CrashReportManaging {
                     return
                 }
                 
-                let nativeApp = NativeAppProperties.nstEmpty
+                var nativeApp = NativeAppProperties.nstEmpty
+                nativeApp.breadcrumbs = BlueTriangle.breadcrumbCollector.breadrumbsString()
                 let event = BTTEvents.iOSCrash
                 let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: errorMetric.message])
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error , line: errorMetric.line, time: errorMetric.time.milliseconds, eCnt: errorMetric.eCount)
@@ -129,6 +131,7 @@ private extension CrashReportManager {
         let page = Page(pageName: pageName ?? event.defaultPageName, pageType: pageType)
         let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
         var nativeProperty =  report.nativeApp.copy(.Regular)
+        nativeProperty.breadcrumbs = BlueTriangle.breadcrumbCollector.breadrumbsString()
         if  pageName == nil { nativeProperty.eventId = event.id }
         let customMetrics = session.customVarriables(logger: logger)
         let model = TimerRequest(session: session,

@@ -79,12 +79,12 @@ class SessionManager : SessionManagerProtocol{
 #if os(iOS)
         backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
             self.appOffScreen()
-            BlueTriangle.breadcrumCollector.collect(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.backfround))
+            BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.background))
         }
         
         foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
             self.onLaunch()
-            BlueTriangle.breadcrumCollector.collect(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.forground))
+            BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.foreground))
         }
 #endif
         self.observeRemoteConfig()

@@ -24,7 +24,7 @@ final public class BlueTriangle: NSObject {
     internal static var configuration = BlueTriangleConfiguration()
     internal static let globleProperty = GlobalProperties()
     internal static let checkoutEvent = CheckoutEventReporter(logger: logger)
-    internal static let breadcrumCollector = BreadcrumCollector(logger: logger)
+    internal static let breadcrumbCollector = BreadcrumbCollector(logger: logger)
     
     private static var _screenTracker: BTTScreenLifecycleTracker?
     internal static var screenTracker: BTTScreenLifecycleTracker?{
@@ -1176,14 +1176,14 @@ public extension BlueTriangle {
     static func captureRequest(timer: InternalTimer, response: URLResponse?) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, response: response)
-            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
         }
     }
 
     internal static func captureRequest(timer: InternalTimer, response: CustomResponse) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, response: response)
-            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
         }
     }
 
@@ -1194,14 +1194,14 @@ public extension BlueTriangle {
     static func captureRequest(timer: InternalTimer, tuple: (Data, URLResponse)) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, response: tuple.1)
-            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1))
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1))
         }
     }
     
     static func captureRequest(timer: InternalTimer, request : URLRequest, error: Error?) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, request: request, error: error)
-            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, request: request, error: error))
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, request: request, error: error))
         }
     }
     /// Captures a network request.
@@ -1209,8 +1209,13 @@ public extension BlueTriangle {
     static func captureRequest(metrics: URLSessionTaskMetrics, error : Error?) {
         Task {
             await getNetworkRequestCapture()?.collect(metrics: metrics, error: error)
-            await reportAutoCheckoutFor(CapturedRequest(metrics: metrics, relativeTo: 0, error: error))
+            await recardNetworkFor(CapturedRequest(metrics: metrics, relativeTo: 0, error: error))
         }
+    }
+    
+    private static func recardNetworkFor(_ request: CapturedRequest) async {
+        await BlueTriangle.reportAutoCheckoutFor(request)
+        await BlueTriangle.reportNetworkBreadcrumbFor(request)
     }
     
     private static func reportAutoCheckoutFor(_ request: CapturedRequest) async {
@@ -1227,6 +1232,14 @@ public extension BlueTriangle {
     
     internal static func uploadGroupedViewCollectedRequests() async {
         await getGroupRequestCapture()?.uploadCollectedRequests()
+    }
+    
+    internal static func collectBreadcrumb(_ breadcrumb : BreadcrumbEvent) {
+        self.breadcrumbCollector.collect(breadcrumb)
+    }
+    
+    private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) async {
+        BlueTriangle.collectBreadcrumb(NetworkRequestEvent(url: request.url, statusCode: request.statusCode ?? ""))
     }
 }
 

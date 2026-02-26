@@ -17,8 +17,8 @@ enum Constants {
         }
         
         enum AppLifeCycle {
-            static let backfround = "backfround"
-            static let forground = "forground"
+            static let background = "background"
+            static let foreground = "foreground"
         }
     }
         

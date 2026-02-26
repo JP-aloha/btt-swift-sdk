@@ -158,7 +158,7 @@ extension UIViewController{
         if shouldTrackScreen(){
             BlueTriangle.screenTracker?.loadStarted(String(describing: self), "\(type(of: self))",  pageTitle())
         }
-        BlueTriangle.breadcrumCollector.collect(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidLoad, className: "\(type(of: self))"))
+        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidLoad, className: "\(type(of: self))"))
         viewDidLoad_Tracker()
     }
     
@@ -166,7 +166,7 @@ extension UIViewController{
         if shouldTrackScreen(){
             BlueTriangle.screenTracker?.loadFinish(String(describing: self),"\(type(of: self))", pageTitle())
         }
-        BlueTriangle.breadcrumCollector.collect(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewWillAppear, className: "\(type(of: self))"))
+        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewWillAppear, className: "\(type(of: self))"))
         viewWillAppear_Tracker(animated)
     }
     
@@ -174,7 +174,7 @@ extension UIViewController{
         if shouldTrackScreen(){
             BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(type(of: self))", pageTitle())
         }
-        BlueTriangle.breadcrumCollector.collect(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: "\(type(of: self))"))
+        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: "\(type(of: self))"))
         viewDidAppear_Tracker(animated)
     }
     
@@ -182,7 +182,7 @@ extension UIViewController{
         if shouldTrackScreen(){
             BlueTriangle.screenTracker?.viewingEnd(String(describing: self), "\(type(of: self))", pageTitle())
         }
-        BlueTriangle.breadcrumCollector.collect(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidDisappear, className: "\(type(of: self))"))
+        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidDisappear, className: "\(type(of: self))"))
         viewDidDisappear_Tracker(animated)
     }
     

@@ -48,6 +48,7 @@ struct NativeAppProperties: Equatable {
     var err: String?
     var eventId: String?
     var groupingCause: String?
+    var breadcrumbs: String?
     var groupingCauseInterval: Millisecond?
     var sdkVersion: String = Device.sdkVersion
     var appVersion: String = Device.appVersion
@@ -142,6 +143,11 @@ extension NativeAppProperties: Codable{
         if autoCheckout {
             try con.encode(autoCheckout, forKey: .autoCheckout)
         }
+        
+        if let breadcrumbs  = breadcrumbs {
+            try con.encode(breadcrumbs, forKey: .breadcrumbs)
+        }
+        
         try con.encode(deviceModel, forKey: .deviceModel)
         try con.encode(appVersion, forKey: .appVersion)
         try con.encode(sdkVersion, forKey: .sdkVersion)
@@ -173,6 +179,8 @@ extension NativeAppProperties: Codable{
         self.groupingCauseInterval = try container.decodeIfPresent(Millisecond.self, forKey: .groupingCauseInterval) ?? 0
         self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID) ?? ""
         self.autoCheckout = try container.decodeIfPresent(Bool.self, forKey: .autoCheckout) ?? false
+        self.breadcrumbs = try container.decodeIfPresent(String.self, forKey: .breadcrumbs) ?? ""
+
     }
     
     enum CodingKeys: String, CodingKey {
@@ -203,6 +211,7 @@ extension NativeAppProperties: Codable{
         case groupingCauseInterval
         case eventID
         case autoCheckout
+        case breadcrumbs
     }
 }
 
