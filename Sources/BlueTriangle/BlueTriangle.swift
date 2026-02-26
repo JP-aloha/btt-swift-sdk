@@ -24,7 +24,7 @@ final public class BlueTriangle: NSObject {
     internal static var configuration = BlueTriangleConfiguration()
     internal static let globleProperty = GlobalProperties()
     internal static let checkoutEvent = CheckoutEventReporter(logger: logger)
-    internal static let breadcrumbCollector = BreadcrumbCollector(logger: logger)
+    internal static let breadcrumbManager = BreadcrumbManager(collector: BreadcrumbCollector(logger: logger))
     
     private static var _screenTracker: BTTScreenLifecycleTracker?
     internal static var screenTracker: BTTScreenLifecycleTracker?{
@@ -1235,7 +1235,7 @@ public extension BlueTriangle {
     }
     
     internal static func collectBreadcrumb(_ breadcrumb : BreadcrumbEvent) {
-        self.breadcrumbCollector.collect(breadcrumb)
+        self.breadcrumbManager.collectBreadcrumb(breadcrumb)
     }
     
     private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) async {

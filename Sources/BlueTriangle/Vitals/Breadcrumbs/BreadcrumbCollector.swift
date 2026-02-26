@@ -49,7 +49,7 @@ final class BreadcrumbCollector {
         }
     }
     
-    func breadrumbsString() -> String {
+    func breadcrumbsString() -> String {
         queue.sync {
             var resultArray: [[String: Any]] = []
             for item in collected {
