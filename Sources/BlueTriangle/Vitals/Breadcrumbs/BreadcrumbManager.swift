@@ -14,6 +14,9 @@ final class BreadcrumbManager {
     
     init(collector: BreadcrumbCollector) {
         self.collector = collector
+        self.register(feature: LaunchTypeFeature(collector: collector))
+        self.register(feature: AppInstallFeature(collector: collector))
+        self.register(feature: AppUpdateFeature(collector: collector))
         self.register(feature: AppLifecycleFeature(collector: collector))
         self.register(feature: UILifecycleFeature(collector: collector))
         self.register(feature: NetworkRequestFeature(collector: collector))

@@ -25,6 +25,7 @@ final public class BlueTriangle: NSObject {
     internal static let globleProperty = GlobalProperties()
     internal static let checkoutEvent = CheckoutEventReporter(logger: logger)
     internal static let breadcrumbManager = BreadcrumbManager(collector: BreadcrumbCollector(logger: logger))
+    internal static let appInstaller = AppInstallTracker(logger: logger)
     
     private static var _screenTracker: BTTScreenLifecycleTracker?
     internal static var screenTracker: BTTScreenLifecycleTracker?{
@@ -776,7 +777,7 @@ extension BlueTriangle {
     ///
     internal static func applyAllTrackerState() {
         lock.sync {
-            
+            let appInstaller = BlueTriangle.appInstaller
             self.configureSessionManager(forModeWithExpiry: configuration.sessionExpiryDuration)
             
             if self.enableAllTracking {
@@ -800,7 +801,6 @@ extension BlueTriangle {
     private static func startAllTrackers() {
         
         logger.info("BlueTriangle :: SDK is in enabled mode.")
-        
         self.startSession()
         self.startHttpNetworkCapture()
         self.startHttpGroupedChildCapture()

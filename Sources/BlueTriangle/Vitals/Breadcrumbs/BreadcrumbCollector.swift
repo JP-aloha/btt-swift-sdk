@@ -9,10 +9,8 @@ import Foundation
 final class BreadcrumbCollector {
     
     private let queue = DispatchQueue(label: "com.bluetriangle.breadcrumb.collector")
-    private var collected: [(event: any BreadcrumbEvent, data: Data, size: Int)] = []
-    private var currentSize: Int = 0
-    
-    private let maxSize = 100 * 1024 // 100 KB
+    private var collected: [(event: any BreadcrumbEvent, data: Data)] = []
+    private let maxItems = 100
     private let encoder = JSONEncoder()
     private let logger: Logging
     
@@ -21,24 +19,15 @@ final class BreadcrumbCollector {
     func collect(_ breadcrumb: any BreadcrumbEvent) {
         queue.async {
             guard let encoded = try? self.encoder.encode(breadcrumb) else { return }
-            
-            let size = encoded.count
-            
-            // Ignore if single event exceeds 100KB
-            guard size <= self.maxSize else { return }
-            
-            self.collected.append((breadcrumb, encoded, size))
-            self.currentSize += size
-            
-            self.logger.info("BlueTriangle:BreadcrumCollector - Added breadcrums : \(breadcrumb)")
+            self.collected.append((breadcrumb, encoded))
             self.trimIfNeeded()
+            self.logger.info("BlueTriangle:BreadcrumbCollector - Added breadcrumb: \(breadcrumb)")
         }
     }
     
     private func trimIfNeeded() {
-        while currentSize > maxSize, !collected.isEmpty {
-            let removed = collected.removeFirst()
-            currentSize -= removed.size
+        while collected.count > maxItems {
+            collected.removeFirst()
         }
     }
     
@@ -75,7 +64,6 @@ final class BreadcrumbCollector {
     func clear() {
         queue.sync {
             self.collected.removeAll()
-            self.currentSize = 0
         }
     }
 }

@@ -58,13 +58,17 @@ class LaunchTimeReporter : ObservableObject {
         self.cancellables.removeAll()
     }
     
+    private func reportBreadcrumbsForEvent(_ event : BTTEvent) {
+        BlueTriangle.collectBreadcrumb(LaunchTypeEvent(launchType: event.defaultPageName))
+    }
+    
     private func uploadReports(_ event : BTTEvent, _ time : Date, _ duration : TimeInterval) {
+        self.reportBreadcrumbsForEvent(event)
         DispatchQueue.global(qos: .utility).async { [weak self] in
             do {
                 guard let strongSelf = self, let session = strongSelf.session() else {
                     return
                 }
-                
                 print("Session uploadReports: \(session.sessionID)")
                 let groupName = Constants.LAUNCH_TIME_PAGE_GROUP
                 let trafficSegmentName = Constants.LAUNCH_TIME_TRAFFIC_SEGMENT
