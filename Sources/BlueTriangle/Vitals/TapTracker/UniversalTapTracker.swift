@@ -94,6 +94,132 @@ private enum BTEventEmitter {
 
         let bundleId  = Bundle.main.bundleIdentifier ?? "unknown"
         let timestamp = Int64(Date().timeIntervalSince1970 * 1000)
+
+        var actionName = "tap"
+        var extra: [String: Any] = [
+            "x": Double(point.x),
+            "y": Double(point.y)
+        ]
+
+        // MARK: - Extract Identifier Safely
+
+        let identifier = extractIdentifier(from: view)
+        let label = extractLabel(from: view)
+
+        // MARK: - Detect Control Type
+
+        switch view {
+
+        case let b as UIButton:
+            actionName = "buttonTap"
+            extra["title"] = b.currentTitle ?? label ?? ""
+
+        case let s as UISwitch:
+            actionName = "switchToggle"
+            extra["value"] = s.isOn
+
+        case let s as UISlider:
+            actionName = "sliderChange"
+            extra["value"] = Double(s.value)
+
+        case let s as UISegmentedControl:
+            actionName = "segmentChange"
+            extra["selectedIndex"] = s.selectedSegmentIndex
+            extra["selectedTitle"] = s.titleForSegment(at: s.selectedSegmentIndex) ?? ""
+
+        case let s as UIStepper:
+            actionName = "stepperChange"
+            extra["value"] = s.value
+
+        case let cell as UITableViewCell:
+            actionName = "tableCellTap"
+            extra["text"] = cell.textLabel?.text ?? ""
+
+        case let cell as UICollectionViewCell:
+            actionName = "collectionCellTap"
+            extra["reuseId"] = cell.reuseIdentifier ?? ""
+
+        case is UITabBar:
+            actionName = "tabBarTap"
+
+        case is UINavigationBar:
+            actionName = "navigationBarTap"
+
+        default:
+            actionName = "tap"
+        }
+
+        // MARK: - Detect SwiftUI
+
+        if isSwiftUIView(view) {
+            extra["framework"] = "SwiftUI"
+        }
+
+        let targetId = "\(bundleId):\(identifier ?? label ?? "unknown")"
+
+        var payload: [String: Any] = [
+            "type":        "user.event",
+            "timestamp":   timestamp,
+            "action":      actionName,
+            "targetClass": String(describing: type(of: view)),
+            "targetId":    targetId
+        ]
+
+        extra.forEach { payload[$0.key] = $0.value }
+
+        guard
+            let data = try? JSONSerialization.data(withJSONObject: payload, options: .sortedKeys),
+            let json = String(data: data, encoding: .utf8)
+        else { return }
+
+        print("[BT] \(json)")
+    }
+
+    // MARK: - Helpers
+
+    private static func extractIdentifier(from view: UIView) -> String? {
+        if let id = view.accessibilityIdentifier, !id.isEmpty {
+            return id
+        }
+
+        // Walk up hierarchy for SwiftUI hosting cases
+        var current: UIView? = view.superview
+        while let v = current {
+            if let id = v.accessibilityIdentifier, !id.isEmpty {
+                return id
+            }
+            current = v.superview
+        }
+
+        return nil
+    }
+
+    private static func extractLabel(from view: UIView) -> String? {
+        if let label = view.accessibilityLabel, !label.isEmpty {
+            return label
+        }
+
+        if let button = view as? UIButton {
+            return button.currentTitle
+        }
+
+        return nil
+    }
+
+    private static func isSwiftUIView(_ view: UIView) -> Bool {
+        let name = String(describing: type(of: view))
+        return name.contains("SwiftUI")
+            || name.contains("UIHosting")
+            || name.contains("HostingView")
+    }
+}
+/*
+private enum BTEventEmitter {
+
+    static func emit(view: UIView, point: CGPoint) {
+
+        let bundleId  = Bundle.main.bundleIdentifier ?? "unknown"
+        let timestamp = Int64(Date().timeIntervalSince1970 * 1000)
         var actionName = "tap"
         var extra: [String: Any] = [
             "x": Double(point.x),
@@ -159,4 +285,4 @@ private enum BTEventEmitter {
 
         print("[BT] \(json)")
     }
-}
+}*/
