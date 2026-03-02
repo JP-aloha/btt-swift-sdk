@@ -70,7 +70,11 @@ private extension UIView {
                gestures.contains(where: { $0 is UITapGestureRecognizer }) {
                 return view
             }
-
+            
+            if view.isAccessibilityElement {
+                return view
+            }
+            
             // SwiftUI Hosting Views
            /* let className = String(describing: type(of: view))
             if className.contains("UIHosting")
