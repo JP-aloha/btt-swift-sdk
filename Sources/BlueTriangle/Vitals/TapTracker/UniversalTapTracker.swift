@@ -1,4 +1,3 @@
-
 import UIKit
 import ObjectiveC.runtime
 
@@ -181,21 +180,50 @@ private enum BTEventEmitter {
 
     // MARK: - Helpers
 
-    private static func extractIdentifier(from view: UIView) -> String? {
-        if let id = view.accessibilityIdentifier, !id.isEmpty {
+    private static func extractIdentifier(from view: UIView) -> String {
+
+        // If view itself is accessibility element
+        if view.isAccessibilityElement,
+           let id = view.accessibilityIdentifier,
+           !id.isEmpty {
             return id
         }
 
-        // Walk up hierarchy for SwiftUI hosting cases
-        var current: UIView? = view.superview
+        // If accessibility container has elements
+        if let elements = view.accessibilityElements {
+            for element in elements {
+                if let identifiable = element as? UIAccessibilityIdentification,
+                   let id = identifiable.accessibilityIdentifier,
+                   !id.isEmpty {
+                    return id
+                }
+            }
+        }
+
+        // Walk up superview chain
+        var current = view.superview
         while let v = current {
-            if let id = v.accessibilityIdentifier, !id.isEmpty {
+
+            if v.isAccessibilityElement,
+               let id = v.accessibilityIdentifier,
+               !id.isEmpty {
                 return id
             }
+
+            if let elements = v.accessibilityElements {
+                for element in elements {
+                    if let identifiable = element as? UIAccessibilityIdentification,
+                       let id = identifiable.accessibilityIdentifier,
+                       !id.isEmpty {
+                        return id
+                    }
+                }
+            }
+
             current = v.superview
         }
 
-        return nil
+        return "unknown"
     }
 
     private static func extractLabel(from view: UIView) -> String? {
