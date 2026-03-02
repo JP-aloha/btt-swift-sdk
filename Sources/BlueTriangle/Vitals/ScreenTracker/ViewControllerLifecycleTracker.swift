@@ -26,14 +26,108 @@ fileprivate func swizzleMethod(_ cls: AnyClass, original: Selector, swizzled: Se
 }
 
 extension UIApplication {
-    @objc func swizzled_sendEvent(_ event: UIEvent) {
+ /* @objc func swizzled_sendEvent(_ event: UIEvent) {
         if let touches = event.allTouches {
-            for touch in touches where touch.phase == .began {
+            for touch in touches where touch.phase == .ended {
                 BlueTriangle.groupTimer.setLastAction(Date())
+               // handleTapTouch(touch)
             }
         }
         swizzled_sendEvent(event)
+    }*/
+    
+    
+    func findTappableView(from view: UIView) -> UIView {
+        
+        var current: UIView? = view
+        
+        while let v = current {
+            
+            // UIButton, UISwitch, etc.
+            if v is UIControl {
+                return v
+            }
+            
+            // Table Cell
+            if v is UITableViewCell {
+                return v
+            }
+            
+            // Collection Cell
+            if v is UICollectionViewCell {
+                return v
+            }
+            
+            // Gesture attached
+            if let gestures = v.gestureRecognizers, !gestures.isEmpty {
+                return v
+            }
+            
+            current = v.superview
+        }
+        
+        return view
     }
+   
+    /*func handleTapTouch(_ touch: UITouch) {
+        
+        guard let view = touch.view else { return }
+        
+        let timestamp = Int64(Date().timeIntervalSince1970 * 1000)
+        let className = String(describing: type(of: view))
+        let identifier = view.accessibilityIdentifier ?? "unknown"
+        
+        var detectedMethods: [String] = []
+        
+        // If UIKit control (UIButton, etc.)
+        if let control = view as? UIControl {
+            for target in control.allTargets {
+                if let actions = control.actions(
+                    forTarget: target,
+                    forControlEvent: .touchUpInside
+                ) {
+                    detectedMethods.append(contentsOf: actions)
+                }
+            }
+        }
+        
+        let methodsDescription = detectedMethods.isEmpty ? "none/closure" : detectedMethods.joined(separator: ", ")
+        
+        print("""
+            ===== TAP DETECTED =====
+            timestamp: \(timestamp)
+            viewClass: \(className)
+            accessibilityIdentifier: \(identifier)
+            methods: \(methodsDescription)
+            ========================
+            """)
+    }*/
+    
+    func handleTapTouch(_ touch: UITouch) {
+
+          guard let initialView = touch.view else { return }
+
+          let timestamp = Int64(Date().timeIntervalSince1970 * 1000)
+
+          // Find the real tappable view in hierarchy
+          let tappableView = findTappableView(from: initialView)
+
+          let className = String(describing: type(of: tappableView))
+          let identifier = tappableView.accessibilityIdentifier ?? "unknown"
+          let bundleId = Bundle.main.bundleIdentifier ?? "unknown"
+
+          let breadcrumb: [String: Any] = [
+              "type": "user.event",
+              "timestamp": timestamp,
+              "action": "tap",
+              "targetClass": className,
+              "targetId": "\(bundleId):\(identifier)"
+          ]
+
+        print("===== TAP DETECTED =====")
+        print(breadcrumb)
+      }
+    
 }
 
 extension UIViewController{
@@ -62,6 +156,10 @@ extension UIViewController{
             if let sendEventPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendEvent(_:)), swizzled: #selector(UIApplication.swizzled_sendEvent(_:))) {
                 swizzledPairs.append(sendEventPair)
             }
+            
+            /*if let sendActionPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendAction(_:to:from:for:)), swizzled: #selector(UIApplication.swizzled_sendAction(_:to:from:for:))) {
+                swizzledPairs.append(sendActionPair)
+            }*/
             
             isSwizzled = true
             BlueTriangle.screenTracker?.logger?.debug("View Screen Tracker: setup completed.")
