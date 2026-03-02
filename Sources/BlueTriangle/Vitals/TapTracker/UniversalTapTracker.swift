@@ -1,15 +1,3 @@
-//
-//  UniversalTapTracker.swift
-//  blue-triangle
-//
-//  Tracks all user taps using a single swizzle on UIApplication.sendEvent(_:).
-//  Every touch passes through this method exactly once. We hit-test the tap
-//  coordinate to find the real target — no UIControl.sendAction swizzle,
-//  no duplicates possible.
-//
-//  USAGE: Call once at SDK startup:
-//      UniversalTapTracker.shared.install()
-//
 
 import UIKit
 import ObjectiveC.runtime
@@ -84,12 +72,12 @@ private extension UIView {
             }
 
             // SwiftUI Hosting Views
-            let className = String(describing: type(of: view))
+           /* let className = String(describing: type(of: view))
             if className.contains("UIHosting")
                 || className.contains("HostingView")
                 || className.contains("SwiftUI") {
                 return view
-            }
+            }*/
 
             current = view.superview
         }
@@ -163,9 +151,6 @@ private enum BTEventEmitter {
             "targetId":    targetId
         ]
         extra.forEach { payload[$0.key] = $0.value }
-
-        // Hook into SDK
-        BlueTriangle.groupTimer.setLastAction(Date())
 
         guard
             let data = try? JSONSerialization.data(withJSONObject: payload, options: .sortedKeys),
