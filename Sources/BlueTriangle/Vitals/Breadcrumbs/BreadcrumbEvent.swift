@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol BreadcrumbEvent: Encodable {
+protocol BreadcrumbEvent: Codable {
     var timestamp: Millisecond { get }
     var type: BreadcrumbType { get }
     var data: [BreadcrumbKeys: String] { get }

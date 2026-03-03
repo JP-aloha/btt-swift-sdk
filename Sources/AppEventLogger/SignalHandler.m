@@ -33,6 +33,8 @@ void print_reg_status(void);
 
 
 #define SIG_COUNT 8
+#define MAX_BREADCRUMB_LENGTH 16384  // 16KB cap
+
 int signals[SIG_COUNT] = {SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGSEGV, SIGSYS, SIGTRAP, SIGTERM};
 char* signal_names[SIG_COUNT] = {"SIGABRT", "SIGBUS", "SIGFPE", "SIGILL", "SIGSEGV", "SIGSYS", "SIGTRAP", "SIGTERM"};
 struct sigaction sigaction_prv_handlers[SIG_COUNT] = {NULL};
@@ -44,6 +46,7 @@ static char* __report_folder_path = NULL;
 static char * __current_page_name = NULL;
 static char * __trafic_segment = NULL;
 static char * __page_type = NULL;
+static char * __breadcrumbs = NULL;
 static NSString* __btt_session_id = @"unknown";
 static int __max_cache_files = 5;
 static bool __is_register = false;
@@ -211,6 +214,7 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
     " \"btt_page_name\" : \"%s\", "
     " \"trafic_segment\" : \"%s\", "
     " \"page_type\" : \"%s\", "
+    " \"breadcrumbs\" : \"%s\""   // <-- NEW: no quotes — breadcrumbs is already a JSON array string
     "}";
 
     const int crash_title_size = 256;
@@ -334,14 +338,26 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
             btt_sessionid = "";
     }
     
-    unsigned long size_of_values = (sizeof(int) * 4) + strlen(sig_name) + sizeof(time_t) + strlen(crash_title);
-    unsigned long bufferSize = strlen(report_templet) + (size_of_values * 3); //take size of values 3 times more just for safety
-    char* report = calloc( bufferSize, sizeof(char));
-    
+    // --- UPDATED: compute buffer size from actual string lengths ---
     pthread_mutex_lock(&crash_context_lock);
     const char *current_page_name = __current_page_name ? __current_page_name : "";
-    const char *trafic_segment = __trafic_segment ? __trafic_segment : "";
-    const char *page_type = __page_type ? __page_type : "";
+    const char *trafic_segment    = __trafic_segment    ? __trafic_segment    : "";
+    const char *page_type         = __page_type         ? __page_type         : "";
+    const char *breadcrumbs       = __breadcrumbs       ? __breadcrumbs       : "[]"; // <-- NEW
+
+    unsigned long bufferSize = strlen(report_templet)
+                             + strlen(crash_title)
+                             + strlen(sig_name)
+                             + strlen(__app_version)
+                             + strlen(btt_sessionid)
+                             + strlen(current_page_name)
+                             + strlen(trafic_segment)
+                             + strlen(page_type)
+                             + strlen(breadcrumbs)  // <-- NEW: actual breadcrumb length
+                             + 256;                 // padding for integers/timestamps/etc
+
+    char* report = calloc(bufferSize, sizeof(char));
+
     int actual_len = snprintf(report, bufferSize, report_templet,
                               crash_title,
                               sinfo->si_signo,
@@ -353,9 +369,11 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
                               btt_sessionid,
                               current_page_name,
                               trafic_segment,
-                              page_type
+                              page_type,
+                              breadcrumbs  // <-- NEW
                               );
     pthread_mutex_unlock(&crash_context_lock);
+    
     
     if (actual_len > bufferSize)
         [SignalHandler debug_log:[NSString stringWithFormat:@"bttcrash report buffer is shorter then expected Expected %d found %lu", actual_len, bufferSize]];
@@ -572,6 +590,78 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
         __page_type = NULL;
     }
     __page_type = strdup(pageTypeutf8);
+    pthread_mutex_unlock(&crash_context_lock);
+}
+
++ (void)setBreadcrumbs:(NSString *)breadcrumbs {
+    if (!breadcrumbs) return;
+
+    NSData *data = [breadcrumbs dataUsingEncoding:NSUTF8StringEncoding];
+    if (!data || data.length == 0) return;
+
+    const char *src = (const char *)data.bytes;
+    size_t len = data.length;
+
+    char *newValue = NULL;
+
+    if (len > MAX_BREADCRUMB_LENGTH) {
+
+        // Always keep latest part
+        const char *trimStart = src + (len - MAX_BREADCRUMB_LENGTH);
+        size_t trimLen = MAX_BREADCRUMB_LENGTH;
+
+        // Find first full JSON object in trimmed area
+        const char *firstObject = memchr(trimStart, '{', trimLen);
+        if (!firstObject) return;
+
+        trimLen = (src + len) - firstObject;
+
+        // Remove trailing ']'
+        size_t endIndex = trimLen - 1;
+        while (endIndex > 0 &&
+              (firstObject[endIndex] == ' ' ||
+               firstObject[endIndex] == '\n' ||
+               firstObject[endIndex] == '\0')) {
+            endIndex--;
+        }
+
+        if (firstObject[endIndex] == ']') {
+            trimLen = endIndex;
+        }
+
+        // Allocate: '[' + content + ']' + '\0'
+        newValue = calloc(trimLen + 3, sizeof(char));
+        if (!newValue) return;
+
+        newValue[0] = '[';
+        memcpy(newValue + 1, firstObject, trimLen);
+
+        // Remove trailing comma if exists
+        size_t writeEnd = trimLen;
+        while (writeEnd > 0 &&
+              (newValue[writeEnd] == ' ' ||
+               newValue[writeEnd] == '\0')) {
+            writeEnd--;
+        }
+
+        if (newValue[writeEnd] == ',') {
+            newValue[writeEnd] = ']';
+        } else {
+            newValue[writeEnd + 1] = ']';
+        }
+
+    } else {
+        // No trimming needed
+        newValue = calloc(len + 1, sizeof(char));
+        if (!newValue) return;
+        memcpy(newValue, src, len);
+    }
+
+    pthread_mutex_lock(&crash_context_lock);
+    if (__breadcrumbs) {
+        free(__breadcrumbs);
+    }
+    __breadcrumbs = newValue;
     pthread_mutex_unlock(&crash_context_lock);
 }
 

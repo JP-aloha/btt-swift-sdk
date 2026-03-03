@@ -22,9 +22,8 @@ struct SignalCrash: Codable {
     var btt_page_name: String?
     var trafic_segment: String
     var page_type: String
-
+    var breadcrumbs: String?
 }
-
 
 class BTSignalCrashReporter {
     
@@ -105,7 +104,9 @@ errno : \(crash.errno)
 signal code : \(crash.sig_code)
 exit value : \(crash.exit_value)
 """
-                    let crashReport = CrashReport(sessionID: sessionId, message: message, pageName: pageName, segment: trafficSegment, pageType: pageType, intervalProvider: TimeInterval(crash.crash_time))
+                    var nativeApp =  NativeAppProperties.nstEmpty
+                    nativeApp.breadcrumbs = crash.breadcrumbs
+                    let crashReport = CrashReport(sessionID: sessionId, message: message, pageName: pageName, segment: trafficSegment, pageType: pageType, nativeApp: nativeApp, intervalProvider: TimeInterval(crash.crash_time))
                     try strongSelf.upload(session: sessionCopy, report: crashReport.report, pageName: crashReport.pageName, segment: trafficSegment, pageType: trafficSegment, event: event)
                     try strongSelf.removeFile(crash)
                 }else{
@@ -126,6 +127,7 @@ private extension BTSignalCrashReporter {
         let page = Page(pageName: pageName ?? event.defaultPageName, pageType: pageType)
         let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
         var nativeProperty =  report.nativeApp.copy(.Regular)
+        nativeProperty.breadcrumbs = nil
         if  pageName == nil { nativeProperty.eventId = event.id }
         let customMetrics = session.customVarriables(logger: logger)
         let model = TimerRequest(session: session,

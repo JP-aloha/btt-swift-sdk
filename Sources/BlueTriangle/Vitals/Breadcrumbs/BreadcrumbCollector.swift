@@ -5,6 +5,9 @@
 //  Created by Ashok Singh on 25/02/26.
 //
 import Foundation
+#if canImport(AppEventLogger)
+import AppEventLogger
+#endif
 
 final class BreadcrumbCollector {
     
@@ -21,7 +24,8 @@ final class BreadcrumbCollector {
             guard let encoded = try? self.encoder.encode(breadcrumb) else { return }
             self.collected.append((breadcrumb, encoded))
             self.trimIfNeeded()
-            self.logger.info("BlueTriangle:BreadcrumbCollector - Added breadcrumb: \(breadcrumb)")
+            SignalHandler.setBreadcrumbs(self.generateBreadcrumbsString(true))
+            self.logger.debug("BlueTriangle:BreadcrumbCollector - Added breadcrumb: \(breadcrumb)")
         }
     }
     
@@ -40,25 +44,40 @@ final class BreadcrumbCollector {
     
     func breadcrumbsString() -> String {
         queue.sync {
-            var resultArray: [[String: Any]] = []
-            for item in collected {
-                guard
-                    let object = try? JSONSerialization.jsonObject(with: item.data),
-                    var dict = object as? [String: Any]
-                else { continue }
-                
-                if let dataDict = dict.removeValue(forKey: "data") as? [String: Any] {
-                    for (key, value) in dataDict {
-                        dict[key] = value
-                    }
-                }
-                resultArray.append(dict)
-            }
-            guard let finalData = try? JSONSerialization.data(withJSONObject: resultArray) else {
-                return "[]"
-            }
-            return String(data: finalData, encoding: .utf8) ?? "[]"
+            generateBreadcrumbsString()
         }
+    }
+    
+    private func generateBreadcrumbsString(_ escaped: Bool = false) -> String {
+        var resultArray: [[String: Any]] = []
+
+        for item in collected {
+            guard
+                let object = try? JSONSerialization.jsonObject(with: item.data),
+                var dict = object as? [String: Any]
+            else { continue }
+
+            if let dataDict = dict.removeValue(forKey: "data") as? [String: Any] {
+                dict.merge(dataDict) { _, new in new }
+            }
+
+            resultArray.append(dict)
+        }
+
+        guard JSONSerialization.isValidJSONObject(resultArray),
+              let data = try? JSONSerialization.data(withJSONObject: resultArray),
+              let jsonString = String(data: data, encoding: .utf8)
+        else {
+            return "[]"
+        }
+
+        guard escaped else {
+            return jsonString
+        }
+
+        return jsonString
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
     }
     
     func clear() {
