@@ -1296,7 +1296,9 @@ extension BlueTriangle {
             let pageName = BlueTriangle.recentTimer()?.getPageName()
             let segment = BlueTriangle.recentTimer()?.getTrafficSegment() ?? session.trafficSegmentName
             let pageType = BlueTriangle.recentTimer()?.page.pageType ?? session.pageType
-            let crashReport = CrashReport(sessionID: sessionID, exception: exception, pageName: pageName, segment: segment, pageType: pageType)
+            var nativeApp = NativeAppProperties.nstEmpty
+            nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
+            let crashReport = CrashReport(sessionID: sessionID, exception: exception, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp)
             CrashReportPersistence.save(crashReport)
         }
     }

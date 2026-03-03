@@ -39,9 +39,16 @@ struct CrashReportPersistence: CrashReportPersisting {
                                 exception: exception,
                                 pageName: BlueTriangle.recentTimer()?.getPageName(),
                                 segment: BlueTriangle.recentTimer()?.getTrafficSegment(),
-                                pageType: BlueTriangle.recentTimer()?.page.pageType))
+                                pageType: BlueTriangle.recentTimer()?.page.pageType,
+                                nativeApp: CrashReportPersistence.nativeAppProperties()))
             }
         }
+    }
+    
+    static func nativeAppProperties() -> NativeAppProperties {
+        var nativeApp = NativeAppProperties.nstEmpty
+        nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
+        return nativeApp
     }
     
     static func disableExaptionHandler(){

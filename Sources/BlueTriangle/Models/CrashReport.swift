@@ -25,13 +25,14 @@ extension CrashReport {
         pageName:String?,
         segment:String?,
         pageType:String?,
+        nativeApp : NativeAppProperties = .nstEmpty,
         intervalProvider: TimeInterval =  Date().timeIntervalSince1970
     ) {
         self.sessionID = sessionID
         self.pageName =  pageName
         self.segment = segment
         self.pageType = pageType
-        self.report = ErrorReport(eCnt: 1,
+        self.report = ErrorReport(eCnt: 1, nativeApp: nativeApp,
                                   eTp: BT_ErrorType.NativeAppCrash.rawValue, message: exception.bttCrashReportMessage,
                                   line: 1,
                                   column: 1,
@@ -112,6 +113,7 @@ extension CrashReport {
         pageName:String?,
         segment:String?,
         pageType:String?,
+        breadcrumbs : String? = nil,
         intervalProvider: TimeInterval = Date().timeIntervalSince1970
     ) {
         self.sessionID = sessionID

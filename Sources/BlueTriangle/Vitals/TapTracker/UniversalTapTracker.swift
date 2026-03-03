@@ -158,8 +158,12 @@ private enum BTEventEmitter {
             extra["framework"] = "SwiftUI"
         }
 
-        let targetId = "\(bundleId):\(identifier ?? label ?? "unknown")"
-
+        let targetClass = String(describing: type(of: view))
+        let targetId = "\(bundleId):\(actionName):\(identifier)"
+        
+        BlueTriangle.collectBreadcrumb(UserEvent(targetClass: targetClass, targetId: targetId, action: "tap"))
+        
+        
         var payload: [String: Any] = [
             "type":        "user.event",
             "timestamp":   timestamp,

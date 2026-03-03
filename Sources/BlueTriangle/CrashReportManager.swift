@@ -61,6 +61,8 @@ final class CrashReportManager: CrashReportManaging {
         // Update session to use values from when the app crashed
         var sessionCopy = session
         sessionCopy.sessionID = crashReport.sessionID
+        
+        print("BreadCuumbs : Saved - \(crashReport.report.nativeApp.breadcrumbs ?? "")")
 
         do {
             let event = BTTEvents.iOSCrash
@@ -131,7 +133,7 @@ private extension CrashReportManager {
         let page = Page(pageName: pageName ?? event.defaultPageName, pageType: pageType)
         let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
         var nativeProperty =  report.nativeApp.copy(.Regular)
-        nativeProperty.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
+        nativeProperty.breadcrumbs = nil
         if  pageName == nil { nativeProperty.eventId = event.id }
         let customMetrics = session.customVarriables(logger: logger)
         let model = TimerRequest(session: session,

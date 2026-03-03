@@ -21,6 +21,7 @@ final class BreadcrumbManager {
         self.register(feature: UILifecycleFeature(collector: collector))
         self.register(feature: NetworkRequestFeature(collector: collector))
         self.register(feature: NetworkStateFeature(collector: collector))
+        self.register(feature: UserEventFeature(collector: collector))
     }
     
     private func register(feature: BreadcrumbFeatrure) {
