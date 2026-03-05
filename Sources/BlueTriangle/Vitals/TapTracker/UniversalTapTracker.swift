@@ -14,8 +14,8 @@ extension UIView {
 
 // MARK: - SwiftUI Modifier
 
-extension View {
-    func btTrack(_ action: String) -> some View {
+public extension View {
+    func bttTrackAction(_ action: String) -> some View {
         background(BTRegisterView(action: action))
     }
 }
