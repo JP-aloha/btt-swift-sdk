@@ -64,7 +64,7 @@ internal struct BTTrackModifier: ViewModifier {
             TapGesture().onEnded {
                 BlueTriangle.collectBreadcrumb(UserEvent(targetClass: "", targetId: action, action: "tap"))
             },
-            including: .subviews
+            including: .all
         )
     }
 }
