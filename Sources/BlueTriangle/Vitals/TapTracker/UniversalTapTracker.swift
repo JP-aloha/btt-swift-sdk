@@ -74,19 +74,27 @@ extension UIApplication {
 }
 
 // MARK: - UIView Hierarchy Helpers
-
 private extension UIView {
 
-    /// Walk up hierarchy, checking subviews of each level for a btAction (background BTRegisterView)
+    /// Walk UP hierarchy, at each level search ENTIRE subtree for btAction
     func bt_findTrackedView() -> (UIView, String)? {
         var current: UIView? = self
         while let view = current {
-            for subview in view.subviews {
-                if let action = subview.btAction {
-                    return (view, action)
-                }
+            if let action = view.bt_findActionInSubtree() {
+                return (view, action)
             }
             current = view.superview
+        }
+        return nil
+    }
+
+    /// Recursively search all subviews for btAction
+    func bt_findActionInSubtree() -> String? {
+        if let action = btAction { return action }
+        for subview in subviews {
+            if let action = subview.bt_findActionInSubtree() {
+                return action
+            }
         }
         return nil
     }
