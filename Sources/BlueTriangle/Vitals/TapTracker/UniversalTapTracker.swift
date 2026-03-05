@@ -164,7 +164,7 @@ private enum BTEventEmitter {
         BlueTriangle.collectBreadcrumb(UserEvent(targetClass: targetClass, targetId: targetId, action: "tap"))
         
         
-        var payload: [String: Any] = [
+       /* var payload: [String: Any] = [
             "type":        "user.event",
             "timestamp":   timestamp,
             "action":      actionName,
@@ -179,7 +179,7 @@ private enum BTEventEmitter {
             let json = String(data: data, encoding: .utf8)
         else { return }
 
-        print("[BT] \(json)")
+        print("[BT] \(json)")*/
     }
 
     // MARK: - Helpers
@@ -249,76 +249,3 @@ private enum BTEventEmitter {
             || name.contains("HostingView")
     }
 }
-/*
-private enum BTEventEmitter {
-
-    static func emit(view: UIView, point: CGPoint) {
-
-        let bundleId  = Bundle.main.bundleIdentifier ?? "unknown"
-        let timestamp = Int64(Date().timeIntervalSince1970 * 1000)
-        var actionName = "tap"
-        var extra: [String: Any] = [
-            "x": Double(point.x),
-            "y": Double(point.y)
-        ]
-
-        switch view {
-        case let b as UIButton:
-            actionName = "buttonTap"
-            var title: String = b.currentTitle
-                ?? b.titleLabel?.text
-                ?? b.title(for: .normal)
-                ?? ""
-            if #available(iOS 15.0, *) {
-                if let cfgTitle = b.configuration?.title, !cfgTitle.isEmpty {
-                    title = cfgTitle
-                }
-            }
-            extra["title"] = title
-
-        case let s as UISwitch:
-            actionName = "switchToggle"
-            extra["value"] = s.isOn
-
-        case let s as UISlider:
-            actionName = "sliderChange"
-            extra["value"] = Double(s.value)
-
-        case let s as UISegmentedControl:
-            actionName = "segmentChange"
-            extra["selectedIndex"] = s.selectedSegmentIndex
-            extra["selectedTitle"] = s.titleForSegment(at: s.selectedSegmentIndex) ?? ""
-
-        case let s as UIStepper:
-            actionName = "stepperChange"
-            extra["value"] = s.value
-
-        case is UITableViewCell, is UICollectionViewCell:
-            actionName = "cellTap"
-
-        default:
-            let cls = String(describing: type(of: view))
-            if cls.contains("HostingView") || cls.contains("SwiftUI") {
-                extra["framework"] = "SwiftUI"
-            }
-        }
-
-        let targetId = "\(bundleId):\(view.accessibilityIdentifier ?? view.accessibilityLabel ?? "unknown")"
-
-        var payload: [String: Any] = [
-            "type":        "user.event",
-            "timestamp":   timestamp,
-            "action":      actionName,
-            "targetClass": String(describing: type(of: view)),
-            "targetId":    targetId
-        ]
-        extra.forEach { payload[$0.key] = $0.value }
-
-        guard
-            let data = try? JSONSerialization.data(withJSONObject: payload, options: .sortedKeys),
-            let json = String(data: data, encoding: .utf8)
-        else { return }
-
-        print("[BT] \(json)")
-    }
-}*/

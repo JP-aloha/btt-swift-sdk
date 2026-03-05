@@ -57,6 +57,17 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
     }
 }
 
+internal struct BTTrackModifier: ViewModifier {
+    let action: String
+    func body(content: Content) -> some View {
+        content.simultaneousGesture(
+            TapGesture().onEnded {
+                BlueTriangle.collectBreadcrumb(UserEvent(targetClass:"", targetId: action, action: "tap"))
+            }
+        )
+    }
+}
+
 public extension View {
     
     private func shouldTrackScreen(_ name : String) -> Bool{
@@ -89,6 +100,8 @@ public extension View {
             self
         }
     }
+    
+    func btTrack(_ action: String) -> some View {
+        modifier(BTTrackModifier(action: action))
+    }
 }
-
-

@@ -51,8 +51,10 @@ class MemoryWarningWatchDog {
             }
         } else {
             let event = BTTEvents.memoryWarning
+            var nativeApp = NativeAppProperties.nstEmpty
+            nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
             let report = CrashReport(sessionID: BlueTriangle.sessionID,
-                                     memoryWarningMessage: message, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType)
+                                     memoryWarningMessage: message, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, nativeApp: nativeApp)
             uploadReports(session: session, report: report, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
         }
         logger.debug(message)
@@ -117,7 +119,9 @@ extension MemoryWarningWatchDog {
                     return
                 }
                 let event = BTTEvents.memoryWarning
-                let report = CrashReport(sessionID: BlueTriangle.sessionID, memoryWarningMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, intervalProvider: errorMetric.time)
+                var nativeApp = NativeAppProperties.nstEmpty
+                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
+                let report = CrashReport(sessionID: BlueTriangle.sessionID, memoryWarningMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: errorMetric.time)
                 let reportRequest = try self.makeCrashReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
                 self.uploader.send(request: reportRequest)
@@ -134,6 +138,7 @@ extension MemoryWarningWatchDog {
         let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
         var nativeProperty = BlueTriangle.recentTimer()?.nativeAppProperties ?? .empty
         nativeProperty.eventId = event.id
+        nativeProperty.breadcrumbs = nil
         let customMetrics = session.customVarriables(logger: logger)
         let model = TimerRequest(session: session,
                                  page: page,
