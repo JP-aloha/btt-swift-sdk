@@ -76,7 +76,7 @@ internal struct BTTrackModifier: ViewModifier {
                               )
                           )
                       },
-                  including: .subviews   // IMPORTANT
+                  including: .gesture   // IMPORTANT
               )
       }
 }
