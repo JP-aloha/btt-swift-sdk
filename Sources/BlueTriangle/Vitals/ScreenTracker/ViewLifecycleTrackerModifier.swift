@@ -57,30 +57,6 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
     }
 }
 
-internal struct BTTrackModifier: ViewModifier {
-    let action: String
-   
-    func body(content: Content) -> some View {
-          content
-              .contentShape(Rectangle()) // ensures whole view is tappable
-              .simultaneousGesture(
-                  DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                      .onEnded { value in
-                          let distance = hypot(value.translation.width, value.translation.height)
-                          guard distance < 10 else { return }
-                          BlueTriangle.collectBreadcrumb(
-                              UserEvent(
-                                  targetClass: "",
-                                  targetId: action,
-                                  action: "tap"
-                              )
-                          )
-                      },
-                  including: .gesture   // IMPORTANT
-              )
-      }
-}
-
 public extension View {
     
     private func shouldTrackScreen(_ name : String) -> Bool{
@@ -115,6 +91,34 @@ public extension View {
     }
     
     func bttTrackAction(_ action: String) -> some View {
-        modifier(BTTrackModifier(action: action))
+        overlay(BTTrackView(action: action))
+    }
+}
+
+
+private struct BTTrackView: UIViewRepresentable {
+    let action: String
+
+    func makeUIView(context: Context) -> UIView {
+        let view = BTTapView()
+        view.onTap = {
+            BlueTriangle.collectBreadcrumb(
+                UserEvent(
+                    targetClass: "",
+                    targetId: action,
+                    action: "tap"
+                )
+            )
+        }
+        return view
+    }
+    func updateUIView(_ uiView: UIView, context: Context) {}
+}
+
+private class BTTapView: UIView {
+    var onTap: (() -> Void)?
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        onTap?()
     }
 }
