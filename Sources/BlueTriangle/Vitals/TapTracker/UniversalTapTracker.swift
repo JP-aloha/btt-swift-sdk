@@ -78,11 +78,12 @@ private extension UIView {
     func bt_findTrackedView(point: CGPoint, in window: UIWindow) -> (UIView, String)? {
         var current: UIView? = self
         while let view = current {
-            if let action = view.bt_searchSubtree() {
-                // verify tap point is inside this view's frame
-                let frameInWindow = view.convert(view.bounds, to: window)
-                if frameInWindow.contains(point) {
-                    return (view, action)
+            for subview in view.subviews {
+                if let action = subview.btAction {
+                    let frameInWindow = view.convert(view.bounds, to: window)
+                    if frameInWindow.contains(point) {
+                        return (view, action)
+                    }
                 }
             }
             current = view.superview
