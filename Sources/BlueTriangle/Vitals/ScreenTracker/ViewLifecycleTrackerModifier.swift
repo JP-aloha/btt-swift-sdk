@@ -61,15 +61,23 @@ internal struct BTTrackModifier: ViewModifier {
     let action: String
    
     func body(content: Content) -> some View {
-        content.simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onEnded { val in
-                    guard abs(val.translation.width) < 10,
-                          abs(val.translation.height) < 10 else { return }
-                    BlueTriangle.collectBreadcrumb(UserEvent(targetClass: "", targetId: action, action: "tap"))
-                }
-        )
-    }
+          content
+              .contentShape(Rectangle()) // ensures whole view is tappable
+              .simultaneousGesture(
+                  DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                      .onEnded { value in
+                          let distance = hypot(value.translation.width, value.translation.height)
+                          guard distance < 10 else { return }
+                          BlueTriangle.collectBreadcrumb(
+                              UserEvent(
+                                  targetClass: "",
+                                  targetId: action,
+                                  action: "tap"
+                              )
+                          )
+                      }
+              )
+      }
 }
 
 public extension View {
