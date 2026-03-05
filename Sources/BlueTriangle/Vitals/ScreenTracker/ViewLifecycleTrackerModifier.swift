@@ -60,12 +60,9 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
 internal struct BTTrackModifier: ViewModifier {
     let action: String
     func body(content: Content) -> some View {
-        content.simultaneousGesture(
-            TapGesture().onEnded {
-                BlueTriangle.collectBreadcrumb(UserEvent(targetClass: "", targetId: action, action: "tap"))
-            },
-            including: .all
-        )
+        content.onTapGesture {
+            BlueTriangle.collectBreadcrumb(UserEvent(targetClass: "", targetId: action, action: "tap"))
+        }
     }
 }
 
