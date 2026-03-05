@@ -49,7 +49,7 @@ extension UIApplication {
                 guard let hitView = window.hitTest(point, with: event) else { continue }
 
                 // 1. Check btTrack action first (walk hierarchy for .btTrack modifier)
-                if let (target, action) = hitView.bt_findTrackedView() {
+                if let (target, action) = hitView.bt_findTrackedView(point: point, in: window) {
                     BTEventEmitter.emitTracked(view: target, point: point, action: action)
                     continue
                 }
@@ -73,21 +73,37 @@ extension UIApplication {
     }
 }
 
-// MARK: - UIView Hierarchy Helpers
 private extension UIView {
 
-    /// Walk UP hierarchy, at each level search ENTIRE subtree for btAction
-    func bt_findTrackedView() -> (UIView, String)? {
+    func bt_findTrackedView(point: CGPoint, in window: UIWindow) -> (UIView, String)? {
         var current: UIView? = self
         while let view = current {
-            if let action = view.bt_findActionInSubtree() {
-                return (view, action)
+            if let action = view.bt_searchSubtree() {
+                // verify tap point is inside this view's frame
+                let frameInWindow = view.convert(view.bounds, to: window)
+                if frameInWindow.contains(point) {
+                    return (view, action)
+                }
             }
             current = view.superview
         }
         return nil
     }
 
+    func bt_searchSubtree() -> String? {
+        if let action = btAction { return action }
+        for subview in subviews {
+            if let action = subview.bt_searchSubtree() {
+                return action
+            }
+        }
+        return nil
+    }
+}
+
+// MARK: - UIView Hierarchy Helpers
+private extension UIView {
+    
     /// Recursively search all subviews for btAction
     func bt_findActionInSubtree() -> String? {
         if let action = btAction { return action }
