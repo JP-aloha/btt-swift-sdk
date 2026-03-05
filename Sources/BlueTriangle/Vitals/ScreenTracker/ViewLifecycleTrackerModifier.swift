@@ -75,7 +75,8 @@ internal struct BTTrackModifier: ViewModifier {
                                   action: "tap"
                               )
                           )
-                      }
+                      },
+                  including: .subviews   // IMPORTANT
               )
       }
 }
