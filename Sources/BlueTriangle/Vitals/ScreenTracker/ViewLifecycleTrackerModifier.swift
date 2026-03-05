@@ -91,34 +91,63 @@ public extension View {
     }
     
     func bttTrackAction(_ action: String) -> some View {
-        overlay(BTTrackView(action: action))
+        background(BTTouchTracker(action: action))
     }
 }
 
-
-private struct BTTrackView: UIViewRepresentable {
+private struct BTTouchTracker: UIViewRepresentable {
     let action: String
 
-    func makeUIView(context: Context) -> UIView {
-        let view = BTTapView()
-        view.onTap = {
-            BlueTriangle.collectBreadcrumb(
-                UserEvent(
-                    targetClass: "",
-                    targetId: action,
-                    action: "tap"
-                )
+    func makeUIView(context: Context) -> BTTouchView {
+        let view = BTTouchView()
+        view.backgroundColor = .clear
+        view.isUserInteractionEnabled = true
+        view.onTap = {  BlueTriangle.collectBreadcrumb(
+            UserEvent(
+                targetClass: "",
+                targetId: action,
+                action: "tap"
             )
-        }
+        ) }
         return view
     }
-    func updateUIView(_ uiView: UIView, context: Context) {}
+
+    func updateUIView(_ uiView: BTTouchView, context: Context) {
+        uiView.onTap = {  BlueTriangle.collectBreadcrumb(
+            UserEvent(
+                targetClass: "",
+                targetId: action,
+                action: "tap"
+            )
+        ) }
+    }
 }
 
-private class BTTapView: UIView {
+// MARK: - UIView
+
+private class BTTouchView: UIView {
     var onTap: (() -> Void)?
+    private var startPoint: CGPoint?
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        nil // pass all touches through, never block content
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        startPoint = touches.first?.location(in: self)
+    }
+
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesEnded(touches, with: event)
+        guard
+            let start = startPoint,
+            let end = touches.first?.location(in: self),
+            abs(end.x - start.x) < 10,
+            abs(end.y - start.y) < 10
+        else { return }
         onTap?()
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        startPoint = nil
     }
 }
