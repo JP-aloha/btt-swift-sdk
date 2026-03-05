@@ -62,8 +62,9 @@ internal struct BTTrackModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.simultaneousGesture(
             TapGesture().onEnded {
-                BlueTriangle.collectBreadcrumb(UserEvent(targetClass:"", targetId: action, action: "tap"))
-            }
+                BlueTriangle.collectBreadcrumb(UserEvent(targetClass: "", targetId: action, action: "tap"))
+            },
+            including: .subviews
         )
     }
 }
@@ -101,7 +102,7 @@ public extension View {
         }
     }
     
-    func btTrack(_ action: String) -> some View {
+    func bttTrackAction(_ action: String) -> some View {
         modifier(BTTrackModifier(action: action))
     }
 }
