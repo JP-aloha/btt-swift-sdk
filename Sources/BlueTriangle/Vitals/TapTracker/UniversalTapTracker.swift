@@ -1,7 +1,7 @@
 import UIKit
 import SwiftUI
 
-// MARK: - UIView Associated Object (stores btTrack action)
+// MARK: - UIView Associated Object
 
 private var btActionKey: UInt8 = 0
 
@@ -16,23 +16,127 @@ extension UIView {
 
 public extension View {
     func bttTrackAction(_ action: String) -> some View {
-        background(BTRegisterView(action: action))
+        modifier(BTTrackModifier(action: action))
     }
 }
 
-private struct BTRegisterView: UIViewRepresentable {
+private struct BTTrackModifier: ViewModifier {
     let action: String
 
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geo in
+                    BTAnchorView(action: action, size: geo.size)
+                }
+            )
+    }
+}
+
+// MARK: - UIViewRepresentable
+
+private struct BTAnchorView: UIViewRepresentable {
+    let action: String
+    let size: CGSize
+
+    func makeUIView(context: Context) -> BTTouchAnchor {
+        let view = BTTouchAnchor()
         view.backgroundColor = .clear
         view.isUserInteractionEnabled = false
-        view.btAction = action
         return view
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {
-        uiView.btAction = action
+    func updateUIView(_ uiView: BTTouchAnchor, context: Context) {
+        uiView.action = action
+        // force frame to match parent exactly
+        DispatchQueue.main.async {
+            if let superview = uiView.superview {
+                uiView.frame = CGRect(origin: .zero, size: superview.bounds.size)
+            }
+        }
+    }
+}
+
+// MARK: - Anchor UIView
+
+final class BTTouchAnchor: UIView {
+    var action: String = "" {
+        didSet {
+            if !action.isEmpty {
+                BTViewRegistry.shared.register(self, action: action)
+            }
+        }
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window != nil, !action.isEmpty {
+            BTViewRegistry.shared.register(self, action: action)
+        } else {
+            BTViewRegistry.shared.unregister(self)
+        }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // re-register on layout so frame is always up to date
+        if !action.isEmpty {
+            BTViewRegistry.shared.register(self, action: action)
+        }
+    }
+}
+
+// MARK: - Global Registry
+
+final class BTViewRegistry {
+    static let shared = BTViewRegistry()
+    private init() {}
+
+    private struct Entry {
+        weak var view: BTTouchAnchor?
+        let action: String
+    }
+
+    private var entries: [Entry] = []
+    private let lock = NSLock()
+
+    func register(_ view: BTTouchAnchor, action: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        entries.removeAll { $0.view == nil || $0.view === view }
+        entries.append(Entry(view: view, action: action))
+    }
+
+    func unregister(_ view: BTTouchAnchor) {
+        lock.lock()
+        defer { lock.unlock() }
+        entries.removeAll { $0.view == nil || $0.view === view }
+    }
+
+    /// Use CALayer hit test — bypasses SwiftUI gesture system entirely
+    func findAction(for point: CGPoint, in window: UIWindow) -> (UIView, String)? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        entries.removeAll { $0.view == nil }
+
+        // pick smallest matching frame = most specific view
+        var best: (UIView, String, CGFloat)?
+
+        for entry in entries {
+            guard let anchor = entry.view, anchor.window == window else { continue }
+
+            // use CALayer hitTest for reliability
+            let pointInAnchor = anchor.convert(point, from: window)
+            guard anchor.bounds.contains(pointInAnchor) else { continue }
+
+            let area = anchor.bounds.width * anchor.bounds.height
+            if best == nil || area < best!.2 {
+                best = (anchor, entry.action, area)
+            }
+        }
+
+        return best.map { ($0.0, $0.1) }
     }
 }
 
@@ -41,25 +145,27 @@ private struct BTRegisterView: UIViewRepresentable {
 extension UIApplication {
 
     @objc func swizzled_sendEvent(_ event: UIEvent) {
-        if let touches = event.allTouches {
-            for touch in touches where touch.phase == .ended {
-                BlueTriangle.groupTimer.setLastAction(Date())
-                guard let window = touch.window ?? UIApplication.shared.bt_keyWindow else { continue }
-                let point = touch.location(in: window)
-                guard let hitView = window.hitTest(point, with: event) else { continue }
+        swizzled_sendEvent(event) 
+        guard event.type == .touches else { return }
 
-                // 1. Check btTrack action first (walk hierarchy for .btTrack modifier)
-                if let (target, action) = hitView.bt_findTrackedView(point: point, in: window) {
+        event.allTouches?
+            .filter { $0.phase == .ended }
+            .forEach { touch in
+                BlueTriangle.groupTimer.setLastAction(Date())
+                guard let window = touch.window ?? UIApplication.shared.bt_keyWindow else { return }
+                let point = touch.location(in: window)
+
+                // 1. Check registry using CALayer-based frame matching
+                if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
                     BTEventEmitter.emitTracked(view: target, point: point, action: action)
-                    continue
+                    return
                 }
 
-                // 2. Fall back to existing meaningful target logic
-                guard let target = hitView.bt_meaningfulTarget() else { continue }
+                // 2. Fall back to meaningful target
+                guard let hitView = window.hitTest(point, with: event) else { return }
+                guard let target = hitView.bt_meaningfulTarget() else { return }
                 BTEventEmitter.emit(view: target, point: point)
             }
-        }
-        swizzled_sendEvent(event)
     }
 
     var bt_keyWindow: UIWindow? {
@@ -73,50 +179,10 @@ extension UIApplication {
     }
 }
 
+// MARK: - UIView Helpers
+
 private extension UIView {
 
-    func bt_findTrackedView(point: CGPoint, in window: UIWindow) -> (UIView, String)? {
-        var current: UIView? = self
-        while let view = current {
-            for subview in view.subviews {
-                if let action = subview.btAction {
-                    let frameInWindow = view.convert(view.bounds, to: window)
-                    if frameInWindow.contains(point) {
-                        return (view, action)
-                    }
-                }
-            }
-            current = view.superview
-        }
-        return nil
-    }
-
-    func bt_searchSubtree() -> String? {
-        if let action = btAction { return action }
-        for subview in subviews {
-            if let action = subview.bt_searchSubtree() {
-                return action
-            }
-        }
-        return nil
-    }
-}
-
-// MARK: - UIView Hierarchy Helpers
-private extension UIView {
-    
-    /// Recursively search all subviews for btAction
-    func bt_findActionInSubtree() -> String? {
-        if let action = btAction { return action }
-        for subview in subviews {
-            if let action = subview.bt_findActionInSubtree() {
-                return action
-            }
-        }
-        return nil
-    }
-
-    /// Walk up to find meaningful UIKit target
     func bt_meaningfulTarget() -> UIView? {
         var current: UIView? = self
         while let view = current {
@@ -139,7 +205,6 @@ private extension UIView {
 
 enum BTEventEmitter {
 
-    /// Called when .btTrack modifier is used — uses the exact action name provided
     static func emitTracked(view: UIView, point: CGPoint, action: String) {
         let targetClass = String(describing: type(of: view))
         BlueTriangle.collectBreadcrumb(
@@ -151,7 +216,6 @@ enum BTEventEmitter {
         )
     }
 
-    /// Called for all other views — auto-detects type
     static func emit(view: UIView, point: CGPoint) {
         let bundleId = Bundle.main.bundleIdentifier ?? "unknown"
         var actionName = "tap"
@@ -167,38 +231,29 @@ enum BTEventEmitter {
         case let b as UIButton:
             actionName = "buttonTap"
             extra["title"] = b.currentTitle ?? label ?? ""
-
         case let s as UISwitch:
             actionName = "switchToggle"
             extra["value"] = s.isOn
-
         case let s as UISlider:
             actionName = "sliderChange"
             extra["value"] = Double(s.value)
-
         case let s as UISegmentedControl:
             actionName = "segmentChange"
             extra["selectedIndex"] = s.selectedSegmentIndex
             extra["selectedTitle"] = s.titleForSegment(at: s.selectedSegmentIndex) ?? ""
-
         case let s as UIStepper:
             actionName = "stepperChange"
             extra["value"] = s.value
-
         case let cell as UITableViewCell:
             actionName = "tableCellTap"
             extra["text"] = cell.textLabel?.text ?? ""
-
         case let cell as UICollectionViewCell:
             actionName = "collectionCellTap"
             extra["reuseId"] = cell.reuseIdentifier ?? ""
-
         case is UITabBar:
             actionName = "tabBarTap"
-
         case is UINavigationBar:
             actionName = "navigationBarTap"
-
         default:
             actionName = "tap"
         }
@@ -218,32 +273,23 @@ enum BTEventEmitter {
         )
     }
 
-    // MARK: - Helpers
     private static func extractIdentifier(from view: UIView) -> String {
         if view.isAccessibilityElement,
-           let id = view.accessibilityIdentifier, !id.isEmpty {
-            return id
-        }
+           let id = view.accessibilityIdentifier, !id.isEmpty { return id }
         if let elements = view.accessibilityElements {
             for element in elements {
                 if let identifiable = element as? UIAccessibilityIdentification,
-                   let id = identifiable.accessibilityIdentifier, !id.isEmpty {
-                    return id
-                }
+                   let id = identifiable.accessibilityIdentifier, !id.isEmpty { return id }
             }
         }
         var current = view.superview
         while let v = current {
             if v.isAccessibilityElement,
-               let id = v.accessibilityIdentifier, !id.isEmpty {
-                return id
-            }
+               let id = v.accessibilityIdentifier, !id.isEmpty { return id }
             if let elements = v.accessibilityElements {
                 for element in elements {
                     if let identifiable = element as? UIAccessibilityIdentification,
-                       let id = identifiable.accessibilityIdentifier, !id.isEmpty {
-                        return id
-                    }
+                       let id = identifiable.accessibilityIdentifier, !id.isEmpty { return id }
                 }
             }
             current = v.superview
