@@ -183,7 +183,46 @@ extension UIApplication {
 
 private extension UIView {
 
+    
     func bt_meaningfulTarget() -> UIView? {
+        var current: UIView? = self
+        while let view = current {
+            // skip non-interactive
+            guard view.isUserInteractionEnabled,
+                  !view.isHidden,
+                  view.alpha > 0 else {
+                current = view.superview
+                continue
+            }
+
+            // skip containers that are never actionable
+            if view is UIWindow ||
+               isSwiftUIHostingView(view) {
+                current = view.superview
+                continue
+            }
+
+            // only real interactive targets
+            if view is UIControl { return view }
+            if view is UITableViewCell || view is UICollectionViewCell { return view }
+            if view is UITabBar { return view }
+            if view is UINavigationBar { return view }
+            if let gestures = view.gestureRecognizers,
+               gestures.contains(where: { $0 is UITapGestureRecognizer }) {
+                return view
+            }
+
+            current = view.superview
+        }
+        return nil  // nothing meaningful found — do not emit
+    }
+    
+    private func isSwiftUIHostingView(_ view: UIView) -> Bool {
+        let name = String(describing: type(of: view))
+        return name.contains("UIHosting") || name.contains("HostingView") || name.contains("UILayoutContainerView")
+    }
+    
+    /*func bt_meaningfulTarget() -> UIView? {
         var current: UIView? = self
         while let view = current {
             if view is UIControl { return view }
@@ -198,7 +237,7 @@ private extension UIView {
             current = view.superview
         }
         return nil
-    }
+    }*/
 }
 
 // MARK: - Event Builder
