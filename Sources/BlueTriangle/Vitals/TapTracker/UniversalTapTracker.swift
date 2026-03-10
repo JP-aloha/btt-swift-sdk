@@ -545,7 +545,7 @@ extension UIView {
 // MARK: - UIApplication Swizzle
 
 extension UIApplication {
-    
+
     @objc func swizzled_sendEvent(_ event: UIEvent) {
         swizzled_sendEvent(event)
 
