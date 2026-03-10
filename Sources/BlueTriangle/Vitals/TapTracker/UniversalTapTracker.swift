@@ -211,33 +211,54 @@ private extension UIView {
                gestures.contains(where: { $0 is UITapGestureRecognizer }) {
                 return view
             }
+            
+            //  SwiftUI button detection
+            if isSwiftUIButtonView(view) { return view }
+            
+            // SwiftUI accessibility-based tap detection
+            if view.accessibilityActivate() != false,
+               view.accessibilityTraits.contains(.button) {
+                return view
+            }
 
             current = view.superview
         }
-        return nil  // nothing meaningful found — do not emit
+        return nil
     }
     
-    private func isSwiftUIHostingView(_ view: UIView) -> Bool {
+    func isSwiftUIHostingView(_ view: UIView) -> Bool {
         let name = String(describing: type(of: view))
         return name.contains("UIHosting") || name.contains("HostingView") || name.contains("UILayoutContainerView")
     }
     
-    /*func bt_meaningfulTarget() -> UIView? {
-        var current: UIView? = self
-        while let view = current {
-            if view is UIControl { return view }
-            if view is UITableViewCell || view is UICollectionViewCell { return view }
-            if view is UITabBar { return view }
-            if view is UINavigationBar { return view }
-            if let gestures = view.gestureRecognizers,
-               gestures.contains(where: { $0 is UITapGestureRecognizer }) {
-                return view
-            }
-            if view.isAccessibilityElement { return view }
-            current = view.superview
+    
+    func isSwiftUIButtonView(_ view: UIView) -> Bool {
+        let name = String(describing: type(of: view))
+        
+        // SwiftUI buttons resolve to these internal view types
+        if name.contains("ButtonHostingView") ||
+           name.contains("SwiftUI.UIKitButton") ||
+           name.contains("_TtC7SwiftUI") {
+            return true
         }
-        return nil
-    }*/
+
+        if let gestures = view.gestureRecognizers,
+           gestures.contains(where: {
+               let gestureName = String(describing: type(of: $0))
+               return gestureName.contains("SwiftUI") ||
+                      gestureName.contains("TapGesture") ||
+                      gestureName.contains("UISystemGestureGate")
+           }) {
+            return true
+        }
+
+        if view.accessibilityTraits.contains(.button),
+           view.isAccessibilityElement {
+            return true
+        }
+
+        return false
+    }
 }
 
 // MARK: - Event Builder
@@ -257,51 +278,19 @@ enum BTEventEmitter {
 
     static func emit(view: UIView, point: CGPoint) {
         let bundleId = Bundle.main.bundleIdentifier ?? "unknown"
-        var actionName = "tap"
+        let targetClass = String(describing: type(of: view))
+        let identifier = extractIdentifier(from: view)
+        let label = extractLabel(from: view)
+        let actionName = extractActionName(from: view)
         var extra: [String: Any] = [
             "x": Double(point.x),
             "y": Double(point.y)
         ]
-
-        let identifier = extractIdentifier(from: view)
-        let label = extractLabel(from: view)
-
-        switch view {
-        case let b as UIButton:
-            actionName = "buttonTap"
-            extra["title"] = b.currentTitle ?? label ?? ""
-        case let s as UISwitch:
-            actionName = "switchToggle"
-            extra["value"] = s.isOn
-        case let s as UISlider:
-            actionName = "sliderChange"
-            extra["value"] = Double(s.value)
-        case let s as UISegmentedControl:
-            actionName = "segmentChange"
-            extra["selectedIndex"] = s.selectedSegmentIndex
-            extra["selectedTitle"] = s.titleForSegment(at: s.selectedSegmentIndex) ?? ""
-        case let s as UIStepper:
-            actionName = "stepperChange"
-            extra["value"] = s.value
-        case let cell as UITableViewCell:
-            actionName = "tableCellTap"
-            extra["text"] = cell.textLabel?.text ?? ""
-        case let cell as UICollectionViewCell:
-            actionName = "collectionCellTap"
-            extra["reuseId"] = cell.reuseIdentifier ?? ""
-        case is UITabBar:
-            actionName = "tabBarTap"
-        case is UINavigationBar:
-            actionName = "navigationBarTap"
-        default:
-            actionName = "tap"
-        }
-
+        
         if isSwiftUIView(view) {
             extra["framework"] = "SwiftUI"
         }
 
-        let targetClass = String(describing: type(of: view))
         let targetId = "\(bundleId):\(actionName):\(identifier)"
         BlueTriangle.collectBreadcrumb(
             UserEvent(
@@ -310,6 +299,22 @@ enum BTEventEmitter {
                 action: "tap"
             )
         )
+    }
+    
+    private static func extractActionName(from view: UIView) -> String {
+        // UIKit controls — use class name directly
+        if view is UIButton           { return String(describing: type(of: view)) }
+        if view is UISwitch           { return String(describing: type(of: view)) }
+        if view is UISlider           { return String(describing: type(of: view)) }
+        if view is UISegmentedControl { return String(describing: type(of: view)) }
+        if view is UIStepper          { return String(describing: type(of: view)) }
+        if view is UITableViewCell    { return String(describing: type(of: view)) }
+        if view is UICollectionViewCell { return String(describing: type(of: view)) }
+        if view is UITabBar           { return String(describing: type(of: view)) }
+        if view is UINavigationBar    { return String(describing: type(of: view)) }
+
+        // SwiftUI — use actual class name
+        return String(describing: type(of: view))
     }
 
     private static func extractIdentifier(from view: UIView) -> String {
