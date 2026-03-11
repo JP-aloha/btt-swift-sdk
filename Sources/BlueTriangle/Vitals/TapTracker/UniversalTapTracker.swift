@@ -482,7 +482,45 @@ final class BTViewRegistry {
 extension UIView {
 
     /// Walk UP the chain — find the first real actionable target
+    ///
     func bt_findActionableTarget() -> UIView? {
+        var current: UIView? = self
+
+        while let view = current {
+
+            guard view.isUserInteractionEnabled,
+                  !view.isHidden,
+                  view.alpha > 0,
+                  !(view is UIWindow),
+                  !(view is UIScrollView) else {
+                current = view.superview
+                continue
+            }
+
+            // UIKit controls
+            if view is UIControl { return view }
+
+            // Table / collection
+            if view is UITableViewCell || view is UICollectionViewCell {
+                return view
+            }
+
+            // SwiftUI Button detection
+            if let gestures = view.gestureRecognizers {
+                for gesture in gestures {
+                    if gesture is UITapGestureRecognizer {
+                        return view
+                    }
+                }
+            }
+
+            current = view.superview
+        }
+
+        return nil
+    }
+    
+  /*  func bt_findActionableTarget() -> UIView? {
         var current: UIView? = self
         while let view = current {
             guard view.isUserInteractionEnabled,
@@ -508,7 +546,7 @@ extension UIView {
             current = view.superview
         }
         return nil
-    }
+    }*/
 
     /// Resolve action name from view type
     func bt_actionName() -> String {
@@ -574,8 +612,13 @@ extension UIApplication {
                 viewInfo["title"] = button.currentTitle ?? ""
             }
         }
-        
-        print("Actions : \(action) - \(targetName) - \(senderName) - \(viewInfo)")
+        BlueTriangle.collectBreadcrumb(
+            UserEvent(
+                targetClass: actionName,
+                targetId: targetName,
+                action: senderName
+            )
+        )
         return btt_sendAction(action, to: target, from: sender, for: event)
     }
     
@@ -590,7 +633,8 @@ extension UIApplication {
                 BlueTriangle.groupTimer.setLastAction(Date())
                 guard let window = touch.window ?? UIApplication.shared.bt_keyWindow else { return }
                 let point = touch.location(in: window)
-                guard let hitView = window.hitTest(point, with: event) else { return }
+                guard let hitView = window.hitTest(point, with: event),
+                      hitView != window else { return }
 
                 // 1. bttTrackAction — user defined action
                 if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
@@ -657,6 +701,67 @@ enum BTEventEmitter {
     }
 
     static func extractIdentifier(from view: UIView) -> String {
+
+        // check self
+        if let id = view.accessibilityIdentifier, !id.isEmpty {
+            return id
+        }
+
+        if let label = view.accessibilityLabel, !label.isEmpty {
+            return label
+        }
+
+        // check accessibility elements
+        if let elements = view.accessibilityElements {
+            for element in elements {
+                if let el = element as? UIAccessibilityIdentification,
+                   let id = el.accessibilityIdentifier,
+                   !id.isEmpty {
+                    return id
+                }
+            }
+        }
+
+        // walk up superviews
+        var current = view.superview
+        while let v = current {
+
+            if let id = v.accessibilityIdentifier, !id.isEmpty {
+                return id
+            }
+
+            if let label = v.accessibilityLabel, !label.isEmpty {
+                return label
+            }
+
+            if let elements = v.accessibilityElements {
+                for element in elements {
+                    if let el = element as? UIAccessibilityIdentification,
+                       let id = el.accessibilityIdentifier,
+                       !id.isEmpty {
+                        return id
+                    }
+                }
+            }
+
+            current = v.superview
+        }
+
+        // UIKit fallback
+        if let btn = view as? UIButton,
+           let title = btn.currentTitle {
+            return title
+        }
+
+        if let cell = view as? UITableViewCell,
+           let text = cell.textLabel?.text {
+            return text
+        }
+
+        return "unknown"
+    }
+    /*
+    static func extractIdentifier(from view: UIView) -> String {
         // check self
         if let id = view.accessibilityIdentifier, !id.isEmpty { return id }
         if let label = view.accessibilityLabel, !label.isEmpty { return label }
@@ -674,5 +779,5 @@ enum BTEventEmitter {
         if let cell = view as? UITableViewCell, let text = cell.textLabel?.text { return text }
 
         return "unknown"
-    }
+    }*/
 }
