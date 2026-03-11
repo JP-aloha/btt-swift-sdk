@@ -24,7 +24,7 @@ final class UserEventFeature: BreadcrumbFeatrure {
 }
 
 struct UserEvent : BreadcrumbEvent {
-    let timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
+    var timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
     let targetClass: String
     let targetId: String
     let action: String
