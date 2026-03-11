@@ -484,33 +484,47 @@ extension UIView {
     /// Walk UP the chain — find the first real actionable target
     ///
     func bt_findActionableTarget() -> UIView? {
+
         var current: UIView? = self
 
         while let view = current {
 
             guard view.isUserInteractionEnabled,
                   !view.isHidden,
-                  view.alpha > 0,
-                  !(view is UIWindow),
-                  !(view is UIScrollView) else {
+                  view.alpha > 0 else {
+                current = view.superview
+                continue
+            }
+
+            let className = String(describing: type(of: view))
+
+            // Ignore container views
+            if view is UIWindow ||
+               view is UIScrollView ||
+               className.contains("Hosting") ||
+               className.contains("Container") {
                 current = view.superview
                 continue
             }
 
             // UIKit controls
-            if view is UIControl { return view }
-
-            // Table / collection
-            if view is UITableViewCell || view is UICollectionViewCell {
+            if view is UIControl {
                 return view
             }
 
-            // SwiftUI Button detection
+            // table / collection
+            if view is UITableViewCell || view is UICollectionViewCell {
+                return view
+            }
+            
+            if view.accessibilityTraits.contains(.button) {
+                return view
+            }
+
+            // SwiftUI buttons (gesture based)
             if let gestures = view.gestureRecognizers {
-                for gesture in gestures {
-                    if gesture is UITapGestureRecognizer {
-                        return view
-                    }
+                if gestures.contains(where: { $0 is UITapGestureRecognizer }) {
+                    return view
                 }
             }
 
@@ -575,7 +589,11 @@ extension UIView {
         if name.contains("NavigationLink"){ return "navigationLinkTap" }
         if name.contains("Menu")          { return "menuTap" }
         if name.contains("Picker")        { return "pickerTap" }
-
+        
+        if accessibilityTraits.contains(.button) {
+            return "buttonTap"
+        }
+        
         return "tap"
     }
 }
@@ -746,6 +764,13 @@ enum BTEventEmitter {
 
             current = v.superview
         }
+        
+        while let v = current {
+            if let id = v.accessibilityIdentifier, !id.isEmpty { return id }
+            if let label = v.accessibilityLabel, !label.isEmpty { return label }
+            current = v.superview
+        }
+
 
         // UIKit fallback
         if let btn = view as? UIButton,
@@ -757,6 +782,7 @@ enum BTEventEmitter {
            let text = cell.textLabel?.text {
             return text
         }
+        
 
         return "unknown"
     }
