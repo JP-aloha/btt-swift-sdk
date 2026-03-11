@@ -30,7 +30,6 @@ enum BreadcrumbType: String, Codable {
     case uiLifecycle = "ui.lifecycle"
     case networkRequest = "network.request"
     case networkState = "network.state"
-    case launchType = "app.launch"
     case appInstall = "app.install"
     case appUpdate = "app.update"
     case userEvent = "user.event"
@@ -45,7 +44,6 @@ enum BreadcrumbKeys: String, CodingKey, Codable {
     case url
     case statusCode
     case state
-    case launchType
     case fromVersion
     case toVersion
     case action

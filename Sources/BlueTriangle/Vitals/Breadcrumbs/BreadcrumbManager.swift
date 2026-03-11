@@ -11,7 +11,6 @@ enum BreadcrumbsFeature: String {
     case uiLifecycle = "UiLifecycle"
     case networkRequest = "NetworkRequest"
     case networkState = "NetworkState"
-    case appLaunch = "AppLaunch"
     case appInstall = "AppInstall"
     case appUpdate = "AppUpdate"
     case userEvent = "UserEvent"

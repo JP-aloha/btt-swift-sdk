@@ -545,7 +545,36 @@ extension UIView {
 // MARK: - UIApplication Swizzle
 
 extension UIApplication {
-
+    
+    @objc func btt_sendAction(
+        _ action: Selector,
+        to target: Any?,
+        from sender: Any?,
+        for event: UIEvent?
+    ) -> Bool {
+        
+        let actionName = NSStringFromSelector(action)
+        let targetName = target.map { String(describing: type(of: $0)) } ?? "nil"
+        let senderName = sender.map { String(describing: type(of: $0)) } ?? "nil"
+        
+        var viewInfo: [String: Any] = [:]
+        
+        if let view = sender as? UIView {
+            viewInfo["view"] = String(describing: type(of: view))
+            
+            if let id = view.accessibilityIdentifier {
+                viewInfo["accessibilityIdentifier"] = id
+            }
+            
+            if let button = view as? UIButton {
+                viewInfo["title"] = button.currentTitle ?? ""
+            }
+        }
+        
+        print("Actions : \(action) - \(targetName) - \(senderName) - \(viewInfo)")
+        return btt_sendAction(action, to: target, from: sender, for: event)
+    }
+    
     @objc func swizzled_sendEvent(_ event: UIEvent) {
         swizzled_sendEvent(event)
 
