@@ -17,8 +17,23 @@ enum Constants {
         }
         
         enum AppLifeCycle {
-            static let background = "background"
-            static let foreground = "foreground"
+            static let didFinishLaunch = "didFinishLaunch"
+            static let didBecomeActive = "didBecomeActive"
+            static let didEnterBackground = "didEnterBackground"
+            static let willEnterForeground = "willEnterForeground"
+        }
+        
+        enum Orientation {
+            static let className = "orientation"
+            static let portrait = "portrait"
+            static let landscape = "landscape"
+            static let unknown = "unknown"
+        }
+        
+        enum Keyboard {
+            static let className = "keyboard"
+            static let shown = "shown"
+            static let hidden = "hidden"
         }
     }
         

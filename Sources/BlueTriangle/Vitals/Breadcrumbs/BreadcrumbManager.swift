@@ -33,10 +33,6 @@ final class BreadcrumbManager {
         var newFeatures: [BreadcrumbFeatrure] = []
         
         if BlueTriangle.configuration.enableBreadcrumbs {
-            
-            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appLaunch.rawValue.lowercased()) {
-                newFeatures.append(LaunchTypeFeature(collector: collector))
-            }
             if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appInstall.rawValue.lowercased()) {
                 newFeatures.append(AppInstallFeature(collector: collector))
             }
