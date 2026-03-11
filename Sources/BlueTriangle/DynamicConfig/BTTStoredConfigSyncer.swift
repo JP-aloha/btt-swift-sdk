@@ -188,6 +188,16 @@ class BTTStoredConfigSyncer {
         }
     }
     
+    private func syncBreadcrumbs(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig ) {
+        if let enableBreadcrumbs = config.enableBreadcrumbs ?? defaultConfig.enableBreadcrumbs {
+            BlueTriangle.updateEnableBreadcrumbs(enableBreadcrumbs)
+        }
+        
+        if let ignoreBreadcrumbs = config.ignoreScreens ?? defaultConfig.ignoreBreadcrumbs {
+            BlueTriangle.updateIgnoreBreadcrumbs(Set(ignoreBreadcrumbs))
+        }
+    }
+    
     /// Evaluates the SDK's state based on the latest configuration and updates it accordingly.
     ///
     /// This method checks whether the SDK should be enabled or disabled based on the retrieved remote

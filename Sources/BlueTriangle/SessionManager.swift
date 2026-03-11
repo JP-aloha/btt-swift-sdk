@@ -216,6 +216,8 @@ extension SessionManager {
                 session.checkoutCartCountCheckout = BlueTriangle.configuration.checkoutCartCountCheckout
                 session.checkoutOrderNumber = BlueTriangle.configuration.checkoutOrderNumber
                 session.checkoutTimeValue = BlueTriangle.configuration.checkoutTimeValue
+                session.ignoreBreadcrumbs = BlueTriangle.configuration.ignoreBreadcrumbs
+                session.enableBreadcrumbs = BlueTriangle.configuration.enableBreadcrumbs
                 sessionStore.saveSession(session)
             } else {
                 BlueTriangle.updateGrouping(session.enableGrouping, idleTime: session.groupingIdleTime)
@@ -237,6 +239,8 @@ extension SessionManager {
                 BlueTriangle.updateCheckoutCartCountCheckout(session.checkoutCartCountCheckout)
                 BlueTriangle.updateCheckoutOrderNumber(session.checkoutOrderNumber)
                 BlueTriangle.updateCheckoutTimeValue(session.checkoutTimeValue)
+                BlueTriangle.updateIgnoreBreadcrumbs(session.ignoreBreadcrumbs)
+                BlueTriangle.updateEnableBreadcrumbs(session.enableBreadcrumbs)
                 sessionStore.saveSession(session)
             }
         }

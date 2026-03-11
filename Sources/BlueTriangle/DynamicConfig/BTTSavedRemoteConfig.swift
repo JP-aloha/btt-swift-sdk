@@ -33,6 +33,8 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
          checkoutCartCountCheckout: Int?,
          checkoutOrderNumber : String?,
          checkoutTimeValue : Int?,
+         ignoreBreadcrumbs: [String]?,
+         enableBreadcrumbs: Bool?,
          dateSaved: Millisecond) {
         self.dateSaved = dateSaved
         super.init(networkSampleRateSDK: networkSampleRateSDK,
@@ -56,7 +58,9 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
                    checkoutCartCount: checkoutCartCount,
                    checkoutCartCountCheckout: checkoutCartCountCheckout,
                    checkoutOrderNumber: checkoutOrderNumber,
-                   checkoutTimeValue: checkoutTimeValue
+                   checkoutTimeValue: checkoutTimeValue,
+                   ignoreBreadcrumbs: ignoreBreadcrumbs,
+                   enableBreadcrumbs: enableBreadcrumbs
         )
     }
 

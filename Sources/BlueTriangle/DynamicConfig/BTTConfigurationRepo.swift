@@ -62,6 +62,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
               checkoutCartCountCheckout: config.checkoutCartCountCheckout,
               checkoutOrderNumber: config.checkoutOrderNumber,
               checkoutTimeValue: config.checkoutTimeValue,
+              ignoreBreadcrumbs: config.ignoreBreadcrumbs,
+              enableBreadcrumbs: config.enableBreadcrumbs,
               dateSaved: Date().timeIntervalSince1970.milliseconds
           )
         
@@ -99,6 +101,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
              checkoutCartCountCheckout: config.checkoutCartCountCheckout,
              checkoutOrderNumber: config.checkoutOrderNumber,
              checkoutTimeValue: config.checkoutTimeValue,
+             ignoreBreadcrumbs: config.ignoreBreadcrumbs,
+             enableBreadcrumbs: config.enableBreadcrumbs,
              dateSaved: Date().timeIntervalSince1970.milliseconds
          )
         

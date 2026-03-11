@@ -157,10 +157,6 @@ extension UIViewController{
                 swizzledPairs.append(sendEventPair)
             }
             
-            /*if let sendActionPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendAction(_:to:from:for:)), swizzled: #selector(UIApplication.swizzled_sendAction(_:to:from:for:))) {
-                swizzledPairs.append(sendActionPair)
-            }*/
-            
             isSwizzled = true
             BlueTriangle.screenTracker?.logger?.debug("View Screen Tracker: setup completed.")
         }

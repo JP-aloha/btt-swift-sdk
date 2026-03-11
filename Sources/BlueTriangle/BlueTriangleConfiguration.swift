@@ -130,6 +130,10 @@ final public class BlueTriangleConfiguration: NSObject {
     /// When this is off, Non of above would  get  track
     @objc public var enableScreenTracking: Bool = true
     
+    @objc public var enableBreadcrumbs: Bool = true
+    
+    @objc public  var ignoreBreadcrumbs: Set<String> = Set<String>()    
+    
     /// This is a  Set of ViewControllers  which developer does not want to track or want to ignore their track. This property can only ignore that screen, Which is being tracked autometically. And It can not ignore , Which is being tracked  manually.
     /// Set an array of view controlles which user want to ignore
     @objc public  var ignoreViewControllers: Set<String> = Set<String>()

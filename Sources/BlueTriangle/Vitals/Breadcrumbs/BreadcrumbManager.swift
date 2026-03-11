@@ -6,27 +6,63 @@
 //
 import Foundation
 
+enum BreadcrumbsFeature: String {
+    case appLifecycle = "AppLifecycle"
+    case uiLifecycle = "UiLifecycle"
+    case networkRequest = "NetworkRequest"
+    case networkState = "NetworkState"
+    case appLaunch = "AppLaunch"
+    case appInstall = "AppInstall"
+    case appUpdate = "AppUpdate"
+    case userEvent = "UserEvent"
+}
+
 final class BreadcrumbManager {
     
-    private let queue = DispatchQueue(label: "com.bluetriangle.breadcrumb.manager")
+    private let queue = DispatchQueue(label: "com.bluetriangle.breadcrumb.manager", attributes: .concurrent)
     private let collector: BreadcrumbCollector
     private var features: [BreadcrumbFeatrure] = []
     
     init(collector: BreadcrumbCollector) {
         self.collector = collector
-        self.register(feature: LaunchTypeFeature(collector: collector))
-        self.register(feature: AppInstallFeature(collector: collector))
-        self.register(feature: AppUpdateFeature(collector: collector))
-        self.register(feature: AppLifecycleFeature(collector: collector))
-        self.register(feature: UILifecycleFeature(collector: collector))
-        self.register(feature: NetworkRequestFeature(collector: collector))
-        self.register(feature: NetworkStateFeature(collector: collector))
-        self.register(feature: UserEventFeature(collector: collector))
+        self.updateBreadcrumbFeatures()
     }
     
-    private func register(feature: BreadcrumbFeatrure) {
-        queue.sync {
-            self.features.append(feature)
+    func updateBreadcrumbFeatures() {
+        let ignoredBreadcrumbs = BlueTriangle.configuration.ignoreBreadcrumbs.map { $0.lowercased() }
+        var newFeatures: [BreadcrumbFeatrure] = []
+        
+        if BlueTriangle.configuration.enableBreadcrumbs {
+            
+            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appLaunch.rawValue.lowercased()) {
+                newFeatures.append(LaunchTypeFeature(collector: collector))
+            }
+            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appInstall.rawValue.lowercased()) {
+                newFeatures.append(AppInstallFeature(collector: collector))
+            }
+            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appUpdate.rawValue.lowercased()) {
+                newFeatures.append(AppUpdateFeature(collector: collector))
+            }
+            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appLifecycle.rawValue.lowercased()) {
+                newFeatures.append(AppLifecycleFeature(collector: collector))
+            }
+            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.uiLifecycle.rawValue.lowercased()) {
+                newFeatures.append(UILifecycleFeature(collector: collector))
+            }
+            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.networkRequest.rawValue.lowercased()) {
+                newFeatures.append(NetworkRequestFeature(collector: collector))
+            }
+            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.networkState.rawValue.lowercased()) {
+                newFeatures.append(NetworkStateFeature(collector: collector))
+            }
+            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.userEvent.rawValue.lowercased()) {
+                newFeatures.append(UserEventFeature(collector: collector))
+            }
+        }
+        
+        // Single atomic barrier read/write
+        queue.async(flags: .barrier) {
+            self.features = newFeatures
         }
     }
     

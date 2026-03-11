@@ -258,6 +258,10 @@ final public class BlueTriangle: NSObject {
         sessionData()?.checkoutTrackingEnabled ?? false
     }()
     
+    internal static var shouldBreadcrumbsTracking: Bool = {
+        sessionData()?.enableBreadcrumbs ?? false
+    }()
+    
     /// A Boolean value indicating  whether the SDK has been successfully configured and initialized.
     ///
     /// - `true`: The SDK has been configured and is ready to function. This means
@@ -701,9 +705,16 @@ extension BlueTriangle {
     }
     
     // Starts screen tracking if not already configured
+    
+    private static func setupSwizzling(){
+#if os(iOS)
+        UIViewController.setUp()
+        logger.info("BlueTriangle :: Swizzling has done.")
+#endif
+    }
+    
     private static func startScreenTracking(){
         if screenTracker == nil{
-            
             configureScreenTracking(with: configuration.enableScreenTracking)
         }
         
@@ -714,7 +725,6 @@ extension BlueTriangle {
     private static func stopScreenTracking(){
         screenTracker?.stop()
         screenTracker = nil
-        
         logger.info("BlueTriangle :: Screen tracking was stopped due to SDK disable.")
     }
     
@@ -777,7 +787,6 @@ extension BlueTriangle {
     ///
     internal static func applyAllTrackerState() {
         lock.sync {
-            let appInstaller = BlueTriangle.appInstaller
             self.configureSessionManager(forModeWithExpiry: configuration.sessionExpiryDuration)
             
             if self.enableAllTracking {
@@ -802,6 +811,8 @@ extension BlueTriangle {
         
         logger.info("BlueTriangle :: SDK is in enabled mode.")
         self.startSession()
+        let _ = BlueTriangle.appInstaller
+        self.setupSwizzling()
         self.startHttpNetworkCapture()
         self.startHttpGroupedChildCapture()
         self.startScreenTracking()
@@ -1147,7 +1158,7 @@ public extension BlueTriangle {
     }
     /// Returns a timer for network capture.
     static func startRequestTimer() -> InternalTimer? {
-        guard shouldCaptureRequests || shouldCheckoutTracking else {
+        guard shouldCaptureRequests || shouldCheckoutTracking || shouldBreadcrumbsTracking else {
             return nil
         }
         var timer = internalTimerFactory()
@@ -1337,9 +1348,7 @@ extension BlueTriangle{
 #if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
         BTTWebViewTracker.logger = logger
-        if enabled {
-            UIViewController.setUp()
-        }
+        UIViewController.setUp()
 #endif
     }
 }
@@ -1456,13 +1465,6 @@ extension BlueTriangle {
     internal static func updateScreenTracking(_ enabled : Bool) {
         configuration.enableScreenTracking = enabled
         screenTracker?.setLifecycleTracker(enabled)
-#if os(iOS)
-        if enabled {
-            UIViewController.setUp()
-        } else {
-            UIViewController.removeSetUp()
-        }
-#endif
     }
     
     internal static func updateCaptureRequests() {
@@ -1577,5 +1579,17 @@ extension BlueTriangle {
 
     internal static func updateCheckoutTimeValue(_ timeValue: Int) {
         configuration.checkoutTimeValue = timeValue
+    }
+    
+    internal static func updateIgnoreBreadcrumbs(_ breadcrumbs : Set<String>?) {
+        if let breadcrumbs = breadcrumbs{
+            configuration.ignoreBreadcrumbs = breadcrumbs
+        }
+        breadcrumbManager.updateBreadcrumbFeatures()
+    }
+    
+    internal static func updateEnableBreadcrumbs(_ enabled: Bool) {
+        configuration.enableBreadcrumbs = enabled
+        breadcrumbManager.updateBreadcrumbFeatures()
     }
 }

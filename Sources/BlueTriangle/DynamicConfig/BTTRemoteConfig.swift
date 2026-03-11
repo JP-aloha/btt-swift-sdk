@@ -31,7 +31,8 @@ class BTTRemoteConfig: Codable, Equatable {
     var checkoutCartCountCheckout: Int?
     var checkoutOrderNumber : String?
     var checkoutTimeValue : Int?
-    
+    var enableBreadcrumbs: Bool?
+    var ignoreBreadcrumbs: [String]?
     
     init(networkSampleRateSDK: Double?,
          enableRemoteConfigAck : Bool?,
@@ -54,7 +55,9 @@ class BTTRemoteConfig: Codable, Equatable {
          checkoutCartCount : Int?,
          checkoutCartCountCheckout: Int?,
          checkoutOrderNumber : String?,
-         checkoutTimeValue : Int?) {
+         checkoutTimeValue : Int?,
+         ignoreBreadcrumbs : [String]?,
+         enableBreadcrumbs : Bool?) {
         self.networkSampleRateSDK = networkSampleRateSDK
         self.enableRemoteConfigAck = enableRemoteConfigAck
         self.ignoreScreens = ignoreScreens
@@ -79,6 +82,8 @@ class BTTRemoteConfig: Codable, Equatable {
         self.checkoutCartCountCheckout = checkoutCartCountCheckout
         self.checkoutOrderNumber = checkoutOrderNumber
         self.checkoutTimeValue = checkoutTimeValue
+        self.enableBreadcrumbs = enableBreadcrumbs
+        self.ignoreBreadcrumbs = ignoreBreadcrumbs
     }
     
     static func == (lhs: BTTRemoteConfig, rhs: BTTRemoteConfig) -> Bool {
@@ -104,7 +109,9 @@ class BTTRemoteConfig: Codable, Equatable {
         lhs.checkoutCartCount == rhs.checkoutCartCount &&
         lhs.checkoutCartCountCheckout == rhs.checkoutCartCountCheckout &&
         lhs.checkoutOrderNumber == rhs.checkoutOrderNumber &&
-        lhs.checkoutTimeValue == rhs.checkoutTimeValue
+        lhs.checkoutTimeValue == rhs.checkoutTimeValue &&
+        lhs.ignoreBreadcrumbs == rhs.ignoreBreadcrumbs &&
+        lhs.enableBreadcrumbs == rhs.enableBreadcrumbs
     }
     
     internal static var defaultConfig: BTTSavedRemoteConfig {
@@ -130,6 +137,8 @@ class BTTRemoteConfig: Codable, Equatable {
                              checkoutCartCountCheckout: BlueTriangle.configuration.checkoutCartCountCheckout,
                              checkoutOrderNumber: BlueTriangle.configuration.checkoutOrderNumber,
                              checkoutTimeValue: BlueTriangle.configuration.checkoutTimeValue,
+                             ignoreBreadcrumbs: Array(BlueTriangle.configuration.ignoreBreadcrumbs),
+                             enableBreadcrumbs: BlueTriangle.configuration.enableBreadcrumbs,
                              dateSaved: Date().timeIntervalSince1970.milliseconds)
     }
 }
