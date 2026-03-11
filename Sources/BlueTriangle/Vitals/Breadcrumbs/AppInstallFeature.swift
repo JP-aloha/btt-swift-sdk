@@ -24,15 +24,15 @@ final class AppInstallFeature: BreadcrumbFeatrure {
 }
 
 struct AppInstallEvent: BreadcrumbEvent {
-    let timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
+    var timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
     let event: String
-    let toVersion: String
+    let version: String
     var type: BreadcrumbType { .appInstall }
     
     var data: [BreadcrumbKeys : String] {
         [
             .event: event,
-            .toVersion: toVersion
+            .version: version
         ]
     }
 }

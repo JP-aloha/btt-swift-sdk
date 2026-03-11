@@ -33,12 +33,14 @@ enum BreadcrumbType: String, Codable {
     case appInstall = "app.install"
     case appUpdate = "app.update"
     case userEvent = "user.event"
+    case systemEvent = "system.event"
 }
 
 enum BreadcrumbKeys: String, CodingKey, Codable {
     case data
     case timestamp
     case type
+    case eventType
     case event
     case className
     case url
@@ -46,6 +48,7 @@ enum BreadcrumbKeys: String, CodingKey, Codable {
     case state
     case fromVersion
     case toVersion
+    case version
     case action
     case targetClass
     case targetId

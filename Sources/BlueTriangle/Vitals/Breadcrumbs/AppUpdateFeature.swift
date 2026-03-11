@@ -23,7 +23,7 @@ final class AppUpdateFeature: BreadcrumbFeatrure {
 }
 
 struct AppUpdateEvent: BreadcrumbEvent {
-    let timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
+    var timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
     let event: String
     let fromVersion: String
     let toVersion: String

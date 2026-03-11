@@ -12,6 +12,7 @@ enum BreadcrumbsFeature: String {
     case networkRequest = "NetworkRequest"
     case networkState = "NetworkState"
     case appInstall = "AppInstall"
+    case systemEvent = "SystemEvent"
     case appUpdate = "AppUpdate"
     case userEvent = "UserEvent"
 }
@@ -34,6 +35,9 @@ final class BreadcrumbManager {
         if BlueTriangle.configuration.enableBreadcrumbs {
             if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appInstall.rawValue.lowercased()) {
                 newFeatures.append(AppInstallFeature(collector: collector))
+            }
+            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.systemEvent.rawValue.lowercased()) {
+                newFeatures.append(AppSystemEventFeature(collector: collector))
             }
             if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appUpdate.rawValue.lowercased()) {
                 newFeatures.append(AppUpdateFeature(collector: collector))

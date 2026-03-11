@@ -24,7 +24,7 @@ final class NetworkStateFeature: BreadcrumbFeatrure {
 }
 
 struct NetworkStateEvent: BreadcrumbEvent {
-    let timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
+    var timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
     var type: BreadcrumbType { .networkState }
     var data: [BreadcrumbKeys : String] {
         [

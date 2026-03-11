@@ -557,6 +557,10 @@ extension UIApplication {
         let targetName = target.map { String(describing: type(of: $0)) } ?? "nil"
         let senderName = sender.map { String(describing: type(of: $0)) } ?? "nil"
         
+        if UIApplication.avoidSender(sender, forTarget: target, action: actionName) {
+            return btt_sendAction(action, to: target, from: sender, for: event)
+        }
+        
         var viewInfo: [String: Any] = [:]
         
         if let view = sender as? UIView {
@@ -598,6 +602,18 @@ extension UIApplication {
                 guard let target = hitView.bt_findActionableTarget() else { return }
                 BTEventEmitter.emit(view: target, point: point)
             }
+    }
+    
+    private static func avoidSender(_ sender: Any?, forTarget target: Any?, action: String) -> Bool {
+        guard let sender = sender, let target = target else {
+            return true
+        }
+        if let textField = sender as? UITextField {
+            // This is required to avoid creating breadcrumbs for every key pressed in a text field.
+            let actions = textField.actions(forTarget: target, forControlEvent: .editingChanged)
+            return actions?.contains(action) ?? false
+        }
+        return false
     }
 
     var bt_keyWindow: UIWindow? {

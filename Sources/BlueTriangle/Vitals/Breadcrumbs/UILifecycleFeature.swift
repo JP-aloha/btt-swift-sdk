@@ -24,7 +24,7 @@ final class UILifecycleFeature: BreadcrumbFeatrure {
 }
 
 struct UILifecycleEvent: BreadcrumbEvent {
-    let timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
+    var timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
     let event: String
     let className: String
     

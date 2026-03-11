@@ -272,7 +272,7 @@ extension SessionManager {
             default:
                 break
             }
-            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: orientationString, className: Constants.Breadcrums.Orientation.className))
+            BlueTriangle.collectBreadcrumb(AppSystemEvent(event: orientationString, eventType: Constants.Breadcrums.Orientation.className))
         }
         
         keyboardShowObserver = NotificationCenter.default.addObserver(
@@ -280,7 +280,7 @@ extension SessionManager {
             object: nil,
             queue: nil
         ) { _ in
-            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.Keyboard.shown, className: Constants.Breadcrums.Keyboard.className))
+            BlueTriangle.collectBreadcrumb(AppSystemEvent(event: Constants.Breadcrums.Keyboard.shown, eventType: Constants.Breadcrums.Keyboard.className))
         }
         
         keyboardHideObserver = NotificationCenter.default.addObserver(
@@ -288,7 +288,7 @@ extension SessionManager {
             object: nil,
             queue: nil
         ) { _ in
-            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.Keyboard.hidden, className: Constants.Breadcrums.Keyboard.className))
+            BlueTriangle.collectBreadcrumb(AppSystemEvent(event: Constants.Breadcrums.Keyboard.hidden, eventType: Constants.Breadcrums.Keyboard.className))
         }
 #endif
         self.observeRemoteConfig()
