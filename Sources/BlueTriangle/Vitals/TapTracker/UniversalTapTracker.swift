@@ -5,7 +5,14 @@ import SwiftUI
 
 private var btActionKey: UInt8 = 0
 
-/*extension UIView {
+final class BTActionState {
+    static let shared = BTActionState()
+    private init() {}
+
+    weak var lastHandledEvent: UIEvent?
+}
+
+extension UIView {
     var btAction: String? {
         get { objc_getAssociatedObject(self, &btActionKey) as? String }
         set { objc_setAssociatedObject(self, &btActionKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
@@ -144,10 +151,44 @@ final class BTViewRegistry {
 
 extension UIApplication {
 
+    @objc func btt_sendAction(
+        _ action: Selector,
+        to target: Any?,
+        from sender: Any?,
+        for event: UIEvent?
+    ) -> Bool {
+
+        if let event = event {
+            BTActionState.shared.lastHandledEvent = event
+        }
+        let actionSelector = NSStringFromSelector(action)
+        let className = sender.map { String(describing: type(of: $0)) } ?? "nil"
+        let targetName = target.map { String(describing: type(of: $0)) } ?? "nil"
+
+        if UIApplication.avoidSender(sender, forTarget: target, action: actionSelector) {
+            return btt_sendAction(action, to: target, from: sender, for: event)
+        }
+
+        BlueTriangle.collectBreadcrumb(
+            UserEvent(
+                targetClass: className,
+                targetId: actionSelector + ":" + targetName,
+                action: "tap"
+            )
+        )
+
+        return btt_sendAction(action, to: target, from: sender, for: event)
+    }
+    
     @objc func swizzled_sendEvent(_ event: UIEvent) {
         swizzled_sendEvent(event) 
         guard event.type == .touches else { return }
 
+        if BTActionState.shared.lastHandledEvent === event {
+            BTActionState.shared.lastHandledEvent = nil
+            return
+        }
+        
         event.allTouches?
             .filter { $0.phase == .ended }
             .forEach { touch in
@@ -176,6 +217,18 @@ extension UIApplication {
                 .first { $0.isKeyWindow }
         }
         return windows.first { $0.isKeyWindow }
+    }
+    
+    private static func avoidSender(_ sender: Any?, forTarget target: Any?, action: String) -> Bool {
+        guard let sender = sender, let target = target else {
+            return true
+        }
+        if let textField = sender as? UITextField {
+            // This is required to avoid creating breadcrumbs for every key pressed in a text field.
+            let actions = textField.actions(forTarget: target, forControlEvent: .editingChanged)
+            return actions?.contains(action) ?? false
+        }
+        return false
     }
 }
 
@@ -351,11 +404,11 @@ enum BTEventEmitter {
         let name = String(describing: type(of: view))
         return name.contains("SwiftUI") || name.contains("UIHosting") || name.contains("HostingView")
     }
-}*/
+}
 
 
-//--------------New
-
+//--------------New------------
+/*
 import UIKit
 import SwiftUI
 
@@ -632,24 +685,26 @@ extension UIApplication {
         from sender: Any?,
         for event: UIEvent?
     ) -> Bool {
-        
+
         if let event = event {
             BTActionState.shared.lastHandledEvent = event
         }
-        let targetName = NSStringFromSelector(action)
-        let actionName = target.map { String(describing: type(of: $0)) } ?? "nil"
+        let actionSelector = NSStringFromSelector(action)
         let className = sender.map { String(describing: type(of: $0)) } ?? "nil"
-        
-        if UIApplication.avoidSender(sender, forTarget: target, action: actionName) {
+        let targetName = target.map { String(describing: type(of: $0)) } ?? "nil"
+
+        if UIApplication.avoidSender(sender, forTarget: target, action: actionSelector) {
             return btt_sendAction(action, to: target, from: sender, for: event)
         }
+
         BlueTriangle.collectBreadcrumb(
             UserEvent(
                 targetClass: className,
-                targetId: targetName + actionName,
+                targetId: actionSelector + ":" + targetName,
                 action: "tap"
             )
         )
+
         return btt_sendAction(action, to: target, from: sender, for: event)
     }
     
@@ -671,14 +726,6 @@ extension UIApplication {
                 let point = touch.location(in: window)
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
-
-               /* guard let ownerVC = hitView.bt_viewController() else { return }
-                if let visibleVC = UIApplication.shared.bt_visibleViewController {
-                    if ownerVC === visibleVC , let rootView = visibleVC.view,
-                       !hitView.isDescendant(of: rootView)  {
-                        return
-                    }
-                }*/
 
                 // 1. bttTrackAction — user defined action
                 if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
@@ -849,10 +896,4 @@ extension UIView {
         return nil
     }
 }
-
-final class BTActionState {
-    static let shared = BTActionState()
-    private init() {}
-
-    weak var lastHandledEvent: UIEvent?
-}
+*/
