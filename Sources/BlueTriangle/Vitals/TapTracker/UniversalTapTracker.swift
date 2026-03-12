@@ -294,8 +294,6 @@ extension UIApplication {
         swizzled_sendEvent(event)
 
         guard event.type == .touches else { return }
-
-        BTActionState.shared.lastHandledEvent = event
         
         event.allTouches?
             .filter { $0.phase == .ended }
@@ -321,6 +319,7 @@ extension UIApplication {
                 }
                 
                 guard let resolvedTarget = target else { return }  // ← truly empty area, skip
+                BTActionState.shared.lastHandledEvent = event
                 BTEventEmitter.emit(view: resolvedTarget, point: point)
             }
     }
