@@ -5,12 +5,6 @@ import SwiftUI
 
 private var btActionKey: UInt8 = 0
 
-final class BTActionState {
-    static let shared = BTActionState()
-    private init() {}
-
-    weak var lastHandledEvent: UIEvent?
-}
 // MARK: - UIView Associated Object
 
 extension UIView {
@@ -140,12 +134,10 @@ extension UIView {
         
         while let view = current {
             
-            // Stop at window
             if view is UIWindow { return nil }
             
-            // Stop if this is a VC's root view — it's a background canvas, never actionable
             if let vc = view.bt_viewController(), vc.view === view {
-                return nil  // ← KEY FIX: background tap on VC root = not actionable
+                return nil
             }
             
             guard view.isUserInteractionEnabled,
@@ -291,7 +283,7 @@ extension UIApplication {
         guard event.type == .touches else { return }
         
         event.allTouches?
-            .filter { $0.phase == .ended }
+            .filter { $0.phase == .began }
             .forEach { touch in
                 BlueTriangle.groupTimer.setLastAction(Date())
                 guard let window = touch.window ?? UIApplication.shared.bt_keyWindow else { return }
@@ -299,6 +291,8 @@ extension UIApplication {
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
                 
+                guard hitView.bt_belongsToActiveViewController(in: window) else { return }
+
                 // 1. bttTrackAction — user defined action
                 if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
                     BTEventEmitter.emitTracked(view: target, point: point, action: action)
@@ -404,3 +398,60 @@ extension UIView {
     }
 }
 
+
+extension UIView {
+
+    /// Returns true only if this view lives inside the currently active/visible VC hierarchy.
+    /// Prevents tracking taps that land on a presenting VC's view peeking through.
+    func bt_belongsToActiveViewController(in window: UIWindow) -> Bool {
+        guard let rootVC = window.rootViewController else { return true }
+        // Resolve the topmost active VC (handles nav, tab, presentation)
+        let activeVC = rootVC.bt_topmostViewController()
+        // Walk up this view's VC chain
+        var responder: UIResponder? = self
+        while let next = responder {
+            if let vc = next as? UIViewController {
+                // Must belong to the active VC or one of its children/parents in same flow
+                if vc === activeVC { return true }
+                // Also allow child VCs of the active VC (e.g. container VCs)
+                if activeVC.bt_isAncestor(of: vc) { return true }
+                // If we hit a VC that is NOT the active one and is NOT a child → reject
+                return false
+            }
+            responder = next.next
+        }
+
+        // No VC found in chain — allow (e.g. window-level views)
+        return true
+    }
+}
+
+extension UIViewController {
+
+    /// Recursively finds the topmost presented/visible view controller
+    func bt_topmostViewController() -> UIViewController {
+        // Prefer presented VC first
+        if let presented = presentedViewController {
+            return presented.bt_topmostViewController()
+        }
+        // Navigation controller — use visible VC
+        if let nav = self as? UINavigationController {
+            return nav.visibleViewController?.bt_topmostViewController() ?? self
+        }
+        // Tab bar — use selected
+        if let tab = self as? UITabBarController {
+            return tab.selectedViewController?.bt_topmostViewController() ?? self
+        }
+        return self
+    }
+
+    /// Returns true if self is an ancestor (parent) of the given VC
+    func bt_isAncestor(of vc: UIViewController) -> Bool {
+        var current = vc.parent
+        while let parent = current {
+            if parent === self { return true }
+            current = parent.parent
+        }
+        return false
+    }
+}
