@@ -506,6 +506,12 @@ extension UIView {
                 current = view.superview
                 continue
             }
+            
+            if className.contains("UITransitionView") ||
+               className.contains("UILayoutContainerView") {
+                current = view.superview
+                continue
+            }
 
             // UIKit controls
             if view is UIControl {
@@ -601,6 +607,24 @@ extension UIView {
 // MARK: - UIApplication Swizzle
 
 extension UIApplication {
+    var bt_topViewController: UIViewController? {
+        guard let root = bt_keyWindow?.rootViewController else { return nil }
+        
+        var top = root
+        while let presented = top.presentedViewController {
+            top = presented
+        }
+        
+        if let nav = top as? UINavigationController {
+            return nav.visibleViewController
+        }
+        
+        if let tab = top as? UITabBarController {
+            return tab.selectedViewController
+        }
+        
+        return top
+    }
     
     @objc func btt_sendAction(
         _ action: Selector,
@@ -609,32 +633,18 @@ extension UIApplication {
         for event: UIEvent?
     ) -> Bool {
         
-        let actionName = NSStringFromSelector(action)
-        let targetName = target.map { String(describing: type(of: $0)) } ?? "nil"
-        let senderName = sender.map { String(describing: type(of: $0)) } ?? "nil"
+        let targetName = NSStringFromSelector(action)
+        let actionName = target.map { String(describing: type(of: $0)) } ?? "nil"
+        let className = sender.map { String(describing: type(of: $0)) } ?? "nil"
         
         if UIApplication.avoidSender(sender, forTarget: target, action: actionName) {
             return btt_sendAction(action, to: target, from: sender, for: event)
         }
-        
-        var viewInfo: [String: Any] = [:]
-        
-        if let view = sender as? UIView {
-            viewInfo["view"] = String(describing: type(of: view))
-            
-            if let id = view.accessibilityIdentifier {
-                viewInfo["accessibilityIdentifier"] = id
-            }
-            
-            if let button = view as? UIButton {
-                viewInfo["title"] = button.currentTitle ?? ""
-            }
-        }
         BlueTriangle.collectBreadcrumb(
             UserEvent(
-                targetClass: actionName,
-                targetId: targetName,
-                action: senderName
+                targetClass: className,
+                targetId: targetName + actionName,
+                action: "tap"
             )
         )
         return btt_sendAction(action, to: target, from: sender, for: event)
@@ -653,6 +663,12 @@ extension UIApplication {
                 let point = touch.location(in: window)
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
+
+                if let topVC = UIApplication.shared.bt_topViewController,
+                   let rootView = topVC.view,
+                   !hitView.isDescendant(of: rootView) {
+                    return
+                }
 
                 // 1. bttTrackAction — user defined action
                 if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
