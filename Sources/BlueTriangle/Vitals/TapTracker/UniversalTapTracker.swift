@@ -607,24 +607,24 @@ extension UIView {
 // MARK: - UIApplication Swizzle
 
 extension UIApplication {
-    var bt_topViewController: UIViewController? {
-        guard let root = bt_keyWindow?.rootViewController else { return nil }
-        
-        var top = root
-        while let presented = top.presentedViewController {
-            top = presented
-        }
-        
-        if let nav = top as? UINavigationController {
-            return nav.visibleViewController
-        }
-        
-        if let tab = top as? UITabBarController {
-            return tab.selectedViewController
-        }
-        
-        return top
-    }
+    var bt_visibleViewController: UIViewController? {
+           guard let root = bt_keyWindow?.rootViewController else { return nil }
+
+           var vc = root
+           while let presented = vc.presentedViewController {
+               vc = presented
+           }
+
+           if let nav = vc as? UINavigationController {
+               return nav.visibleViewController
+           }
+
+           if let tab = vc as? UITabBarController {
+               return tab.selectedViewController
+           }
+
+           return vc
+       }
     
     @objc func btt_sendAction(
         _ action: Selector,
@@ -664,13 +664,12 @@ extension UIApplication {
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
 
-               /* if let topVC = UIApplication.shared.bt_topViewController,
-                   let rootView = topVC.view,
-                   !hitView.isDescendant(of: rootView) {
-                    return
-                }*/
-                if hitView.bt_viewController() == nil {
-                    return
+                guard let ownerVC = hitView.bt_viewController() else { return }
+                if let visibleVC = UIApplication.shared.bt_visibleViewController {
+                    if ownerVC === visibleVC , let rootView = visibleVC.view,
+                       !hitView.isDescendant(of: rootView)  {
+                        return
+                    }
                 }
 
                 // 1. bttTrackAction — user defined action
