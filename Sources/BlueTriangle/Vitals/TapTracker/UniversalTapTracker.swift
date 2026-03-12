@@ -149,7 +149,7 @@ extension UIView {
             let className = String(describing: type(of: view))
             
             // Skip known container/hosting wrappers — but remember hosting view for SwiftUI fallback
-            if view is UIWindow || view is UIScrollView ||
+            if view is UIWindow || view is UIScrollView || view is UIStackView ||
                 className.contains("Hosting") || className.contains("Container") ||
                 className.contains("UITransitionView") || className.contains("UILayoutContainerView") {
                 current = view.superview
