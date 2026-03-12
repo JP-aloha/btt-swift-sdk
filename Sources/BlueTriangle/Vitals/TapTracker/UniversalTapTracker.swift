@@ -139,6 +139,15 @@ extension UIView {
         var current: UIView? = self
         
         while let view = current {
+            
+            // Stop at window
+            if view is UIWindow { return nil }
+            
+            // Stop if this is a VC's root view — it's a background canvas, never actionable
+            if let vc = view.bt_viewController(), vc.view === view {
+                return nil  // ← KEY FIX: background tap on VC root = not actionable
+            }
+            
             guard view.isUserInteractionEnabled,
                   !view.isHidden,
                   view.alpha > 0 else {
