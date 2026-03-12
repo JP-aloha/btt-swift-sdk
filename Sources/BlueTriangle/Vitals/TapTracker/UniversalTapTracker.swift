@@ -11,7 +11,7 @@ final class BTActionState {
 
     weak var lastHandledEvent: UIEvent?
 }
-
+/*
 extension UIView {
     var btAction: String? {
         get { objc_getAssociatedObject(self, &btActionKey) as? String }
@@ -184,6 +184,7 @@ extension UIApplication {
         swizzled_sendEvent(event) 
         guard event.type == .touches else { return }
 
+        
         if BTActionState.shared.lastHandledEvent === event {
             BTActionState.shared.lastHandledEvent = nil
             return
@@ -404,11 +405,10 @@ enum BTEventEmitter {
         let name = String(describing: type(of: view))
         return name.contains("SwiftUI") || name.contains("UIHosting") || name.contains("HostingView")
     }
-}
+}*/
 
 
 //--------------New------------
-/*
 import UIKit
 import SwiftUI
 
@@ -443,7 +443,6 @@ private struct BTTrackModifier: ViewModifier {
 }
 
 // MARK: - UIViewRepresentable
-
 private struct BTAnchorView: UIViewRepresentable {
     let action: String
     let size: CGSize
@@ -592,69 +591,6 @@ extension UIView {
 
         return nil
     }
-    
-  /*  func bt_findActionableTarget() -> UIView? {
-        var current: UIView? = self
-        while let view = current {
-            guard view.isUserInteractionEnabled,
-                  !view.isHidden,
-                  view.alpha > 0,
-                  !(view is UIWindow),
-                  !(view is UIScrollView) else {
-                current = view.superview
-                continue
-            }
-
-            // UIKit controls — always actionable
-            if view is UIControl { return view }
-            if view is UITableViewCell || view is UICollectionViewCell { return view }
-            if view is UITabBar || view is UINavigationBar { return view }
-
-            // Any view with ANY gesture recognizer — covers ALL SwiftUI elements
-            // (Button, Toggle, Slider, NavigationLink, Menu, TapGesture etc.)
-            if let gestures = view.gestureRecognizers, !gestures.isEmpty {
-                return view
-            }
-
-            current = view.superview
-        }
-        return nil
-    }*/
-
-    /// Resolve action name from view type
-    func bt_actionName() -> String {
-        // UIKit
-        if self is UIButton          { return "buttonTap" }
-        if self is UISwitch          { return "switchToggle" }
-        if self is UISlider          { return "sliderChange" }
-        if self is UIStepper         { return "stepperChange" }
-        if self is UISegmentedControl{ return "segmentChange" }
-        if self is UIDatePicker      { return "datePickerChange" }
-        if self is UITextField       { return "textFieldTap" }
-        if self is UITableViewCell   { return "tableCellTap" }
-        if self is UICollectionViewCell { return "collectionCellTap" }
-        if self is UITabBar          { return "tabBarTap" }
-        if self is UINavigationBar   { return "navigationBarTap" }
-
-        // SwiftUI — detect by class name
-        let name = String(describing: type(of: self))
-        if name.contains("Button")        { return "buttonTap" }
-        if name.contains("Switch") || name.contains("Toggle") { return "switchToggle" }
-        if name.contains("Slider")        { return "sliderChange" }
-        if name.contains("Stepper")       { return "stepperChange" }
-        if name.contains("Segment")       { return "segmentChange" }
-        if name.contains("DatePicker")    { return "datePickerChange" }
-        if name.contains("TextField")     { return "textFieldTap" }
-        if name.contains("NavigationLink"){ return "navigationLinkTap" }
-        if name.contains("Menu")          { return "menuTap" }
-        if name.contains("Picker")        { return "pickerTap" }
-        
-        if accessibilityTraits.contains(.button) {
-            return "buttonTap"
-        }
-        
-        return "tap"
-    }
 }
 
 // MARK: - UIApplication Swizzle
@@ -686,9 +622,11 @@ extension UIApplication {
         for event: UIEvent?
     ) -> Bool {
 
-        if let event = event {
-            BTActionState.shared.lastHandledEvent = event
+        if BTActionState.shared.lastHandledEvent === event {
+            BTActionState.shared.lastHandledEvent = nil
+            return btt_sendAction(action, to: target, from: sender, for: event)
         }
+        
         let actionSelector = NSStringFromSelector(action)
         let className = sender.map { String(describing: type(of: $0)) } ?? "nil"
         let targetName = target.map { String(describing: type(of: $0)) } ?? "nil"
@@ -713,10 +651,7 @@ extension UIApplication {
 
         guard event.type == .touches else { return }
 
-        if BTActionState.shared.lastHandledEvent === event {
-            BTActionState.shared.lastHandledEvent = nil
-            return
-        }
+        BTActionState.shared.lastHandledEvent = event
         
         event.allTouches?
             .filter { $0.phase == .ended }
@@ -763,7 +698,6 @@ extension UIApplication {
 }
 
 // MARK: - Event Builder
-
 enum BTEventEmitter {
 
     static func emitTracked(view: UIView, point: CGPoint, action: String) {
@@ -778,7 +712,7 @@ enum BTEventEmitter {
 
     static func emit(view: UIView, point: CGPoint) {
         let bundleId   = Bundle.main.bundleIdentifier ?? "unknown"
-        let actionName = view.bt_actionName()
+        let actionName = "tap"
         let identifier = extractIdentifier(from: view)
         let targetId   = "\(bundleId):\(actionName):\(identifier)"
 
@@ -790,76 +724,7 @@ enum BTEventEmitter {
             )
         )
     }
-
-    static func extractIdentifier(from view: UIView) -> String {
-
-        // check self
-        if let id = view.accessibilityIdentifier, !id.isEmpty {
-            return id
-        }
-
-        if let label = view.accessibilityLabel, !label.isEmpty {
-            return label
-        }
-
-        // check accessibility elements
-        if let elements = view.accessibilityElements {
-            for element in elements {
-                if let el = element as? UIAccessibilityIdentification,
-                   let id = el.accessibilityIdentifier,
-                   !id.isEmpty {
-                    return id
-                }
-            }
-        }
-
-        // walk up superviews
-        var current = view.superview
-        while let v = current {
-
-            if let id = v.accessibilityIdentifier, !id.isEmpty {
-                return id
-            }
-
-            if let label = v.accessibilityLabel, !label.isEmpty {
-                return label
-            }
-
-            if let elements = v.accessibilityElements {
-                for element in elements {
-                    if let el = element as? UIAccessibilityIdentification,
-                       let id = el.accessibilityIdentifier,
-                       !id.isEmpty {
-                        return id
-                    }
-                }
-            }
-
-            current = v.superview
-        }
-        
-        while let v = current {
-            if let id = v.accessibilityIdentifier, !id.isEmpty { return id }
-            if let label = v.accessibilityLabel, !label.isEmpty { return label }
-            current = v.superview
-        }
-
-
-        // UIKit fallback
-        if let btn = view as? UIButton,
-           let title = btn.currentTitle {
-            return title
-        }
-
-        if let cell = view as? UITableViewCell,
-           let text = cell.textLabel?.text {
-            return text
-        }
-        
-
-        return "unknown"
-    }
-    /*
+    
     static func extractIdentifier(from view: UIView) -> String {
         // check self
         if let id = view.accessibilityIdentifier, !id.isEmpty { return id }
@@ -878,11 +743,10 @@ enum BTEventEmitter {
         if let cell = view as? UITableViewCell, let text = cell.textLabel?.text { return text }
 
         return "unknown"
-    }*/
+    }
 }
 
 extension UIView {
-
     func bt_viewController() -> UIViewController? {
         var responder: UIResponder? = self
 
@@ -896,4 +760,4 @@ extension UIView {
         return nil
     }
 }
-*/
+
