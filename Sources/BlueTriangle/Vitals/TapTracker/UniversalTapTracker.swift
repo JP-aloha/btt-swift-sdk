@@ -316,10 +316,10 @@ extension UIApplication {
                 // 3. SwiftUI fallback — search inside hosting view subtree
                 if target == nil {
                     target = hitView.bt_findSwiftUIActionable(at: point, in: window)
+                } else {
+                    BTActionState.shared.lastHandledEvent = event
                 }
-                
                 guard let resolvedTarget = target else { return }  // ← truly empty area, skip
-                BTActionState.shared.lastHandledEvent = event
                 BTEventEmitter.emit(view: resolvedTarget, point: point)
             }
     }
