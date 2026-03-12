@@ -664,9 +664,12 @@ extension UIApplication {
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
 
-                if let topVC = UIApplication.shared.bt_topViewController,
+               /* if let topVC = UIApplication.shared.bt_topViewController,
                    let rootView = topVC.view,
                    !hitView.isDescendant(of: rootView) {
+                    return
+                }*/
+                if hitView.bt_viewController() == nil {
                     return
                 }
 
@@ -822,4 +825,20 @@ enum BTEventEmitter {
 
         return "unknown"
     }*/
+}
+
+extension UIView {
+
+    func bt_viewController() -> UIViewController? {
+        var responder: UIResponder? = self
+
+        while let next = responder?.next {
+            if let vc = next as? UIViewController {
+                return vc
+            }
+            responder = next
+        }
+
+        return nil
+    }
 }

@@ -17,7 +17,6 @@ final actor CheckoutEventReporter {
     init(logger: Logging) { self.logger = logger }
     
     func onCheckoutEvent(_ event: CheckoutEvent) {
-        self.reportLogFor(event, message: "BlueTriangle:CheckoutEventReporter - checkout event", debug: true)
         if isValidEvent(event) {
             fireCheckoutEvent(event)
         }
