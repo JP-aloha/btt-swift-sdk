@@ -292,7 +292,7 @@ extension UIApplication {
                       hitView != window else { return }
                 
                 if let topVC = UIApplication.shared.bt_visibleViewController {
-                    if !hitView.isDescendant(of: topVC.view) {
+                    if !hitView.bt_isDescendantOfViewController(topVC) {
                         return
                     }
                 }
@@ -388,6 +388,19 @@ enum BTEventEmitter {
 }
 
 extension UIView {
+    func bt_isDescendantOfViewController(_ vc: UIViewController) -> Bool {
+
+        // Direct descendant of the VC's own view
+        if isDescendant(of: vc.view) { return true }
+
+        // Check all child VCs recursively (UIHostingController, container VCs etc.)
+        for child in vc.children {
+            if bt_isDescendantOfViewController(child) { return true }
+        }
+
+        return false
+    }
+    
     func bt_viewController() -> UIViewController? {
         var responder: UIResponder? = self
 
