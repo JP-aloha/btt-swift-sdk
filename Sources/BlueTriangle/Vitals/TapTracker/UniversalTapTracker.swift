@@ -633,6 +633,9 @@ extension UIApplication {
         for event: UIEvent?
     ) -> Bool {
         
+        if let event = event {
+            BTActionState.shared.lastHandledEvent = event
+        }
         let targetName = NSStringFromSelector(action)
         let actionName = target.map { String(describing: type(of: $0)) } ?? "nil"
         let className = sender.map { String(describing: type(of: $0)) } ?? "nil"
@@ -655,6 +658,11 @@ extension UIApplication {
 
         guard event.type == .touches else { return }
 
+        if BTActionState.shared.lastHandledEvent === event {
+            BTActionState.shared.lastHandledEvent = nil
+            return
+        }
+        
         event.allTouches?
             .filter { $0.phase == .ended }
             .forEach { touch in
@@ -664,13 +672,13 @@ extension UIApplication {
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
 
-                guard let ownerVC = hitView.bt_viewController() else { return }
+               /* guard let ownerVC = hitView.bt_viewController() else { return }
                 if let visibleVC = UIApplication.shared.bt_visibleViewController {
                     if ownerVC === visibleVC , let rootView = visibleVC.view,
                        !hitView.isDescendant(of: rootView)  {
                         return
                     }
-                }
+                }*/
 
                 // 1. bttTrackAction — user defined action
                 if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
@@ -840,4 +848,11 @@ extension UIView {
 
         return nil
     }
+}
+
+final class BTActionState {
+    static let shared = BTActionState()
+    private init() {}
+
+    weak var lastHandledEvent: UIEvent?
 }
