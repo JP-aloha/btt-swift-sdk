@@ -265,11 +265,6 @@ extension UIApplication {
         from sender: Any?,
         for event: UIEvent?
     ) -> Bool {
-
-        if BTActionState.shared.lastHandledEvent === event {
-            BTActionState.shared.lastHandledEvent = nil
-            return btt_sendAction(action, to: target, from: sender, for: event)
-        }
         
         let actionSelector = NSStringFromSelector(action)
         let className = sender.map { String(describing: type(of: $0)) } ?? "nil"
@@ -316,8 +311,6 @@ extension UIApplication {
                 // 3. SwiftUI fallback — search inside hosting view subtree
                 if target == nil {
                     target = hitView.bt_findSwiftUIActionable(at: point, in: window)
-                } else {
-                    BTActionState.shared.lastHandledEvent = event
                 }
                 guard let resolvedTarget = target else { return }  // ← truly empty area, skip
                 BTEventEmitter.emit(view: resolvedTarget, point: point)
