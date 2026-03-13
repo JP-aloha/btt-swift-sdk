@@ -233,23 +233,9 @@ extension UIView {
 
 extension UIApplication {
     var bt_visibleViewController: UIViewController? {
-           guard let root = bt_keyWindow?.rootViewController else { return nil }
-
-           var vc = root
-           while let presented = vc.presentedViewController {
-               vc = presented
-           }
-
-           if let nav = vc as? UINavigationController {
-               return nav.visibleViewController
-           }
-
-           if let tab = vc as? UITabBarController {
-               return tab.selectedViewController
-           }
-
-           return vc
-       }
+        guard let root = bt_keyWindow?.rootViewController else { return nil }
+        return root.bt_topmostUserFacingViewController()
+    }
     
     @objc func btt_sendAction(
         _ action: Selector,
@@ -389,7 +375,6 @@ enum BTEventEmitter {
 
 extension UIView {
     func bt_isDescendantOfViewController(_ vc: UIViewController) -> Bool {
-
         // Direct descendant of the VC's own view
         if isDescendant(of: vc.view) { return true }
 
@@ -415,60 +400,30 @@ extension UIView {
     }
 }
 
-
-extension UIView {
-
-    /// Returns true only if this view lives inside the currently active/visible VC hierarchy.
-    /// Prevents tracking taps that land on a presenting VC's view peeking through.
-    func bt_belongsToActiveViewController(in window: UIWindow) -> Bool {
-        guard let rootVC = window.rootViewController else { return true }
-        // Resolve the topmost active VC (handles nav, tab, presentation)
-        let activeVC = rootVC.bt_topmostViewController()
-        // Walk up this view's VC chain
-        var responder: UIResponder? = self
-        while let next = responder {
-            if let vc = next as? UIViewController {
-                // Must belong to the active VC or one of its children/parents in same flow
-                if vc === activeVC { return true }
-                // Also allow child VCs of the active VC (e.g. container VCs)
-                if activeVC.bt_isAncestor(of: vc) { return true }
-                // If we hit a VC that is NOT the active one and is NOT a child → reject
-                return false
-            }
-            responder = next.next
-        }
-
-        // No VC found in chain — allow (e.g. window-level views)
-        return true
-    }
-}
-
 extension UIViewController {
-
-    /// Recursively finds the topmost presented/visible view controller
-    func bt_topmostViewController() -> UIViewController {
-        // Prefer presented VC first
+    
+    func bt_topmostUserFacingViewController() -> UIViewController {
+        
+        // Walk presented VCs — but skip SwiftUI internal ones
         if let presented = presentedViewController {
-            return presented.bt_topmostViewController()
+            let className = String(describing: type(of: presented))
+            // Skip SwiftUI internal hosting controllers
+            let isSwiftUIInternal = className.contains("PresentationHostingController")
+                || className.contains("_TtGC7SwiftUI")
+            
+            if !isSwiftUIInternal {
+                return presented.bt_topmostUserFacingViewController()
+            }
         }
-        // Navigation controller — use visible VC
-        if let nav = self as? UINavigationController {
-            return nav.visibleViewController?.bt_topmostViewController() ?? self
-        }
-        // Tab bar — use selected
-        if let tab = self as? UITabBarController {
-            return tab.selectedViewController?.bt_topmostViewController() ?? self
-        }
-        return self
-    }
 
-    /// Returns true if self is an ancestor (parent) of the given VC
-    func bt_isAncestor(of vc: UIViewController) -> Bool {
-        var current = vc.parent
-        while let parent = current {
-            if parent === self { return true }
-            current = parent.parent
+        if let nav = self as? UINavigationController {
+            return nav.visibleViewController?.bt_topmostUserFacingViewController() ?? self
         }
-        return false
+
+        if let tab = self as? UITabBarController {
+            return tab.selectedViewController?.bt_topmostUserFacingViewController() ?? self
+        }
+
+        return self
     }
 }
