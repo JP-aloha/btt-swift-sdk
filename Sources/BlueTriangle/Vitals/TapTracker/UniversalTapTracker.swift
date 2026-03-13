@@ -108,18 +108,9 @@ final class BTViewRegistry {
         lock.lock(); defer { lock.unlock() }
         entries.removeAll { $0.view == nil }
 
-        // Get topmost visible VC to validate anchor ownership
-        let topVC = UIApplication.shared.bt_visibleViewController
-
         var best: (UIView, String, CGFloat)?
         for entry in entries {
             guard let anchor = entry.view, anchor.window == window else { continue }
-            
-            // ── NEW: reject anchors that don't belong to the visible VC hierarchy ──
-            if let topVC = topVC {
-                guard anchor.bt_isDescendantOfViewController(topVC) else { continue }
-            }
-            
             let pointInAnchor = anchor.convert(point, from: window)
             guard anchor.bounds.contains(pointInAnchor) else { continue }
             let area = anchor.bounds.width * anchor.bounds.height
@@ -129,23 +120,6 @@ final class BTViewRegistry {
         }
         return best.map { ($0.0, $0.1) }
     }
-    
-    /*func findAction(for point: CGPoint, in window: UIWindow) -> (UIView, String)? {
-        lock.lock(); defer { lock.unlock() }
-        entries.removeAll { $0.view == nil }
-
-        var best: (UIView, String, CGFloat)?
-        for entry in entries {
-            guard let anchor = entry.view, anchor.window == window else { continue }
-            let pointInAnchor = anchor.convert(point, from: window)
-            guard anchor.bounds.contains(pointInAnchor) else { continue }
-            let area = anchor.bounds.width * anchor.bounds.height
-            if best == nil || area < best!.2 {
-                best = (anchor, entry.action, area)
-            }
-        }
-        return best.map { ($0.0, $0.1) }
-    }*/
 }
 
 // MARK: - UIView Helpers
@@ -309,6 +283,12 @@ extension UIApplication {
                 let point = touch.location(in: window)
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
+                
+                if let topVC = UIApplication.shared.bt_visibleViewController {
+                    if !hitView.isDescendant(of: topVC.view)/*!hitView.bt_isDescendantOfViewController(topVC)*/ {
+                        return
+                    }
+                }
 
                 // 1. bttTrackAction — user defined action
                 if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
@@ -323,13 +303,6 @@ extension UIApplication {
                 if target == nil {
                     target = hitView.bt_findSwiftUIActionable(at: point, in: window)
                 }
-                
-                if let topVC = UIApplication.shared.bt_visibleViewController {
-                    if !hitView.bt_isDescendantOfViewController(topVC) {
-                        return
-                    }
-                }
-                
                 guard let resolvedTarget = target else { return }  // ← truly empty area, skip
                 BTEventEmitter.emit(view: resolvedTarget, point: point)
             }
