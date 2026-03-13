@@ -285,11 +285,11 @@ extension UIApplication {
                       hitView != window else { return }
                 
                 
-                if let topVC = UIApplication.shared.bt_visibleViewController {
+               /* if let topVC = UIApplication.shared.bt_visibleViewController {
                     if !hitView.isDescendant(of: topVC.view) {
                         return
                     }
-                }
+                }*/
 
                 // 1. bttTrackAction — user defined action
                 if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
