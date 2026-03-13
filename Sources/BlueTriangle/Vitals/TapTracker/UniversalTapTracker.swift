@@ -129,55 +129,6 @@ extension UIView {
     /// Walk UP the chain — find the first real actionable target
     ///
     /// Walk UP the chain — find the first real actionable target
-    /*func bt_findActionableTarget() -> UIView? {
-        var current: UIView? = self
-        
-        while let view = current {
-            
-            if view is UIWindow { return nil }
-            
-            if let vc = view.bt_viewController(), vc.view === view {
-                return nil
-            }
-            
-            guard view.isUserInteractionEnabled,
-                  !view.isHidden,
-                  view.alpha > 0 else {
-                current = view.superview
-                continue
-            }
-            
-            let className = String(describing: type(of: view))
-            
-            // Skip known container/hosting wrappers — but remember hosting view for SwiftUI fallback
-            if view is UIWindow || view is UIScrollView || view is UIStackView ||
-                className.contains("Hosting") || className.contains("Container") ||
-                className.contains("UITransitionView") || className.contains("UILayoutContainerView") {
-                current = view.superview
-                continue
-            }
-            
-            // UIKit controls
-            if view is UIControl { return view }
-            
-            // Table / collection cells
-            if view is UITableViewCell || view is UICollectionViewCell { return view }
-            
-            // Accessibility button trait (covers SwiftUI Button wrappers)
-            if view.accessibilityTraits.contains(.button) { return view }
-            
-            // Explicit tap gesture recognizer
-            if let gestures = view.gestureRecognizers,
-               gestures.contains(where: { $0 is UITapGestureRecognizer }) {
-                return view
-            }
-            
-            current = view.superview
-        }
-        
-        return nil
-    }*/
-    
     func bt_findActionableTarget() -> UIView? {
         var current: UIView? = self
 
@@ -249,36 +200,6 @@ extension UIView {
     
     /// Depth-first search through subviews for the smallest actionable view
     /// whose frame (converted to window) contains the touch point.
-   /* private func bt_deepSearch(windowPoint: CGPoint, in window: UIWindow) -> UIView? {
-        guard isUserInteractionEnabled, !isHidden, alpha > 0 else { return nil }
-        
-        let localPoint = convert(windowPoint, from: window)
-        guard bounds.contains(localPoint) else { return nil }
-        
-        // Search children first (deepest / smallest match wins)
-        for sub in subviews.reversed() {
-            if let found = sub.bt_deepSearch(windowPoint: windowPoint, in: window) {
-                return found
-            }
-        }
-        
-        // Check self
-        let className = String(describing: type(of: self))
-        let isContainer = self is UIScrollView || self is UIWindow ||
-        className.contains("Hosting") || className.contains("Container") ||
-        className.contains("UITransitionView") || className.contains("UILayoutContainerView")
-        
-        if !isContainer {
-            if accessibilityTraits.contains(.button) { return self }
-            if let gestures = gestureRecognizers,
-               gestures.contains(where: { $0 is UITapGestureRecognizer }) { return self }
-            if self is UIControl { return self }
-            if self is UITableViewCell || self is UICollectionViewCell { return self }
-        }
-        
-        return nil
-    }*/
-    
     private func bt_deepSearch(windowPoint: CGPoint, in window: UIWindow) -> UIView? {
         guard isUserInteractionEnabled, !isHidden, alpha > 0 else { return nil }
 
@@ -438,28 +359,6 @@ enum BTEventEmitter {
         )
     }
     
-   /* static func extractIdentifier(from view: UIView) -> String {
-
-        // 1. accessibility identifier — highest priority (explicitly set by developer)
-        if let id = view.accessibilityIdentifier, !id.isEmpty { return id }
-        
-        // 2. accessibility label
-        if let label = view.accessibilityLabel, !label.isEmpty { return label }
-
-        // 3. walk superview chain
-        var current = view.superview
-        while let v = current {
-            if let id = v.accessibilityIdentifier, !id.isEmpty { return id }
-            if let label = v.accessibilityLabel, !label.isEmpty { return label }
-            current = v.superview
-        }
-
-        // 4. UIKit fallbacks
-        if let btn = view as? UIButton, let title = btn.currentTitle { return title }
-        if let cell = view as? UITableViewCell, let text = cell.textLabel?.text { return text }
-
-        return "unknown"
-    }*/
     static func extractIdentifier(from view: UIView) -> String {
 
         // 1. accessibility identifier — highest priority (explicitly set by developer)
