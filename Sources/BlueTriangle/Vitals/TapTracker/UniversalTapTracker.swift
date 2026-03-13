@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - UIView Associated Object
 
-private var btActionKey: UInt8 = 0
+/*private var btActionKey: UInt8 = 0
 
 // MARK: - UIView Associated Object
 
@@ -466,5 +466,254 @@ extension UIViewController {
         }
         
         return self
+    }
+}*/
+
+//-------------New
+
+import UIKit
+import SwiftUI
+import ObjectiveC
+
+// MARK: - Manual Action Property
+
+private var btActionKey: UInt8 = 0
+
+extension UIView {
+
+    var btAction: String? {
+        get { objc_getAssociatedObject(self, &btActionKey) as? String }
+        set { objc_setAssociatedObject(self, &btActionKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+    }
+}
+
+// MARK: - SwiftUI Modifier
+
+public extension View {
+
+    func bttTrackAction(_ action: String) -> some View {
+        modifier(BTTrackModifier(action: action))
+    }
+}
+
+private struct BTTrackModifier: ViewModifier {
+
+    let action: String
+
+    func body(content: Content) -> some View {
+        content.background(BTActionAnchor(action: action))
+    }
+}
+
+private struct BTActionAnchor: UIViewRepresentable {
+
+    let action: String
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.isUserInteractionEnabled = false
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+
+        DispatchQueue.main.async {
+            uiView.superview?.btAction = action
+        }
+    }
+}
+
+// MARK: - UIApplication Touch Interception
+
+extension UIApplication {
+
+    @objc func btt_sendAction(
+        _ action: Selector,
+        to target: Any?,
+        from sender: Any?,
+        for event: UIEvent?
+    ) -> Bool {
+        
+       /* let actionSelector = NSStringFromSelector(action)
+        let className = sender.map { String(describing: type(of: $0)) } ?? "nil"
+        let targetName = target.map { String(describing: type(of: $0)) } ?? "nil"
+
+        if UIApplication.avoidSender(sender, forTarget: target, action: actionSelector) {
+            return btt_sendAction(action, to: target, from: sender, for: event)
+        }
+
+        BlueTriangle.collectBreadcrumb(
+            UserEvent(
+                targetClass: className,
+                targetId: actionSelector + ":" + targetName,
+                action: "tap"
+            )
+        )*/
+
+        return btt_sendAction(action, to: target, from: sender, for: event)
+    }
+    
+    @objc func swizzled_sendEvent(_ event: UIEvent) {
+
+        swizzled_sendEvent(event)
+
+        guard event.type == .touches else { return }
+
+        event.allTouches?
+            .filter { $0.phase == .ended }
+            .forEach { touch in
+
+                guard let window = touch.window ?? UIApplication.shared.bt_keyWindow else { return }
+
+                let point = touch.location(in: window)
+
+                guard let hitView = window.hitTest(point, with: event) else { return }
+
+                guard let target = hitView.bt_findTrackableView() else { return }
+
+                BTEventEmitter.emit(view: target)
+            }
+    }
+}
+
+// MARK: - Key Window
+
+extension UIApplication {
+
+    var bt_keyWindow: UIWindow? {
+
+        if #available(iOS 13.0, *) {
+            return connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .flatMap { $0.windows }
+                .first { $0.isKeyWindow }
+        }
+
+        return windows.first { $0.isKeyWindow }
+    }
+}
+
+// MARK: - Trackable View Resolver
+
+extension UIView {
+
+    func bt_findTrackableView() -> UIView? {
+
+        var current: UIView? = self
+
+        while let view = current {
+
+            if view is UIWindow { return nil }
+
+            guard view.isUserInteractionEnabled,
+                  !view.isHidden,
+                  view.alpha > 0 else {
+                current = view.superview
+                continue
+            }
+
+            // 1️⃣ Manual action (highest priority)
+            if view.btAction != nil {
+                return view
+            }
+
+            let className = String(describing: type(of: view))
+
+            // Skip layout/container views
+            let isContainer =
+                view is UIStackView ||
+                view is UIScrollView ||
+                className.contains("Container") ||
+                className.contains("Hosting")
+
+            if isContainer {
+                current = view.superview
+                continue
+            }
+
+            // 2️⃣ UIControl (UIButton, UISwitch etc)
+            if view is UIControl {
+                return view
+            }
+
+            // 3️⃣ SwiftUI button detection
+            if view.accessibilityTraits.contains(.button) {
+                return view
+            }
+
+            // 4️⃣ accessibility identifier
+            if let id = view.accessibilityIdentifier, !id.isEmpty {
+                return view
+            }
+
+            // 5️⃣ accessibility label
+            if let label = view.accessibilityLabel, !label.isEmpty {
+                return view
+            }
+
+            // 6️⃣ Tap gesture
+            if let gestures = view.gestureRecognizers,
+               gestures.contains(where: { $0 is UITapGestureRecognizer }) {
+                return view
+            }
+
+            // 7️⃣ Table / Collection cells
+            if view is UITableViewCell || view is UICollectionViewCell {
+                return view
+            }
+
+            current = view.superview
+        }
+
+        return nil
+    }
+}
+
+// MARK: - Event Builder
+
+enum BTEventEmitter {
+
+    static func emit(view: UIView) {
+
+        let bundleId = Bundle.main.bundleIdentifier ?? "unknown"
+        let action = "tap"
+
+        let identifier = view.btAction ?? extractIdentifier(from: view)
+
+        let targetId = "\(bundleId):\(action):\(identifier)"
+
+        BlueTriangle.collectBreadcrumb(
+            UserEvent(
+                targetClass: String(describing: type(of: view)),
+                targetId: targetId,
+                action: action
+            )
+        )
+    }
+
+    static func extractIdentifier(from view: UIView) -> String {
+
+        if let id = view.accessibilityIdentifier, !id.isEmpty {
+            return id
+        }
+
+        if let label = view.accessibilityLabel, !label.isEmpty {
+            return label
+        }
+
+        if let button = view as? UIButton,
+           let title = button.currentTitle,
+           !title.isEmpty {
+            return title
+        }
+
+        if let cell = view as? UITableViewCell,
+           let text = cell.textLabel?.text,
+           !text.isEmpty {
+            return text
+        }
+
+        return "unknown"
     }
 }
