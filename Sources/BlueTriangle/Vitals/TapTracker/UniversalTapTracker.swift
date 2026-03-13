@@ -284,8 +284,26 @@ extension UIApplication {
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
                 
-                if let topVC = UIApplication.shared.bt_visibleViewController {
+                
+                /*if let topVC = UIApplication.shared.bt_visibleViewController {
                     if !hitView.isDescendant(of: topVC.view)/*!hitView.bt_isDescendantOfViewController(topVC)*/ {
+                        return
+                    }
+                }*/
+                guard let topVC = UIApplication.shared.bt_visibleViewController else { return }
+
+                // Find the VC that owns the touched view
+                if let touchedVC = hitView.bt_viewController() {
+
+                    // Allow if the touch belongs to the visible VC
+                    if touchedVC === topVC {
+                        // OK
+                    }
+                    // Allow if inside its child hierarchy
+                    else if touchedVC.isDescendant(of: topVC) {
+                        // OK
+                    }
+                    else {
                         return
                     }
                 }
@@ -407,6 +425,18 @@ extension UIView {
 }
 
 extension UIViewController {
+    
+    func isDescendant(of parent: UIViewController) -> Bool {
+        var current: UIViewController? = self
+        
+        while let vc = current {
+            if vc === parent { return true }
+            current = vc.parent
+        }
+        
+        return false
+    }
+    
     func bt_topmostUserFacingViewController() -> UIViewController {
         if let presented = presentedViewController {
             let className = String(describing: type(of: presented))
