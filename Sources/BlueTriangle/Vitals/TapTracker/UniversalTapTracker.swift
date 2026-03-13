@@ -292,18 +292,8 @@ extension UIApplication {
                 }*/
                 guard let topVC = UIApplication.shared.bt_visibleViewController else { return }
 
-                // Find the VC that owns the touched view
                 if let touchedVC = hitView.bt_viewController() {
-
-                    // Allow if the touch belongs to the visible VC
-                    if touchedVC === topVC {
-                        // OK
-                    }
-                    // Allow if inside its child hierarchy
-                    else if touchedVC.isDescendant(of: topVC) {
-                        // OK
-                    }
-                    else {
+                    if !touchedVC.bt_isInHierarchy(of: topVC) {
                         return
                     }
                 }
