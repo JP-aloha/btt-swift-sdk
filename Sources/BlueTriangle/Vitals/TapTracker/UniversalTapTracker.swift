@@ -49,11 +49,12 @@ private struct BTAnchorView: UIViewRepresentable {
 
     func updateUIView(_ uiView: BTTouchAnchor, context: Context) {
         uiView.action = action
-        DispatchQueue.main.async {
+        uiView.frame = CGRect(origin: .zero, size: size)
+       /* DispatchQueue.main.async {
             if let superview = uiView.superview {
                 uiView.frame = CGRect(origin: .zero, size: superview.bounds.size)
             }
-        }
+        }*/
     }
 }
 
