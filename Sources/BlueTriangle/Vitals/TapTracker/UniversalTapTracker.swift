@@ -131,9 +131,8 @@ final class BTViewRegistry {
         for entry in entries {
             guard let anchor = entry.view, anchor.window == window else { continue }
 
-            // ensure anchor is actually visible/topmost
             guard let hit = window.hitTest(point, with: nil),
-                  hit.isDescendant(of: anchor) else { continue }
+                  anchor.isDescendant(of: hit) || hit.isDescendant(of: anchor) else { continue }
 
             let pointInAnchor = anchor.convert(point, from: window)
             guard anchor.bounds.contains(pointInAnchor) else { continue }
