@@ -303,7 +303,7 @@ extension UIApplication {
         guard event.type == .touches else { return }
         
         event.allTouches?
-            .filter { $0.phase == .began }
+            .filter { $0.phase == .ended }
             .forEach { touch in
                 BlueTriangle.groupTimer.setLastAction(Date())
                 guard let window = touch.window ?? UIApplication.shared.bt_keyWindow else { return }
