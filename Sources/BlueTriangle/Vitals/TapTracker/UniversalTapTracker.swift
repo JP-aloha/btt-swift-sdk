@@ -426,6 +426,25 @@ extension UIView {
 
 extension UIViewController {
     
+    func bt_isInHierarchy(of root: UIViewController) -> Bool {
+        
+        if self === root { return true }
+        
+        var parentVC = self.parent
+        while let vc = parentVC {
+            if vc === root { return true }
+            parentVC = vc.parent
+        }
+        
+        var presenting = self.presentingViewController
+        while let vc = presenting {
+            if vc === root { return true }
+            presenting = vc.presentingViewController
+        }
+        
+        return false
+    }
+
     func isDescendant(of parent: UIViewController) -> Bool {
         var current: UIViewController? = self
         
