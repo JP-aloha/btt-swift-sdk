@@ -283,12 +283,6 @@ extension UIApplication {
                 let point = touch.location(in: window)
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
-                
-                if let topVC = UIApplication.shared.bt_visibleViewController {
-                    if !hitView.bt_isDescendantOfViewController(topVC) {
-                        return
-                    }
-                }
 
                 // 1. bttTrackAction — user defined action
                 if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
@@ -303,6 +297,13 @@ extension UIApplication {
                 if target == nil {
                     target = hitView.bt_findSwiftUIActionable(at: point, in: window)
                 }
+                
+                if let topVC = UIApplication.shared.bt_visibleViewController {
+                    if !hitView.bt_isDescendantOfViewController(topVC) {
+                        return
+                    }
+                }
+                
                 guard let resolvedTarget = target else { return }  // ← truly empty area, skip
                 BTEventEmitter.emit(view: resolvedTarget, point: point)
             }
