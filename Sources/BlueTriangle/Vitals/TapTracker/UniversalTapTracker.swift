@@ -231,13 +231,13 @@ extension UIView {
     
     /// After the upward walk fails, search inside the nearest SwiftUI hosting view
     /// for any descendant that contains `point` (in window coords) and looks actionable.
-    func bt_findSwiftUIActionable(at windowPoint: CGPoint, in window: UIWindow) -> UIView? {
+   /* func bt_findSwiftUIActionable(at windowPoint: CGPoint, in window: UIWindow) -> UIView? {
         // Find the nearest hosting view ancestor
         guard let host = bt_nearestHostingView() else { return nil }
         return host.bt_deepSearch(windowPoint: windowPoint, in: window)
-    }
+    }*/
     
-    private func bt_nearestHostingView() -> UIView? {
+    func bt_nearestHostingView() -> UIView? {
         var v: UIView? = self
         while let view = v {
             let name = String(describing: type(of: view))
@@ -245,6 +245,16 @@ extension UIView {
             v = view.superview
         }
         return nil
+    }
+    
+    func bt_isInSwiftUIHosting() -> Bool {
+        var current: UIView? = self
+        while let view = current {
+            let className = String(describing: type(of: view))
+            if className.contains("Hosting") { return true }
+            current = view.superview
+        }
+        return false
     }
     
     /// Depth-first search through subviews for the smallest actionable view
@@ -279,7 +289,7 @@ extension UIView {
         return nil
     }*/
     
-    private func bt_deepSearch(windowPoint: CGPoint, in window: UIWindow) -> UIView? {
+   /* private func bt_deepSearch(windowPoint: CGPoint, in window: UIWindow) -> UIView? {
         guard isUserInteractionEnabled, !isHidden, alpha > 0 else { return nil }
 
         let localPoint = convert(windowPoint, from: window)
@@ -305,6 +315,62 @@ extension UIView {
             if accessibilityTraits.contains(.button) { return self }
             if let id = accessibilityIdentifier, !id.isEmpty { return self }  // ← NEW
             if let label = accessibilityLabel, !label.isEmpty { return self }  // ← NEW
+            if let gestures = gestureRecognizers,
+               gestures.contains(where: { $0 is UITapGestureRecognizer }) { return self }
+            if self is UIControl { return self }
+            if self is UITableViewCell || self is UICollectionViewCell { return self }
+        }
+
+        return nil
+    }*/
+    
+    
+    func bt_findSwiftUIActionable(at windowPoint: CGPoint, in window: UIWindow) -> UIView? {
+        // Always start from ROOT hosting view — not from hitView
+        // This ensures we search the full SwiftUI tree including views
+        // that sit above the color background that captured the hit test
+        guard let hostingRoot = bt_rootHostingView() else { return nil }
+        return hostingRoot.bt_deepSearch(windowPoint: windowPoint, in: window)
+    }
+
+    /// Walk UP to find the topmost hosting view (root of SwiftUI tree)
+    private func bt_rootHostingView() -> UIView? {
+        var result: UIView? = nil
+        var current: UIView? = self
+        while let view = current {
+            let name = String(describing: type(of: view))
+            if name.contains("Hosting") { result = view }
+            current = view.superview
+        }
+        return result
+    }
+
+    private func bt_deepSearch(windowPoint: CGPoint, in window: UIWindow) -> UIView? {
+        guard isUserInteractionEnabled, !isHidden, alpha > 0 else { return nil }
+
+        let localPoint = convert(windowPoint, from: window)
+        guard bounds.contains(localPoint) else { return nil }
+
+        // Search children first — deepest/smallest match wins
+        for sub in subviews.reversed() {
+            if let found = sub.bt_deepSearch(windowPoint: windowPoint, in: window) {
+                return found
+            }
+        }
+
+        let className = String(describing: type(of: self))
+        let isContainer = self is UIScrollView
+            || self is UIWindow
+            || self is UIStackView
+            || className.contains("Hosting")
+            || className.contains("Container")
+            || className.contains("UITransitionView")
+            || className.contains("UILayoutContainerView")
+
+        if !isContainer {
+            // Check positive signals
+            if accessibilityTraits.contains(.button) { return self }
+            if let id = accessibilityIdentifier, !id.isEmpty { return self }
             if let gestures = gestureRecognizers,
                gestures.contains(where: { $0 is UITapGestureRecognizer }) { return self }
             if self is UIControl { return self }
@@ -362,6 +428,46 @@ extension UIApplication {
                 let point = touch.location(in: window)
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
+
+                // 1. bttTrackAction — user defined action
+                if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
+                    BTEventEmitter.emitTracked(view: target, point: point, action: action)
+                    return
+                }
+
+                // 2. Check if in SwiftUI hosting — use full subtree search
+                if hitView.bt_isInSwiftUIHosting() {
+                    // Search entire hosting subtree at touch point — not just hitView chain
+                    if let target = hitView.bt_findSwiftUIActionable(at: point, in: window) {
+                        BTEventEmitter.emit(view: target, point: point)
+                    }
+                    return  // ← always return here, SwiftUI handles its own empty areas
+                }
+
+                // 3. UIKit only — VC hierarchy check
+                if let topVC = UIApplication.shared.bt_visibleViewController {
+                    guard hitView.bt_isDescendantOfViewController(topVC) else { return }
+                }
+                
+                // 4. Walk up to find actionable UIKit target
+                guard let target = hitView.bt_findActionableTarget() else { return }
+                BTEventEmitter.emit(view: target, point: point)
+            }
+    }
+    
+   /* @objc func swizzled_sendEvent(_ event: UIEvent) {
+        swizzled_sendEvent(event)
+
+        guard event.type == .touches else { return }
+        
+        event.allTouches?
+            .filter { $0.phase == .began }
+            .forEach { touch in
+                BlueTriangle.groupTimer.setLastAction(Date())
+                guard let window = touch.window ?? UIApplication.shared.bt_keyWindow else { return }
+                let point = touch.location(in: window)
+                guard let hitView = window.hitTest(point, with: event),
+                      hitView != window else { return }
                 
                 if let topVC = UIApplication.shared.bt_visibleViewController {
                     if !hitView.bt_isDescendantOfViewController(topVC) {
@@ -385,7 +491,7 @@ extension UIApplication {
                 guard let resolvedTarget = target else { return }  // ← truly empty area, skip
                 BTEventEmitter.emit(view: resolvedTarget, point: point)
             }
-    }
+    }*/
     
     private static func avoidSender(_ sender: Any?, forTarget target: Any?, action: String) -> Bool {
         guard let sender = sender, let target = target else {
