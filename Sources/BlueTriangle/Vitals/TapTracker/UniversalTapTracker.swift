@@ -105,7 +105,7 @@ final class BTViewRegistry {
         entries.removeAll { $0.view == nil || $0.view === view }
     }
 
-    func findAction(for point: CGPoint, in window: UIWindow) -> (UIView, String)? {
+    /*func findAction(for point: CGPoint, in window: UIWindow) -> (UIView, String)? {
         lock.lock(); defer { lock.unlock() }
         entries.removeAll { $0.view == nil }
 
@@ -119,6 +119,32 @@ final class BTViewRegistry {
                 best = (anchor, entry.action, area)
             }
         }
+        return best.map { ($0.0, $0.1) }
+    }*/
+    
+    func findAction(for point: CGPoint, in window: UIWindow) -> (UIView, String)? {
+        lock.lock(); defer { lock.unlock() }
+        entries.removeAll { $0.view == nil }
+
+        var best: (UIView, String, CGFloat)?
+
+        for entry in entries {
+            guard let anchor = entry.view, anchor.window == window else { continue }
+
+            // ensure anchor is actually visible/topmost
+            guard let hit = window.hitTest(point, with: nil),
+                  hit.isDescendant(of: anchor) else { continue }
+
+            let pointInAnchor = anchor.convert(point, from: window)
+            guard anchor.bounds.contains(pointInAnchor) else { continue }
+
+            let area = anchor.bounds.width * anchor.bounds.height
+
+            if best == nil || area < best!.2 {
+                best = (anchor, entry.action, area)
+            }
+        }
+
         return best.map { ($0.0, $0.1) }
     }
 }
