@@ -49,12 +49,11 @@ private struct BTAnchorView: UIViewRepresentable {
 
     func updateUIView(_ uiView: BTTouchAnchor, context: Context) {
         uiView.action = action
-        uiView.frame = CGRect(origin: .zero, size: size)
-       /* DispatchQueue.main.async {
+        DispatchQueue.main.async {
             if let superview = uiView.superview {
                 uiView.frame = CGRect(origin: .zero, size: superview.bounds.size)
             }
-        }*/
+        }
     }
 }
 
@@ -131,6 +130,12 @@ final class BTViewRegistry {
         for entry in entries {
             guard let anchor = entry.view, anchor.window == window else { continue }
 
+            let anchorFrameInWindow = anchor.convert(anchor.bounds, to: window)
+            print(" anchor action: \(entry.action)")
+            print(" anchor frameInWindow: \(anchorFrameInWindow)")
+            print(" touch point: \(point)")
+            print(" contains: \(anchorFrameInWindow.contains(point))")
+            
             guard let hit = window.hitTest(point, with: nil),
                   anchor.isDescendant(of: hit) || hit.isDescendant(of: anchor) else { continue }
 
@@ -188,8 +193,8 @@ extension UIView {
             if view is UIControl { return view }
             if view is UITableViewCell || view is UICollectionViewCell { return view }
             if view.accessibilityTraits.contains(.button) { return view }
-            if let id = view.accessibilityIdentifier, !id.isEmpty { return view }  // ← NEW
-            if let label = view.accessibilityLabel, !label.isEmpty { return view }  // ← NEW
+            if let id = view.accessibilityIdentifier, !id.isEmpty { return view }
+            if let label = view.accessibilityLabel, !label.isEmpty { return view }
             if let gestures = view.gestureRecognizers,
                gestures.contains(where: { $0 is UITapGestureRecognizer }) {
                 return view
@@ -250,8 +255,8 @@ extension UIView {
 
         if !isContainer {
             if accessibilityTraits.contains(.button) { return self }
-            if let id = accessibilityIdentifier, !id.isEmpty { return self }  // ← NEW
-            if let label = accessibilityLabel, !label.isEmpty { return self }  // ← NEW
+            if let id = accessibilityIdentifier, !id.isEmpty { return self }
+            if let label = accessibilityLabel, !label.isEmpty { return self }
             if let gestures = gestureRecognizers,
                gestures.contains(where: { $0 is UITapGestureRecognizer }) { return self }
             if self is UIControl { return self }
@@ -309,13 +314,6 @@ extension UIApplication {
                 let point = touch.location(in: window)
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
-                
-                
-               /* if let topVC = UIApplication.shared.bt_visibleViewController {
-                    if !hitView.isDescendant(of: topVC.view) {
-                        return
-                    }
-                }*/
 
                 // 1. bttTrackAction — user defined action
                 if let (target, action) = BTViewRegistry.shared.findAction(for: point, in: window) {
