@@ -22,8 +22,8 @@ import SwiftUI
 #endif
 
 enum LaunchEvent {
-    case Cold(Date, TimeInterval)
-    case Hot(Date, TimeInterval)
+    case Cold(Date, TimeInterval, Int32)
+    case Hot(Date, TimeInterval, Int32)
 }
 
 enum SystemEvent {
@@ -162,7 +162,7 @@ extension LaunchTimeMonitor {
     private func notifyHotLaunch(_ foregroundEvent: SystemEvent, _ activeTime: Date) {
         if case .didEnterForeground(let startTime) = foregroundEvent {
             let duration = activeTime.timeIntervalSince(startTime)
-            launchEventPublisher.send(.Hot(startTime, duration))
+            launchEventPublisher.send(.Hot(startTime, duration, 100))
             logger.info("Notify hot launch at \(startTime)")
         }
     }
@@ -174,10 +174,10 @@ extension LaunchTimeMonitor {
             let processAge = activeTime.timeIntervalSince(processStartTime)
             if processAge > launchTimeThreshold {
                 let duration = activeTime.timeIntervalSince(startTime)
-                launchEventPublisher.send(.Cold(startTime, duration))
+                launchEventPublisher.send(.Cold(startTime, duration, 70))
             } else {
                 let duration = activeTime.timeIntervalSince(processStartTime)
-                launchEventPublisher.send(.Cold(processStartTime, duration))
+                launchEventPublisher.send(.Cold(processStartTime, duration, 100))
             }
             logger.info("Notify cold launch at \(startTime)")
         }
