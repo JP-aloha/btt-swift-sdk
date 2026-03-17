@@ -861,23 +861,29 @@ extension UIApplication {
         
         var x: Float = 0
         var y: Float = 0
-        
+        var timestamp: TimeInterval = Date().timeIntervalSince1970
+
         if let touch = event?.allTouches?.first,
            let window = touch.window ?? UIApplication.shared.bt_keyWindow {
             let point = touch.location(in: window)
             x = Float(point.x / window.bounds.width)
             y = Float(point.y / window.bounds.height)
+            timestamp = touch.timestamp
+
         }
 
-        BlueTriangle.collectBreadcrumb(
-            UserEvent(
-                targetClass: className,
-                targetId: actionSelector + ":" + targetName,
-                action: "tap",
-                x: x,
-                y: y
+        // Only track if not duplicate by coordinate and timestamp
+        if shouldTrackEvent(timestamp: timestamp, x: x, y: y) {
+            BlueTriangle.collectBreadcrumb(
+                UserEvent(
+                    targetClass: className,
+                    targetId: actionSelector + ":" + targetName,
+                    action: "tap",
+                    x: x,
+                    y: y
+                )
             )
-        )
+        }
         return btt_sendAction(action, to: target, from: sender, for: event)
     }
 
@@ -892,6 +898,13 @@ extension UIApplication {
                 BlueTriangle.groupTimer.setLastAction(Date())
                 guard let window = touch.window ?? UIApplication.shared.bt_keyWindow else { return }
                 let point = touch.location(in: window)
+                let x = Float(point.x / window.bounds.width)
+                let y = Float(point.y / window.bounds.height)
+                let timestamp = touch.timestamp
+                
+                // Skip if duplicate by coordinate and timestamp
+                guard shouldTrackEvent(timestamp: timestamp, x: x, y: y) else { return }
+                
                 guard let hitView = window.hitTest(point, with: event),
                       hitView != window else { return }
 
@@ -1009,5 +1022,35 @@ enum BTEventEmitter {
         if let cell = view as? UITableViewCell, let text = cell.textLabel?.text { return text }
 
         return "unknown"
+    }
+}
+
+extension UIApplication {
+    private static var lastTrackedEvent: (timestamp: TimeInterval, x: Float, y: Float)?
+    private static let dedupThreshold: TimeInterval = 0.1 // 100ms threshold
+    private static let coordinateThreshold: Float = 0.01 // 1% of screen
+    
+    func shouldTrackEvent(timestamp: TimeInterval, x: Float, y: Float) -> Bool {
+        // If no previous event, track it
+        guard let last = UIApplication.lastTrackedEvent else {
+            UIApplication.lastTrackedEvent = (timestamp, x, y)
+            return true
+        }
+        
+        // Check if within time threshold AND same coordinate
+        let timeDiff = timestamp - last.timestamp
+        let xDiff = abs(last.x - x)
+        let yDiff = abs(last.y - y)
+        
+        let isDuplicate = timeDiff < UIApplication.dedupThreshold &&
+                          xDiff < UIApplication.coordinateThreshold &&
+                          yDiff < UIApplication.coordinateThreshold
+        
+        if !isDuplicate {
+            // Update last tracked event
+            UIApplication.lastTrackedEvent = (timestamp, x, y)
+        }
+        
+        return !isDuplicate
     }
 }
