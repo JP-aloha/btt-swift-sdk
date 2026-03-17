@@ -504,7 +504,6 @@ enum BTEventEmitter {
 //------------------------New-------------------------
 
 
-
 import UIKit
 import SwiftUI
 
@@ -620,12 +619,12 @@ final class BTViewRegistry {
         for entry in entries {
             guard let anchor = entry.view, anchor.window == window else { continue }
 
-            // ── VC ownership check ──────────────────────────────────────────
+            // VC ownership check
             if let topVC = topVC {
                 guard anchor.bt_isOwnedByVC(topVC) else { continue }
             }
 
-            // ── Use frame-in-window for point check — works for SwiftUI ────
+            // Use frame-in-window for point check — works for SwiftUI
             let anchorFrameInWindow = anchor.convert(anchor.bounds, to: window)
             guard anchorFrameInWindow.contains(point) else { continue }
 
@@ -649,6 +648,32 @@ extension UIView {
             if className.contains("Hosting") { return true }
             current = view.superview
         }
+        return false
+    }
+
+    func bt_isSwiftUIButton() -> Bool {
+        let className = String(describing: type(of: self))
+        
+        // SwiftUI button indicators
+        if className.contains("Button") || className.contains("ButtonView") {
+            return true
+        }
+        
+        // Check for SwiftUI button traits
+        if accessibilityTraits.contains(.button) {
+            return true
+        }
+        
+        // Check superview chain for button containers
+        var current: UIView? = self.superview
+        while let view = current {
+            let superClass = String(describing: type(of: view))
+            if superClass.contains("Button") || superClass.contains("ButtonView") {
+                return true
+            }
+            current = view.superview
+        }
+        
         return false
     }
 
@@ -740,15 +765,20 @@ extension UIView {
         let localPoint = convert(windowPoint, from: window)
         guard bounds.contains(localPoint) else { return nil }
         
-        // Check subviews first (SwiftUI hierarchy is deep, and we want the deepest view)
+        // FIRST: Check if current view has an accessibility identifier (CRITICAL FOR SWIFTUI)
+        if let id = accessibilityIdentifier, !id.isEmpty {
+            return self
+        }
+        
+        // THEN check subviews (SwiftUI hierarchy is deep)
         for subview in subviews.reversed() {
             if let found = subview.bt_deepSearchSwiftUI(windowPoint: windowPoint, in: window) {
                 return found
             }
         }
         
-        // Then check if current view has an accessibility identifier
-        if let id = accessibilityIdentifier, !id.isEmpty {
+        // Check if it's a SwiftUI button
+        if bt_isSwiftUIButton() {
             return self
         }
         
@@ -861,15 +891,16 @@ extension UIApplication {
             y = Float(point.y / window.bounds.height)
         }
 
-        BlueTriangle.collectBreadcrumb(
-            UserEvent(
-                targetClass: className,
-                targetId: actionSelector + ":" + targetName,
+        // Assuming BlueTriangle is your analytics SDK
+         BlueTriangle.collectBreadcrumb(
+             UserEvent(
+                 targetClass: className,
+                 targetId: actionSelector + ":" + targetName,
                 action: "tap",
                 x: x,
-                y: y
+                 y: y
             )
-        )
+         )
         return btt_sendAction(action, to: target, from: sender, for: event)
     }
 
@@ -881,7 +912,7 @@ extension UIApplication {
         event.allTouches?
             .filter { $0.phase == .began || $0.phase == .ended}
             .forEach { touch in
-                BlueTriangle.groupTimer.setLastAction(Date())
+                // BlueTriangle.groupTimer.setLastAction(Date())
                 guard let window = touch.window ?? UIApplication.shared.bt_keyWindow else { return }
                 let point = touch.location(in: window)
                 guard let hitView = window.hitTest(point, with: event),
@@ -950,12 +981,13 @@ enum BTEventEmitter {
     static func emitTracked(view: UIView, point: CGPoint, action: String) {
         guard let window = view.window else { return }
         let (x, y) = normalize(point: point, in: window)
-        BlueTriangle.collectBreadcrumb(
-            UserEvent(
-                targetClass: String(describing: type(of: view)),
+        print("📊 TRACKED: \(action) - \(String(describing: type(of: view))) at (\(x), \(y))")
+         BlueTriangle.collectBreadcrumb(
+             UserEvent(
+                 targetClass: String(describing: type(of: view)),
                 targetId: action,
-                action: "tap",
-                x: x,
+                 action: "tap",
+                 x: x,
                 y: y
             )
         )
@@ -970,13 +1002,14 @@ enum BTEventEmitter {
         let identifier = extractIdentifier(from: view)
         let targetId = "\(bundleId):\(actionName):\(identifier)"
         
-        BlueTriangle.collectBreadcrumb(
+        print("📊 AUTO-TRACK: \(identifier) - \(String(describing: type(of: view))) at (\(x), \(y))")
+         BlueTriangle.collectBreadcrumb(
             UserEvent(
                 targetClass: String(describing: type(of: view)),
-                targetId: targetId,
+                 targetId: targetId,
                 action: actionName,
                 x: x,
-                y: y
+                 y: y
             )
         )
     }
@@ -988,17 +1021,30 @@ enum BTEventEmitter {
     }
 
     static func extractIdentifier(from view: UIView) -> String {
-        // First, try to find any accessibility identifier in the view hierarchy
-        // starting from this view and going deep into subviews
-        if let id = findAccessibilityIdentifier(in: view) {
+        // CRITICAL FIX: Check the view itself FIRST for accessibilityIdentifier
+        if let id = view.accessibilityIdentifier, !id.isEmpty {
+            print("🔑 Found direct identifier: \(id)")
+            return id
+        }
+        
+        // Then do a deep search of all subviews
+        if let id = deepSearchAccessibilityIdentifier(in: view) {
+            print("🔑 Found deep identifier: \(id)")
             return id
         }
         
         // If not found, try to find the root hosting view and search from there
         if let hostingView = findHostingView(for: view) {
-            if let id = findAccessibilityIdentifier(in: hostingView) {
+            if let id = deepSearchAccessibilityIdentifier(in: hostingView) {
+                print("🔑 Found hosting view identifier: \(id)")
                 return id
             }
+        }
+        
+        // Try to get button title for SwiftUI buttons
+        if let buttonTitle = getSwiftUIButtonTitle(from: view) {
+            print("🔑 Found button title: \(buttonTitle)")
+            return buttonTitle
         }
         
         // Fallback to other identifiers
@@ -1013,18 +1059,19 @@ enum BTEventEmitter {
             return text
         }
 
+        print("⚠️ No identifier found for: \(String(describing: type(of: view)))")
         return "unknown"
     }
 
-    private static func findAccessibilityIdentifier(in view: UIView) -> String? {
+    private static func deepSearchAccessibilityIdentifier(in view: UIView) -> String? {
         // Check current view
         if let id = view.accessibilityIdentifier, !id.isEmpty {
             return id
         }
         
-        // Recursively check all subviews (SwiftUI can nest very deep)
+        // Recursively check all subviews
         for subview in view.subviews {
-            if let id = findAccessibilityIdentifier(in: subview) {
+            if let id = deepSearchAccessibilityIdentifier(in: subview) {
                 return id
             }
         }
@@ -1043,6 +1090,19 @@ enum BTEventEmitter {
                 return v
             }
             current = v.superview
+        }
+        return nil
+    }
+    
+    private static func getSwiftUIButtonTitle(from view: UIView) -> String? {
+        // Look for UILabel subviews that might contain the button title
+        for subview in view.subviews {
+            if let label = subview as? UILabel, let text = label.text, !text.isEmpty {
+                return text
+            }
+            if let title = getSwiftUIButtonTitle(from: subview) {
+                return title
+            }
         }
         return nil
     }
