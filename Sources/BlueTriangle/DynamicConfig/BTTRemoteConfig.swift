@@ -10,7 +10,7 @@ import Foundation
 
 class BTTRemoteConfig: Codable, Equatable {
     var networkSampleRateSDK: Double?
-    var enableRemoteConfigAck: Bool?
+    var configKey: String?
     var ignoreScreens : [String]?
     var enableAllTracking: Bool?
     var enableScreenTracking : Bool?
@@ -35,7 +35,7 @@ class BTTRemoteConfig: Codable, Equatable {
     var ignoreBreadcrumbs: [String]?
     
     init(networkSampleRateSDK: Double?,
-         enableRemoteConfigAck : Bool?,
+         configKey : String?,
          enableAllTracking : Bool?,
          enableScreenTracking: Bool?,
          enableGrouping : Bool?,
@@ -59,7 +59,7 @@ class BTTRemoteConfig: Codable, Equatable {
          ignoreBreadcrumbs : [String]?,
          enableBreadcrumbs : Bool?) {
         self.networkSampleRateSDK = networkSampleRateSDK
-        self.enableRemoteConfigAck = enableRemoteConfigAck
+        self.configKey = configKey
         self.ignoreScreens = ignoreScreens
         self.enableAllTracking = enableAllTracking
         self.enableScreenTracking = enableScreenTracking
@@ -88,7 +88,7 @@ class BTTRemoteConfig: Codable, Equatable {
     
     static func == (lhs: BTTRemoteConfig, rhs: BTTRemoteConfig) -> Bool {
         return lhs.networkSampleRateSDK == rhs.networkSampleRateSDK &&
-        lhs.enableRemoteConfigAck == rhs.enableRemoteConfigAck  &&
+        lhs.configKey == rhs.configKey  &&
         lhs.ignoreScreens == rhs.ignoreScreens &&
         lhs.enableAllTracking == rhs.enableAllTracking &&
         lhs.enableScreenTracking == rhs.enableScreenTracking &&
@@ -116,7 +116,7 @@ class BTTRemoteConfig: Codable, Equatable {
     
     internal static var defaultConfig: BTTSavedRemoteConfig {
         BTTSavedRemoteConfig(networkSampleRateSDK: BlueTriangle.configuration.networkSampleRate * 100,
-                             enableRemoteConfigAck : false,
+                             configKey : BlueTriangle.configuration.configKey,
                              enableAllTracking: true,
                              enableScreenTracking: BlueTriangle.configuration.enableScreenTracking,
                              enableGrouping: BlueTriangle.configuration.enableGrouping,

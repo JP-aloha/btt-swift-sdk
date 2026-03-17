@@ -25,7 +25,7 @@ final class BTTConfigurationRepoTests: XCTestCase {
 
     func testSaveConfig() {
         let config = BTTRemoteConfig(networkSampleRateSDK: 5,
-                                     enableRemoteConfigAck: false,
+                                     configKey: "unknown",
                                      enableAllTracking: true,
                                      enableScreenTracking: true,
                                      enableGrouping: true,
@@ -45,7 +45,9 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                      checkoutCartCount: 1,
                                      checkoutCartCountCheckout: 1,
                                      checkoutOrderNumber: "",
-                                     checkoutTimeValue: 100)
+                                     checkoutTimeValue: 100
+                                     ignoreBreadcrumbs: [],
+                                     enableBreadcrumbs: true)
         
         configurationRepo.save(config)
         
@@ -57,7 +59,7 @@ final class BTTConfigurationRepoTests: XCTestCase {
     
     func testGetConfigSuccess() {
         let savedConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 5,
-                                               enableRemoteConfigAck: false,
+                                               configKey: "unknown",
                                                enableAllTracking: true,
                                                enableScreenTracking: true,
                                                enableGrouping: true,
@@ -78,6 +80,8 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                                checkoutCartCountCheckout: 1,
                                                checkoutOrderNumber: "",
                                                checkoutTimeValue: 100,
+                                               ignoreBreadcrumbs: [],
+                                               enableBreadcrumbs: true,
                                                dateSaved: Date().timeIntervalSince1970.milliseconds)
 
         configurationRepo.store[key] = savedConfig

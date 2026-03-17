@@ -55,6 +55,7 @@ class BTTStoredConfigSyncer {
             syncWebViewStitching(from: config, defaultConfig: defaultConfig)
             syncGroupingTapDetection(from: config, defaultConfig: defaultConfig)
             syncAutoCheckout(from: config, defaultConfig: defaultConfig)
+            syncConfigKey(from: config, defaultConfig: defaultConfig)
         } catch {
             logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")
         }
@@ -195,6 +196,12 @@ class BTTStoredConfigSyncer {
         
         if let ignoreBreadcrumbs = config.ignoreScreens ?? defaultConfig.ignoreBreadcrumbs {
             BlueTriangle.updateIgnoreBreadcrumbs(Set(ignoreBreadcrumbs))
+        }
+    }
+    
+    private func syncConfigKey(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig ) {
+        if let configKey = config.configKey ?? defaultConfig.configKey {
+            BlueTriangle.updateConfigKey(configKey)
         }
     }
     

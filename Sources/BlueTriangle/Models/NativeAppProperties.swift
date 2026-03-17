@@ -49,6 +49,7 @@ struct NativeAppProperties: Equatable {
     var eventId: String?
     var groupingCause: String?
     var breadcrumbs: String?
+    var configKey: String?
     var groupingCauseInterval: Millisecond?
     var sdkVersion: String = Device.sdkVersion
     var appVersion: String = Device.appVersion
@@ -148,6 +149,10 @@ extension NativeAppProperties: Codable{
             try con.encode(breadcrumbs, forKey: .breadcrumbs)
         }
         
+        if let configKey  = configKey {
+            try con.encode(configKey, forKey: .configKey)
+        }
+        
         try con.encode(deviceModel, forKey: .deviceModel)
         try con.encode(appVersion, forKey: .appVersion)
         try con.encode(sdkVersion, forKey: .sdkVersion)
@@ -180,7 +185,7 @@ extension NativeAppProperties: Codable{
         self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID) ?? ""
         self.autoCheckout = try container.decodeIfPresent(Bool.self, forKey: .autoCheckout) ?? false
         self.breadcrumbs = try container.decodeIfPresent(String.self, forKey: .breadcrumbs) ?? ""
-
+        self.configKey = try container.decodeIfPresent(String.self, forKey: .configKey) ?? ""
     }
     
     enum CodingKeys: String, CodingKey {
@@ -212,6 +217,7 @@ extension NativeAppProperties: Codable{
         case eventID
         case autoCheckout
         case breadcrumbs
+        case configKey
     }
 }
 

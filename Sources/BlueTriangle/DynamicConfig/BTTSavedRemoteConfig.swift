@@ -12,7 +12,7 @@ import Foundation
 class BTTSavedRemoteConfig: BTTRemoteConfig {
     var dateSaved: Millisecond
     init(networkSampleRateSDK: Double?,
-         enableRemoteConfigAck : Bool?,
+         configKey : String?,
          enableAllTracking : Bool?,
          enableScreenTracking: Bool?,
          enableGrouping : Bool?,
@@ -38,7 +38,7 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
          dateSaved: Millisecond) {
         self.dateSaved = dateSaved
         super.init(networkSampleRateSDK: networkSampleRateSDK,
-                   enableRemoteConfigAck: enableRemoteConfigAck,
+                   configKey: configKey,
                    enableAllTracking: enableAllTracking,
                    enableScreenTracking: enableScreenTracking,
                    enableGrouping: enableGrouping,

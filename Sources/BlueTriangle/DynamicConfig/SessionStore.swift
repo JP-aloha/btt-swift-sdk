@@ -83,12 +83,14 @@ class SessionData: Codable {
     
     var enableBreadcrumbs : Bool
     var ignoreBreadcrumbs: Set<String>
+    var configKey : String
     
     init(expiration: Millisecond) {
         self.expiration = expiration
         self.sessionID =  SessionData.generateSessionID()
         self.isNewSession = true
         self.shouldNetworkCapture = false
+        self.configKey = BlueTriangle.configuration.configKey
         self.enableGrouping = BlueTriangle.configuration.enableGrouping
         self.groupingIdleTime = BlueTriangle.configuration.groupingIdleTime
         self.enableScreenTracking = BlueTriangle.configuration.enableScreenTracking

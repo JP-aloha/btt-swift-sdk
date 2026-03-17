@@ -43,7 +43,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     func testUpdatePerformsFetchIfNewSession() {
         
         let config = BTTRemoteConfig(networkSampleRateSDK: 75,
-                                     enableRemoteConfigAck: false,
+                                     configKey: "unknown",
                                      enableAllTracking: true,
                                      enableScreenTracking: true,
                                      enableGrouping: true,
@@ -82,7 +82,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     func testUpdateSkipsFetchIfNotNewSessionAndWithinUpdatePeriod() {
         
         let config = BTTRemoteConfig(networkSampleRateSDK: 75,
-                                     enableRemoteConfigAck: false,
+                                     configKey: "unknown",
                                      enableAllTracking: true,
                                      enableScreenTracking: true,
                                      enableGrouping: true,
@@ -102,7 +102,9 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                      checkoutCartCount: 1,
                                      checkoutCartCountCheckout: 1,
                                      checkoutOrderNumber: "",
-                                     checkoutTimeValue: 100)
+                                     checkoutTimeValue: 100,
+                                     ignoreBreadcrumbs: [],
+                                     enableBreadcrumbs: true)
         
         mockRepo.save(config)
         
@@ -118,7 +120,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
     func testUpdatePerformsFetchIfNotNewSessionAndUpdatePeriodElapsed() {
         
         let apiConfig = BTTRemoteConfig(networkSampleRateSDK: 75,
-                                        enableRemoteConfigAck: false,
+                                        configKey: "unknown",
                                         enableAllTracking: true,
                                         enableScreenTracking: true,
                                         enableGrouping: true,
@@ -138,13 +140,15 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                         checkoutCartCount: 1,
                                         checkoutCartCountCheckout: 1,
                                         checkoutOrderNumber: "",
-                                        checkoutTimeValue: 100)
+                                        checkoutTimeValue: 100,
+                                        ignoreBreadcrumbs: [],
+                                        enableBreadcrumbs: true)
         mockFetcher.configToReturn = apiConfig
         
         
         let currentTime = Date().timeIntervalSince1970.milliseconds
         let storeConfig = BTTSavedRemoteConfig(networkSampleRateSDK: 70,
-                                               enableRemoteConfigAck: false,
+                                               configKey: "unknown",
                                                enableAllTracking: true,
                                                enableScreenTracking: true,
                                                enableGrouping: true,
@@ -165,6 +169,8 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                                checkoutCartCountCheckout: 1,
                                                checkoutOrderNumber: "",
                                                checkoutTimeValue: 100,
+                                               ignoreBreadcrumbs: [],
+                                               enableBreadcrumbs: true,
                                                dateSaved: currentTime - Millisecond.hour * 2)
         mockRepo.store[key] = storeConfig
         

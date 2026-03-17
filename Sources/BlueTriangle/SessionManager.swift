@@ -206,6 +206,7 @@ extension SessionManager {
                 session.checkoutTimeValue = BlueTriangle.configuration.checkoutTimeValue
                 session.ignoreBreadcrumbs = BlueTriangle.configuration.ignoreBreadcrumbs
                 session.enableBreadcrumbs = BlueTriangle.configuration.enableBreadcrumbs
+                session.configKey = BlueTriangle.configuration.configKey
                 sessionStore.saveSession(session)
             } else {
                 BlueTriangle.updateGrouping(session.enableGrouping, idleTime: session.groupingIdleTime)
@@ -229,6 +230,7 @@ extension SessionManager {
                 BlueTriangle.updateCheckoutTimeValue(session.checkoutTimeValue)
                 BlueTriangle.updateIgnoreBreadcrumbs(session.ignoreBreadcrumbs)
                 BlueTriangle.updateEnableBreadcrumbs(session.enableBreadcrumbs)
+                BlueTriangle.updateConfigKey(session.configKey)
                 sessionStore.saveSession(session)
             }
         }

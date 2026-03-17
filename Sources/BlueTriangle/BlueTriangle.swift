@@ -132,15 +132,14 @@ final public class BlueTriangle: NSObject {
     internal static let disableModeSessionManager : SessionManagerProtocol = {
         let configFetcher  =  BTTConfigurationFetcher(logger: logger)
         let configSyncer = BTTStoredConfigSyncer(configRepo: configRepo, logger: logger)
-        let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: nil)
+        let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger)
         return DisableModeSessionManager(logger, configRepo, updater, configSyncer)
     }()
     
     internal static let enabledModeSessionManager : SessionManagerProtocol = {
         let configFetcher  =  BTTConfigurationFetcher(logger: logger)
         let configSyncer = BTTStoredConfigSyncer(configRepo: configRepo, logger: logger)
-        let configAck  =  RemoteConfigAckReporter(logger: logger, uploader: uploader)
-        let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: configAck)
+        let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger)
         return SessionManager(logger, configRepo, updater, configSyncer)
     }()
     
@@ -1591,5 +1590,9 @@ extension BlueTriangle {
     internal static func updateEnableBreadcrumbs(_ enabled: Bool) {
         configuration.enableBreadcrumbs = enabled
         breadcrumbManager.updateBreadcrumbFeatures()
+    }
+    
+    internal static func updateConfigKey(_ configKey: String) {
+        configuration.configKey = configKey
     }
 }

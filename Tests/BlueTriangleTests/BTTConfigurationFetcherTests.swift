@@ -33,7 +33,7 @@ final class BTTConfigurationFetcherTests: XCTestCase {
         let mockNetworking: Networking = { request in
             
             let mockConfig = BTTRemoteConfig(networkSampleRateSDK: 20,
-                                             enableRemoteConfigAck: false,
+                                             configKey: "unknown",
                                              enableAllTracking: true,
                                              enableScreenTracking: true,
                                              enableGrouping: true,
@@ -53,7 +53,9 @@ final class BTTConfigurationFetcherTests: XCTestCase {
                                              checkoutCartCount: 1,
                                              checkoutCartCountCheckout: 1,
                                              checkoutOrderNumber: "",
-                                             checkoutTimeValue: 100)
+                                             checkoutTimeValue: 100,
+                                             ignoreBreadcrumbs: [],
+                                             enableBreadcrumbs: true)
             
             let mockData = try! JSONEncoder().encode(mockConfig)
             

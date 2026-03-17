@@ -90,6 +90,7 @@ class LaunchTimeReporter : ObservableObject {
         let timer = PageTimeInterval(startTime: time, interactiveTime: 0, pageTime: duration)
         var nativeAppProperties : NativeAppProperties? = .nstEmpty
         nativeAppProperties?.eventId = event.id
+        nativeAppProperties?.configKey = BlueTriangle.configuration.configKey
         let customMetrics = session.customVarriables(logger: logger)
         let model = TimerRequest(session: session,
                                  page: page,
