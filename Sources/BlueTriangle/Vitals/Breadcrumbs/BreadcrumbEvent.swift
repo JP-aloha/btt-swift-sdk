@@ -52,4 +52,7 @@ enum BreadcrumbKeys: String, CodingKey, Codable {
     case action
     case targetClass
     case targetId
+    case x
+    case y
+
 }

@@ -346,12 +346,24 @@ extension UIApplication {
         if UIApplication.avoidSender(sender, forTarget: target, action: actionSelector) {
             return btt_sendAction(action, to: target, from: sender, for: event)
         }
+        
+        var x: Float = 0
+        var y: Float = 0
+        
+        if let touch = event?.allTouches?.first,
+           let window = touch.window ?? UIApplication.shared.bt_keyWindow {
+            let point = touch.location(in: window)
+            x = Float(point.x / window.bounds.width)
+            y = Float(point.y / window.bounds.height)
+        }
 
         BlueTriangle.collectBreadcrumb(
             UserEvent(
                 targetClass: className,
                 targetId: actionSelector + ":" + targetName,
-                action: "tap"
+                action: "tap",
+                x: x,
+                y: y
             )
         )
         return btt_sendAction(action, to: target, from: sender, for: event)
@@ -431,28 +443,43 @@ extension UIApplication {
 enum BTEventEmitter {
 
     static func emitTracked(view: UIView, point: CGPoint, action: String) {
+        guard let window = view.window else { return }
+        let (x, y) = normalize(point: point, in: window)
         BlueTriangle.collectBreadcrumb(
-            UserEvent(
-                targetClass: String(describing: type(of: view)),
-                targetId: action,
-                action: "tap"
+                UserEvent(
+                    targetClass: String(describing: type(of: view)),
+                    targetId: action,
+                    action: "tap",
+                    x: x,
+                    y: y
+                )
             )
-        )
     }
 
     static func emit(view: UIView, point: CGPoint) {
+        guard let window = view.window else { return }
+        let (x, y) = normalize(point: point, in: window)
+        
         let bundleId = Bundle.main.bundleIdentifier ?? "unknown"
         let actionName = "tap"
         let identifier = extractIdentifier(from: view)
         let targetId = "\(bundleId):\(actionName):\(identifier)"
-
+        
         BlueTriangle.collectBreadcrumb(
-            UserEvent(
-                targetClass: String(describing: type(of: view)),
-                targetId: targetId,
-                action: actionName
-            )
-        )
+               UserEvent(
+                   targetClass: String(describing: type(of: view)),
+                   targetId: targetId,
+                   action: actionName,
+                   x: x,
+                   y: y
+               )
+           )
+    }
+    
+    static func normalize(point: CGPoint, in window: UIWindow) -> (Float, Float) {
+        let x = Float(point.x / window.bounds.width)
+        let y = Float(point.y / window.bounds.height)
+        return (x, y)
     }
 
     static func extractIdentifier(from view: UIView) -> String {

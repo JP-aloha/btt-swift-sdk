@@ -28,13 +28,17 @@ struct UserEvent : BreadcrumbEvent {
     let targetClass: String
     let targetId: String
     let action: String
+    let x: Float
+    let y: Float
     var type: BreadcrumbType { .userEvent }
     
     var data: [BreadcrumbKeys : String] {
         [
             .action: action,
             .targetClass: targetClass,
-            .targetId: targetId
+            .targetId: targetId,
+            .x : String(x),
+            .y : String(y)
         ]
     }
 }
