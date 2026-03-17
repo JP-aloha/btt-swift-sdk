@@ -482,7 +482,7 @@ enum BTEventEmitter {
         return (x, y)
     }
 
-    static func extractIdentifier(from view: UIView) -> String {
+   /* static func extractIdentifier(from view: UIView) -> String {
         if let id = view.accessibilityIdentifier, !id.isEmpty { return id }
         if let label = view.accessibilityLabel, !label.isEmpty { return label }
 
@@ -497,5 +497,46 @@ enum BTEventEmitter {
         if let cell = view as? UITableViewCell, let text = cell.textLabel?.text { return text }
 
         return "unknown"
+    }*/
+    
+    static func extractIdentifier(from view: UIView) -> String {
+        
+        //  1. Direct hit
+        if let id = view.accessibilityIdentifier, !id.isEmpty {
+            return id
+        }
+        
+        //  2. Search UP (already doing, keep it)
+        var current: UIView? = view.superview
+        while let v = current {
+            if let id = v.accessibilityIdentifier, !id.isEmpty {
+                return id
+            }
+            current = v.superview
+        }
+        
+        // 3. Search DOWN (THIS FIXES SWIFTUI)
+        if let found = searchInSubviews(view) {
+            return found
+        }
+
+        // fallback
+        if let label = view.accessibilityLabel, !label.isEmpty {
+            return label
+        }
+
+        return "unknown"
+    }
+    
+    static func searchInSubviews(_ view: UIView) -> String? {
+        for sub in view.subviews {
+            if let id = sub.accessibilityIdentifier, !id.isEmpty {
+                return id
+            }
+            if let found = searchInSubviews(sub) {
+                return found
+            }
+        }
+        return nil
     }
 }
