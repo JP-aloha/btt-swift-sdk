@@ -60,12 +60,12 @@ public class AppInstallTracker {
     
     // MARK: - Tracking (Override or Modify)
     open func trackInstall(version: String) {
-        BlueTriangle.collectBreadcrumb(AppInstallEvent(event: "AppInstall", version: version))
+        BlueTriangle.collectBreadcrumb(AppInstallEvent(version: version))
         logger.info("App Installed with version: \(version)")
     }
     
     open func trackUpdate(old: String, new: String) {
-        BlueTriangle.collectBreadcrumb(AppUpdateEvent(event: "AppUpdate", fromVersion: old , toVersion: new))
+        BlueTriangle.collectBreadcrumb(AppUpdateEvent(from: old , to: new))
         logger.info("App Updated from \(old) → \(new)")
     }
 }

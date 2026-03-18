@@ -35,6 +35,10 @@ enum Constants {
             static let shown = "shown"
             static let hidden = "hidden"
         }
+        
+        enum Default {
+            static let capacity = 100
+        }
     }
         
     enum EntryType {

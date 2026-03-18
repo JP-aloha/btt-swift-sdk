@@ -55,6 +55,7 @@ class BTTStoredConfigSyncer {
             syncWebViewStitching(from: config, defaultConfig: defaultConfig)
             syncGroupingTapDetection(from: config, defaultConfig: defaultConfig)
             syncAutoCheckout(from: config, defaultConfig: defaultConfig)
+            syncBreadcrumbs(from: config, defaultConfig: defaultConfig)
             syncConfigKey(from: config, defaultConfig: defaultConfig)
         } catch {
             logger.error("BlueTriangle:SessionManager: Failed to retrieve remote configuration from the repository - \(error)")

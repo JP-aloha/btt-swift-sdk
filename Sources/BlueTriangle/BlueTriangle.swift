@@ -1245,7 +1245,9 @@ public extension BlueTriangle {
     }
     
     internal static func collectBreadcrumb(_ breadcrumb : BreadcrumbEvent) {
-        self.breadcrumbManager.collectBreadcrumb(breadcrumb)
+        if BlueTriangle.shouldBreadcrumbsTracking {
+            self.breadcrumbManager.collectBreadcrumb(breadcrumb)
+        }
     }
     
     private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) async {

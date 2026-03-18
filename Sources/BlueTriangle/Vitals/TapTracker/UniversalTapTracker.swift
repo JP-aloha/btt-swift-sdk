@@ -509,11 +509,6 @@ import SwiftUI
 
 // MARK: - UIView Associated Object
 
-import UIKit
-import SwiftUI
-
-// MARK: - UIView Associated Object
-
 private var btActionKey: UInt8 = 0
 
 extension UIView {
@@ -642,6 +637,37 @@ final class BTViewRegistry {
     }
 }
 
+// MARK: - Duplicate Tracker
+
+extension UIApplication {
+    private static var lastTrackedEvent: (timestamp: TimeInterval, x: Float, y: Float)?
+    private static let dedupThreshold: TimeInterval = 0.2 // 200ms threshold
+    private static let coordinateThreshold: Float = 0.02 // 2% of screen
+    
+    func shouldTrackEvent(timestamp: TimeInterval, x: Float, y: Float) -> Bool {
+        // If no previous event, track it
+        guard let last = UIApplication.lastTrackedEvent else {
+            UIApplication.lastTrackedEvent = (timestamp, x, y)
+            return true
+        }
+        
+        // Check if within time threshold AND same coordinate
+        let timeDiff = timestamp - last.timestamp
+        let xDiff = abs(last.x - x)
+        let yDiff = abs(last.y - y)
+        
+        let isDuplicate = timeDiff < UIApplication.dedupThreshold &&
+                          xDiff < UIApplication.coordinateThreshold &&
+                          yDiff < UIApplication.coordinateThreshold
+        
+        if !isDuplicate {
+            UIApplication.lastTrackedEvent = (timestamp, x, y)
+        }
+        
+        return !isDuplicate
+    }
+}
+
 // MARK: - UIView Helpers
 
 extension UIView {
@@ -735,54 +761,30 @@ extension UIView {
     }
 
     func bt_findSwiftUIActionable(at windowPoint: CGPoint, in window: UIWindow) -> UIView? {
-        guard let hostingRoot = bt_rootHostingView() else { return nil }
-        return hostingRoot.bt_deepSearch(windowPoint: windowPoint, in: window)
+        return bt_deepSearchForIdentifier(windowPoint: windowPoint, in: window)
     }
-
-    private func bt_rootHostingView() -> UIView? {
-        var result: UIView? = nil
-        var current: UIView? = self
-        while let view = current {
-            let name = String(describing: type(of: view))
-            if name.contains("Hosting") { result = view }
-            current = view.superview
-        }
-        return result
-    }
-
-    private func bt_deepSearch(windowPoint: CGPoint, in window: UIWindow) -> UIView? {
+    
+    func bt_deepSearchForIdentifier(windowPoint: CGPoint, in window: UIWindow) -> UIView? {
         guard isUserInteractionEnabled, !isHidden, alpha > 0 else { return nil }
-
+        
         let localPoint = convert(windowPoint, from: window)
-        guard bounds.contains(localPoint) else { return nil }
-
-        for sub in subviews.reversed() {
-            if let found = sub.bt_deepSearch(windowPoint: windowPoint, in: window) {
+       // guard bounds.contains(localPoint) else { return nil }
+        
+        // FIRST: Check if THIS view has an accessibility identifier
+        if let id = accessibilityIdentifier, !id.isEmpty {
+            return self
+        }
+        
+        // THEN check all subviews
+        for subview in subviews.reversed() {
+            if let found = subview.bt_deepSearchForIdentifier(windowPoint: windowPoint, in: window) {
                 return found
             }
         }
-
-        let className = String(describing: type(of: self))
-        let isContainer = self is UIScrollView
-            || self is UIWindow
-            || self is UIStackView
-            || className.contains("Hosting")
-            || className.contains("Container")
-            || className.contains("UITransitionView")
-            || className.contains("UILayoutContainerView")
-
-        if !isContainer {
-            // FIX: Move accessibilityIdentifier check to the TOP of this block
-            if let id = accessibilityIdentifier, !id.isEmpty { return self }
-            if accessibilityTraits.contains(.button) { return self }
-            if let label = accessibilityLabel, !label.isEmpty { return self }
-            if let gestures = gestureRecognizers,
-               gestures.contains(where: { $0 is UITapGestureRecognizer }) { return self }
-            if self is UIControl { return self }
-            if self is UITableViewCell || self is UICollectionViewCell { return self }
-        }
+        
         return nil
     }
+    
 
     func bt_viewController() -> UIViewController? {
         var responder: UIResponder? = self
@@ -862,17 +864,16 @@ extension UIApplication {
         var x: Float = 0
         var y: Float = 0
         var timestamp: TimeInterval = Date().timeIntervalSince1970
-
+        
         if let touch = event?.allTouches?.first,
            let window = touch.window ?? UIApplication.shared.bt_keyWindow {
             let point = touch.location(in: window)
             x = Float(point.x / window.bounds.width)
             y = Float(point.y / window.bounds.height)
             timestamp = touch.timestamp
-
         }
 
-        // Only track if not duplicate by coordinate and timestamp
+        // Check for duplicate before tracking
         if shouldTrackEvent(timestamp: timestamp, x: x, y: y) {
             BlueTriangle.collectBreadcrumb(
                 UserEvent(
@@ -884,6 +885,7 @@ extension UIApplication {
                 )
             )
         }
+        
         return btt_sendAction(action, to: target, from: sender, for: event)
     }
 
@@ -929,9 +931,9 @@ extension UIApplication {
                     guard hitView.bt_isDescendantOfViewController(topVC) else { return }
                 }
 
-                // 3. SwiftUI path
+                // 3. SwiftUI path - FIXED
                 if hitView.bt_isInSwiftUIHosting() {
-                    if let target = hitView.bt_findSwiftUIActionable(at: point, in: window) {
+                    if let target = window.bt_deepSearchForIdentifier(windowPoint: point, in: window) {
                         BTEventEmitter.emit(view: target, point: point)
                     }
                     return
@@ -1008,14 +1010,27 @@ enum BTEventEmitter {
     }
 
     static func extractIdentifier(from view: UIView) -> String {
+        // Check view itself first
         if let id = view.accessibilityIdentifier, !id.isEmpty { return id }
-        if let label = view.accessibilityLabel, !label.isEmpty { return label }
-
+        
+        // Check all subviews recursively
+        if let id = findIdentifierInSubviews(view) {
+            return id
+        }
+        
+        // Check superview chain
         var current = view.superview
         while let v = current {
             if let id = v.accessibilityIdentifier, !id.isEmpty { return id }
-            if let label = v.accessibilityLabel, !label.isEmpty { return label }
+            if let id = findIdentifierInSubviews(v) {
+                return id
+            }
             current = v.superview
+        }
+        
+        // Fallbacks
+        if let label = view.accessibilityLabel, !label.isEmpty {
+            return label
         }
 
         if let btn = view as? UIButton, let title = btn.currentTitle { return title }
@@ -1023,34 +1038,16 @@ enum BTEventEmitter {
 
         return "unknown"
     }
-}
-
-extension UIApplication {
-    private static var lastTrackedEvent: (timestamp: TimeInterval, x: Float, y: Float)?
-    private static let dedupThreshold: TimeInterval = 0.1 // 100ms threshold
-    private static let coordinateThreshold: Float = 0.01 // 1% of screen
     
-    func shouldTrackEvent(timestamp: TimeInterval, x: Float, y: Float) -> Bool {
-        // If no previous event, track it
-        guard let last = UIApplication.lastTrackedEvent else {
-            UIApplication.lastTrackedEvent = (timestamp, x, y)
-            return true
+    private static func findIdentifierInSubviews(_ view: UIView) -> String? {
+        for subview in view.subviews {
+            if let id = subview.accessibilityIdentifier, !id.isEmpty {
+                return id
+            }
+            if let id = findIdentifierInSubviews(subview) {
+                return id
+            }
         }
-        
-        // Check if within time threshold AND same coordinate
-        let timeDiff = timestamp - last.timestamp
-        let xDiff = abs(last.x - x)
-        let yDiff = abs(last.y - y)
-        
-        let isDuplicate = timeDiff < UIApplication.dedupThreshold &&
-                          xDiff < UIApplication.coordinateThreshold &&
-                          yDiff < UIApplication.coordinateThreshold
-        
-        if !isDuplicate {
-            // Update last tracked event
-            UIApplication.lastTrackedEvent = (timestamp, x, y)
-        }
-        
-        return !isDuplicate
+        return nil
     }
 }

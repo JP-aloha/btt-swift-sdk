@@ -24,16 +24,14 @@ final class AppUpdateFeature: BreadcrumbFeatrure {
 
 struct AppUpdateEvent: BreadcrumbEvent {
     var timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
-    let event: String
-    let fromVersion: String
-    let toVersion: String
+    let from: String
+    let to: String
     var type: BreadcrumbType { .appUpdate }
     
     var data: [BreadcrumbKeys : String] {
         [
-            .event: event,
-            .fromVersion: fromVersion,
-            .toVersion: toVersion
+            .from: from,
+            .to: to
         ]
     }
 }

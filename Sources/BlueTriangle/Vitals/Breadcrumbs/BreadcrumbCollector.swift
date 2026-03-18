@@ -13,7 +13,7 @@ final class BreadcrumbCollector {
     
     private let queue = DispatchQueue(label: "com.bluetriangle.breadcrumb.collector")
     private var collected: [(event: any BreadcrumbEvent, data: Data)] = []
-    private let maxItems = 100
+    private let maxItems = Constants.Breadcrums.Default.capacity
     private let encoder = JSONEncoder()
     private let logger: Logging
     

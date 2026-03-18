@@ -46,8 +46,8 @@ enum BreadcrumbKeys: String, CodingKey, Codable {
     case url
     case statusCode
     case state
-    case fromVersion
-    case toVersion
+    case from
+    case to
     case version
     case action
     case targetClass
