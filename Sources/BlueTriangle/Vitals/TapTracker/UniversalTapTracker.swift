@@ -1032,6 +1032,10 @@ enum BTEventEmitter {
         if let label = view.accessibilityLabel, !label.isEmpty {
             return label
         }
+        
+        if let mIdentifier = BTMirrorHelper.extractText(from: view) {
+            return mIdentifier
+        }
 
         if let btn = view as? UIButton, let title = btn.currentTitle { return title }
         if let cell = view as? UITableViewCell, let text = cell.textLabel?.text { return text }
@@ -1048,6 +1052,51 @@ enum BTEventEmitter {
                 return id
             }
         }
+        return nil
+    }
+}
+
+enum BTMirrorHelper {
+
+    static func extractText(from view: UIView) -> String? {
+
+        // Try to find Hosting view
+        guard let hostingView = findHostingView(from: view) else { return nil }
+
+        // Mirror the hosting view
+        let mirror = Mirror(reflecting: hostingView)
+
+        return deepSearchText(in: mirror)
+    }
+
+    private static func findHostingView(from view: UIView) -> UIView? {
+        var current: UIView? = view
+        while let v = current {
+            let name = String(describing: type(of: v))
+            if name.contains("Hosting") {
+                return v
+            }
+            current = v.superview
+        }
+        return nil
+    }
+
+    private static func deepSearchText(in mirror: Mirror) -> String? {
+
+        for child in mirror.children {
+
+            // Try direct string
+            if let str = child.value as? String, !str.isEmpty {
+                return str
+            }
+
+            // Recursive search
+            let childMirror = Mirror(reflecting: child.value)
+            if let found = deepSearchText(in: childMirror) {
+                return found
+            }
+        }
+
         return nil
     }
 }
