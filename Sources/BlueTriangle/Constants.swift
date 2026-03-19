@@ -37,7 +37,7 @@ enum Constants {
         }
         
         enum Default {
-            static let capacity = 100
+            static let capacity = 150
         }
     }
         
