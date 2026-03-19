@@ -13,9 +13,9 @@ enum BTEventEmitter {
         let (x, y) = normalize(point: point)
         BlueTriangle.collectBreadcrumb(
                 UserEvent(
-                    targetClass: String(describing: type(of: view)),
+                    targetClass: action,
                     targetId: action,
-                    action: "tap",
+                    action: Constants.tapAction,
                     x: x,
                     y: y
                 )
@@ -24,16 +24,14 @@ enum BTEventEmitter {
 
     static func emit(view: UIView, point: CGPoint) {
         let (x, y) = normalize(point: point)
-        let bundleId = Bundle.main.bundleIdentifier ?? "unknown"
-        let actionName = "tap"
         let identifier = extractIdentifier(from: view)
-        let targetId = "\(bundleId):\(actionName):\(identifier)"
+        let targetId = "\(Constants.tapAction):\(identifier)"
         
         BlueTriangle.collectBreadcrumb(
                UserEvent(
                    targetClass: String(describing: type(of: view)),
                    targetId: targetId,
-                   action: actionName,
+                   action: Constants.tapAction,
                    x: x,
                    y: y
                )

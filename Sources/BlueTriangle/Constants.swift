@@ -50,6 +50,7 @@ enum Constants {
     static let device = "Mobile"
     static let os = "iOS"
     static let defaultConfigKey = "unknown"
+    static let tapAction = "tap"
     static let globalUserIDKey = "com.bluetriangle.kGlobalUserIDUserDefault"
     static let globalPropertiesStoreKey = "com.bluetriangle.analytics.GlobalPropertiesStore"
     static let persistenceDirectory = "com.bluetriangle.sdk"

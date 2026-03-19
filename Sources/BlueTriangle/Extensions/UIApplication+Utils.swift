@@ -41,7 +41,7 @@ extension UIApplication {
                 UserEvent(
                     targetClass: className,
                     targetId: actionSelector + ":" + targetName,
-                    action: "tap",
+                    action: Constants.tapAction,
                     x: x,
                     y: y
                 )
