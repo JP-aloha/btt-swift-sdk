@@ -13,7 +13,7 @@ enum BTEventEmitter {
         let (x, y) = normalize(point: point)
         BlueTriangle.collectBreadcrumb(
                 UserEvent(
-                    targetClass: action,
+                    targetClass: "",
                     targetId: action,
                     action: Constants.tapAction,
                     x: x,
