@@ -4,7 +4,10 @@
 //
 //  Created by Ashok Singh on 19/03/26.
 //
+#if os(iOS)
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
 
 // MARK: - Anchor UIView
 final class BTTouchAnchor: UIView {
@@ -26,3 +29,4 @@ final class BTTouchAnchor: UIView {
         if !action.isEmpty { BTViewRegistry.shared.register(self, action: action) }
     }
 }
+#endif

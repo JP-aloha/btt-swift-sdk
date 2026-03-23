@@ -5,8 +5,14 @@
 //  Created by Ashok Singh on 02/03/26.
 //
 
+#if os(iOS)
+#if canImport(UIKit)
 import UIKit
+#endif
+
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
 
 // MARK: - UIApplication Swizzle
 extension UIApplication {
@@ -160,4 +166,4 @@ extension UIApplication {
     }
 }
 
-// MARK: - Event Builder
+#endif

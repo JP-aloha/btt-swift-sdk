@@ -5,7 +5,10 @@
 //  Created by Ashok Singh on 19/03/26.
 //
 
+#if os(iOS)
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
 
 enum BTEventEmitter {
 
@@ -61,3 +64,4 @@ enum BTEventEmitter {
         return "unknown"
     }
 }
+#endif

@@ -5,7 +5,10 @@
 //  Created by Ashok Singh on 19/03/26.
 //
 
+#if os(iOS)
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
 
 private struct BTTrackModifier: ViewModifier {
     let action: String
@@ -208,3 +211,4 @@ extension UIView {
         return nil
     }
 }
+#endif

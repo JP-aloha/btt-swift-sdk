@@ -5,8 +5,14 @@
 //  Created by Ashok Singh on 19/03/26.
 //
 
+#if os(iOS)
+#if canImport(UIKit)
 import UIKit
+#endif
+
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
 
 extension UIViewController {
     func bt_topmostUserFacingViewController() -> UIViewController {
@@ -35,3 +41,5 @@ extension UIViewController {
         return false
     }
 }
+
+#endif

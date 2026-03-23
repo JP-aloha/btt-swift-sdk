@@ -5,7 +5,11 @@
 //  Created by Ashok Singh on 19/03/26.
 //
 
+#if os(iOS)
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
+
 
 // MARK: - Global Registry
 final class BTViewRegistry {
@@ -60,3 +64,4 @@ final class BTViewRegistry {
         }
     }
 }
+#endif
