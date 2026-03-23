@@ -195,7 +195,7 @@ class BTTStoredConfigSyncer {
             BlueTriangle.updateEnableBreadcrumbs(enableBreadcrumbs)
         }
         
-        if let ignoreBreadcrumbs = config.ignoreScreens ?? defaultConfig.ignoreBreadcrumbs {
+        if let ignoreBreadcrumbs = config.ignoreBreadcrumbs ?? defaultConfig.ignoreBreadcrumbs {
             BlueTriangle.updateIgnoreBreadcrumbs(Set(ignoreBreadcrumbs))
         }
     }
