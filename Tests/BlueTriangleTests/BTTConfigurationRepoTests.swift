@@ -45,7 +45,7 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                      checkoutCartCount: 1,
                                      checkoutCartCountCheckout: 1,
                                      checkoutOrderNumber: "",
-                                     checkoutTimeValue: 100
+                                     checkoutTimeValue: 100,
                                      ignoreBreadcrumbs: [],
                                      enableBreadcrumbs: true)
         
