@@ -18,19 +18,23 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
             content
                 .task({
                     if let id = self.id{
+                        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewWillAppear, className: name))
                         BlueTriangle.screenTracker?.loadFinish(id, name)
                         BlueTriangle.screenTracker?.viewStart(id, name)
+                        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: name))
                     }
                 })
                 .onAppear {
                     id = UUID().uuidString
                     if let id = self.id{
                         BlueTriangle.screenTracker?.loadStarted(id, name)
+                        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidLoad, className: name))
                     }
                 }
                 .onDisappear{
                     if let id = self.id{
                         BlueTriangle.screenTracker?.viewingEnd(id, name)
+                        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidDisappear, className: name))
                     }
                 }
         }
@@ -40,17 +44,21 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
                     id = UUID().uuidString
                     if let id = self.id{
                         BlueTriangle.screenTracker?.viewStart(id, name)
+                        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: name))
                     }
                     Task{
                         if let id = self.id{
+                            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewWillAppear, className: name))
                             BlueTriangle.screenTracker?.loadFinish(id, name)
                             BlueTriangle.screenTracker?.viewStart(id, name)
+                            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: name))
                         }
                     }
                 }
                 .onDisappear{
                     if let id = self.id{
                         BlueTriangle.screenTracker?.viewingEnd(id, name)
+                        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidDisappear, className: name))
                     }
                 }
         }
