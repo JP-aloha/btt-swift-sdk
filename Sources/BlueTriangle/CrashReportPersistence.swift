@@ -47,7 +47,7 @@ struct CrashReportPersistence: CrashReportPersisting {
     
     static func nativeAppProperties() -> NativeAppProperties {
         var nativeApp = NativeAppProperties.nstEmpty
-        nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
+        nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
         return nativeApp
     }
     

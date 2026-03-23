@@ -145,7 +145,7 @@ extension NativeAppProperties: Codable{
             try con.encode(autoCheckout, forKey: .autoCheckout)
         }
         
-        if let breadcrumbs  = breadcrumbs {
+        if let breadcrumbs  = breadcrumbs, !breadcrumbs.isEmpty {
             try con.encode(breadcrumbs, forKey: .breadcrumbs)
         }
         

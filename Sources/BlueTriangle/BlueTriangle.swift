@@ -24,8 +24,6 @@ final public class BlueTriangle: NSObject {
     internal static var configuration = BlueTriangleConfiguration()
     internal static let globleProperty = GlobalProperties()
     internal static let checkoutEvent = CheckoutEventReporter(logger: logger)
-    internal static let breadcrumbManager = BreadcrumbManager(collector: BreadcrumbCollector(logger: logger))
-    internal static let appInstaller = AppInstallTracker(logger: logger)
     
     private static var _screenTracker: BTTScreenLifecycleTracker?
     internal static var screenTracker: BTTScreenLifecycleTracker?{
@@ -43,6 +41,26 @@ final public class BlueTriangle: NSObject {
         }
         set{
             trackingLock.sync { _networkStateMonitor = newValue }
+        }
+    }
+    
+    private static var _appInstallTracker: AppInstallTracker?
+    internal static var appInstallTracker: AppInstallTracker?{
+        get {
+            trackingLock.sync { _appInstallTracker }
+        }
+        set{
+            trackingLock.sync { _appInstallTracker = newValue }
+        }
+    }
+    
+    private static var _breadcrumbManager: BreadcrumbManager?
+    internal static var breadcrumbManager: BreadcrumbManager?{
+        get {
+            trackingLock.sync { _breadcrumbManager }
+        }
+        set{
+            trackingLock.sync { _breadcrumbManager = newValue }
         }
     }
     
@@ -735,7 +753,7 @@ extension BlueTriangle {
         
         logger.info("BlueTriangle :: Network state tracking has started.")
     }
-    
+
     // Stops network state tracking
     private static func stopNetworkStatus(){
         networkStateMonitor?.stop()
@@ -743,6 +761,31 @@ extension BlueTriangle {
         
         logger.info("BlueTriangle :: Network state tracking was stopped due to SDK disable.")
     }
+    
+    private static func startBreadcrumbs(){
+        if breadcrumbManager == nil{
+            configureBreadcumbs()
+        }
+        logger.info("BlueTriangle :: Breadcrumbs tracking has started.")
+    }
+    
+    private static func stopBreadcrumbs(){
+        breadcrumbManager = nil
+        logger.info("BlueTriangle :: Breadcrumds tracking has stopped.")
+    }
+    
+    private static func startAppInstallTracker(){
+        if appInstallTracker == nil{
+            configureAppInstallTracker()
+        }
+        logger.info("BlueTriangle :: AppInstallTracker tracking has started.")
+    }
+    
+    private static func stopAppInstallTracker(){
+        appInstallTracker = nil
+        logger.info("BlueTriangle :: AppInstallTracker tracking has stopped.")
+    }
+
     
     private static func clearAllCache(){
         do{
@@ -809,8 +852,9 @@ extension BlueTriangle {
     private static func startAllTrackers() {
         
         logger.info("BlueTriangle :: SDK is in enabled mode.")
+        self.startBreadcrumbs()
         self.startSession()
-        let _ = BlueTriangle.appInstaller
+        self.startAppInstallTracker()
         self.setupSwizzling()
         self.startHttpNetworkCapture()
         self.startHttpGroupedChildCapture()
@@ -858,6 +902,8 @@ extension BlueTriangle {
         self.stopMemoryWarning()
         self.stopANR()
         self.stopScreenTracking()
+        self.stopBreadcrumbs()
+        self.stopAppInstallTracker()
         self.stopNetworkStatus()
         self.stopLaunchTime()
         self.clearAllCache()
@@ -1246,7 +1292,7 @@ public extension BlueTriangle {
     
     internal static func collectBreadcrumb(_ breadcrumb : BreadcrumbEvent) {
         if BlueTriangle.shouldBreadcrumbsTracking {
-            self.breadcrumbManager.collectBreadcrumb(breadcrumb)
+            self.breadcrumbManager?.collectBreadcrumb(breadcrumb)
         }
     }
     
@@ -1309,7 +1355,7 @@ extension BlueTriangle {
             let segment = BlueTriangle.recentTimer()?.getTrafficSegment() ?? session.trafficSegmentName
             let pageType = BlueTriangle.recentTimer()?.page.pageType ?? session.pageType
             var nativeApp = NativeAppProperties.nstEmpty
-            nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
+            nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             let crashReport = CrashReport(sessionID: sessionID, exception: exception, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp)
             CrashReportPersistence.save(crashReport)
         }
@@ -1351,6 +1397,17 @@ extension BlueTriangle{
         BTTWebViewTracker.logger = logger
         UIViewController.setUp()
 #endif
+    }
+}
+
+// MARK: - Breadcrumbs
+extension BlueTriangle{
+    static func configureBreadcumbs(){
+        breadcrumbManager = BreadcrumbManager(collector: BreadcrumbCollector(logger: logger))
+    }
+    
+    static func configureAppInstallTracker(){
+        appInstallTracker = AppInstallTracker(logger: logger)
     }
 }
 
@@ -1586,12 +1643,12 @@ extension BlueTriangle {
         if let breadcrumbs = breadcrumbs{
             configuration.ignoreBreadcrumbs = breadcrumbs
         }
-        breadcrumbManager.updateBreadcrumbFeatures()
+        breadcrumbManager?.updateBreadcrumbFeatures()
     }
     
     internal static func updateEnableBreadcrumbs(_ enabled: Bool) {
         configuration.enableBreadcrumbs = enabled
-        breadcrumbManager.updateBreadcrumbFeatures()
+        breadcrumbManager?.updateBreadcrumbFeatures()
     }
     
     internal static func updateConfigKey(_ configKey: String) {

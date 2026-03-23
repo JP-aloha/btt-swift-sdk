@@ -63,12 +63,16 @@ final class BreadcrumbCollector {
 
             resultArray.append(dict)
         }
+        
+        guard !resultArray.isEmpty else {
+            return ""
+        }
 
         guard JSONSerialization.isValidJSONObject(resultArray),
               let data = try? JSONSerialization.data(withJSONObject: resultArray),
               let jsonString = String(data: data, encoding: .utf8)
         else {
-            return "[]"
+            return ""
         }
 
         guard escaped else {

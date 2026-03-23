@@ -52,7 +52,7 @@ class MemoryWarningWatchDog {
         } else {
             let event = BTTEvents.memoryWarning
             var nativeApp = NativeAppProperties.nstEmpty
-            nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
+            nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             let report = CrashReport(sessionID: BlueTriangle.sessionID,
                                      memoryWarningMessage: message, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, nativeApp: nativeApp)
             uploadReports(session: session, report: report, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
@@ -120,7 +120,7 @@ extension MemoryWarningWatchDog {
                 }
                 let event = BTTEvents.memoryWarning
                 var nativeApp = NativeAppProperties.nstEmpty
-                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
+                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
                 let report = CrashReport(sessionID: BlueTriangle.sessionID, memoryWarningMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: errorMetric.time)
                 let reportRequest = try self.makeCrashReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)

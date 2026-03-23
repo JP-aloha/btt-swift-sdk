@@ -92,7 +92,7 @@ final class CrashReportManager: CrashReportManaging {
                 }
             } else {
                 var nativeApp = NativeAppProperties.nstEmpty
-                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
+                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error, line: line, time: intervalProvider().milliseconds)
                 let event = BTTEvents.iOSCrash
                 try upload(session:session , report: report, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
@@ -111,7 +111,7 @@ final class CrashReportManager: CrashReportManaging {
                 }
                 
                 var nativeApp = NativeAppProperties.nstEmpty
-                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager.breadcrumbs()
+                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
                 let event = BTTEvents.iOSCrash
                 let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: errorMetric.message])
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error , line: errorMetric.line, time: errorMetric.time.milliseconds, eCnt: errorMetric.eCount)
