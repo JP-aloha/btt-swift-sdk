@@ -52,6 +52,7 @@ class SessionManager : SessionManagerProtocol{
     private let logger: Logging
     private var didBecomeActiveObserver: NSObjectProtocol?
     private var finishLaunchObserver: NSObjectProtocol?
+    private var willTerminateObserver: NSObjectProtocol?
     private var foregroundObserver: NSObjectProtocol?
     private var backgroundObserver: NSObjectProtocol?
     private var orientationObserver: NSObjectProtocol?
@@ -249,6 +250,10 @@ extension SessionManager {
             BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.didBecomeActive))
         }
         
+        willTerminateObserver = NotificationCenter.default.addObserver(forName: UIApplication.willTerminateNotification, object: nil, queue: nil) { notification in
+            BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.willTerminate))
+        }
+        
         backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
             self.appOffScreen()
             BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.didEnterBackground))
@@ -334,6 +339,12 @@ extension SessionManager {
             didBecomeActiveObserver = nil
         }
         
+        if let observer = willTerminateObserver {
+#if os(iOS)
+            NotificationCenter.default.removeObserver(observer)
+#endif
+            willTerminateObserver = nil
+        }
         
         if let observer = foregroundObserver {
 #if os(iOS)

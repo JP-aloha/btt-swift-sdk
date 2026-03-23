@@ -19,6 +19,7 @@ enum Constants {
         enum AppLifeCycle {
             static let didFinishLaunch = "didFinishLaunch"
             static let didBecomeActive = "didBecomeActive"
+            static let willTerminate = "willTerminate"
             static let didEnterBackground = "didEnterBackground"
             static let willEnterForeground = "willEnterForeground"
         }

@@ -25,10 +25,7 @@ final class BreadcrumbCollector {
             self.collected.append((breadcrumb, encoded))
             self.trimIfNeeded()
             SignalHandler.setBreadcrumbs(self.generateBreadcrumbsString(true))
-            
-            if breadcrumb is UserEvent {
-                self.logger.debug("BlueTriangle:BreadcrumbCollector - Added breadcrumb: \(breadcrumb)")
-            }
+            self.logger.debug("BlueTriangle:BreadcrumbCollector - Added breadcrumb: \(breadcrumb)")
         }
     }
     

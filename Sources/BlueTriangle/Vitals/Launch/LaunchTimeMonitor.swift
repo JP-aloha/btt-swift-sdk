@@ -169,12 +169,15 @@ extension LaunchTimeMonitor {
     
     private func notifyColdLaunch(_ finishLaunchEvent: SystemEvent, _ activeTime: Date) {
         if case .didFinishLaunch(let startTime) = finishLaunchEvent {
+            
             let processStart  = processStartTime()
             let processStartTime = Date(timeIntervalSince1970: processStart)
             let processAge = activeTime.timeIntervalSince(processStartTime)
+            // If the threshold exceeds 2 minutes (e.g., due to background fetch processing),
+            // the launch is classified as a hot launch.
             if processAge > launchTimeThreshold {
                 let duration = activeTime.timeIntervalSince(startTime)
-                launchEventPublisher.send(.Cold(startTime, duration, 70))
+                launchEventPublisher.send(.Hot(startTime, duration, 70))
             } else {
                 let duration = activeTime.timeIntervalSince(processStartTime)
                 launchEventPublisher.send(.Cold(processStartTime, duration, 100))
