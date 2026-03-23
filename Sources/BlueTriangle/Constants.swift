@@ -10,6 +10,8 @@ import Foundation
 enum Constants {
     enum Breadcrums {
         enum UILifeCycle {
+            static let onAppear = "onAppear"
+            static let onDisappear = "onDisappear"
             static let viewDidLoad = "viewDidLoad"
             static let viewWillAppear = "viewWillAppear"
             static let viewDidAppear = "viewDidAppear"
