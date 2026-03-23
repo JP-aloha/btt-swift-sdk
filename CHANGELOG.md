@@ -1,3 +1,9 @@
+# Blue Triangle 3.15.10, Mar 23 2026
+### Bug Fixes and Improvements
+- Added breadcrumbs for ANRs, crashes, and memory warnings
+- Added configKey to launch beacon
+- Fixed the issue causing long PGTM to LauchTime.
+
 # Blue Triangle 3.15.9, Feb 18 2026
 ### Improvements
 - Added support for auto checkout reporting via remote configuration.
