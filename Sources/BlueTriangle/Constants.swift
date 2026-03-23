@@ -8,7 +8,42 @@
 import Foundation
 
 enum Constants {
-    
+    enum Breadcrums {
+        enum UILifeCycle {
+            static let onAppear = "onAppear"
+            static let onDisappear = "onDisappear"
+            static let viewDidLoad = "viewDidLoad"
+            static let viewWillAppear = "viewWillAppear"
+            static let viewDidAppear = "viewDidAppear"
+            static let viewDidDisappear = "viewDidDisappear"
+        }
+        
+        enum AppLifeCycle {
+            static let didFinishLaunch = "didFinishLaunch"
+            static let didBecomeActive = "didBecomeActive"
+            static let willTerminate = "willTerminate"
+            static let didEnterBackground = "didEnterBackground"
+            static let willEnterForeground = "willEnterForeground"
+        }
+        
+        enum Orientation {
+            static let className = "orientation"
+            static let portrait = "portrait"
+            static let landscape = "landscape"
+            static let unknown = "unknown"
+        }
+        
+        enum Keyboard {
+            static let className = "keyboard"
+            static let shown = "shown"
+            static let hidden = "hidden"
+        }
+        
+        enum Default {
+            static let capacity = 150
+        }
+    }
+        
     enum EntryType {
         static let resource = "resource"
         static let screen = "screen"
@@ -17,6 +52,8 @@ enum Constants {
     static let browser = "Native App"
     static let device = "Mobile"
     static let os = "iOS"
+    static let defaultConfigKey = "unknown"
+    static let tapAction = "tap"
     static let globalUserIDKey = "com.bluetriangle.kGlobalUserIDUserDefault"
     static let globalPropertiesStoreKey = "com.bluetriangle.analytics.GlobalPropertiesStore"
     static let persistenceDirectory = "com.bluetriangle.sdk"

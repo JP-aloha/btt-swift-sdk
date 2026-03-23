@@ -50,8 +50,14 @@ class SessionManager : SessionManagerProtocol{
     private let updater: BTTConfigurationUpdater
     private let configSyncer: BTTStoredConfigSyncer
     private let logger: Logging
+    private var didBecomeActiveObserver: NSObjectProtocol?
+    private var finishLaunchObserver: NSObjectProtocol?
+    private var willTerminateObserver: NSObjectProtocol?
     private var foregroundObserver: NSObjectProtocol?
     private var backgroundObserver: NSObjectProtocol?
+    private var orientationObserver: NSObjectProtocol?
+    private var keyboardShowObserver: NSObjectProtocol?
+    private var keyboardHideObserver: NSObjectProtocol?
     
     init(_ logger: Logging,
          _ configRepo : BTTConfigurationRepo,
@@ -75,21 +81,6 @@ class SessionManager : SessionManagerProtocol{
         self.currentSession = nil
     }
     
-    private func resisterObserver() {
-#if os(iOS)
-        foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
-            self.appOffScreen()
-        }
-        
-        backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
-            self.onLaunch()
-        }
-#endif
-        self.observeRemoteConfig()
-        self.updateSession()
-    }
-    
-    
     private func appOffScreen(){
         if let session = currentSession {
             session.expiration = expiryDuration()
@@ -105,7 +96,7 @@ class SessionManager : SessionManagerProtocol{
     }
     
     private func invalidateSession() -> SessionData{
-       
+        
         var hasExpired = sessionStore.isExpired()
         
         if CommandLine.arguments.contains(Constants.NEW_SESSION_ON_LAUNCH_ARGUMENT) {
@@ -171,7 +162,7 @@ extension SessionManager {
         configRepo.$currentConfig
             .dropFirst()
             .sink { [weak self] changedConfig in
-                    self?.updateConfigurationOnChange()
+                self?.updateConfigurationOnChange()
             }.store(in: &cancellables)
     }
     
@@ -182,13 +173,13 @@ extension SessionManager {
             }
         }
     }
-
+    
     private func updateConfigurationOnChange(){
         self.syncStoredConfigToSessionAndApply()
         BlueTriangle.updateCaptureRequests()
         configSyncer.updateAndApplySDKState()
     }
-
+    
     private func syncStoredConfigToSessionAndApply() {
         if let session = currentSession {
             if session.isNewSession {
@@ -214,6 +205,9 @@ extension SessionManager {
                 session.checkoutCartCountCheckout = BlueTriangle.configuration.checkoutCartCountCheckout
                 session.checkoutOrderNumber = BlueTriangle.configuration.checkoutOrderNumber
                 session.checkoutTimeValue = BlueTriangle.configuration.checkoutTimeValue
+                session.ignoreBreadcrumbs = BlueTriangle.configuration.ignoreBreadcrumbs
+                session.enableBreadcrumbs = BlueTriangle.configuration.enableBreadcrumbs
+                session.configKey = BlueTriangle.configuration.configKey
                 sessionStore.saveSession(session)
             } else {
                 BlueTriangle.updateGrouping(session.enableGrouping, idleTime: session.groupingIdleTime)
@@ -235,6 +229,9 @@ extension SessionManager {
                 BlueTriangle.updateCheckoutCartCountCheckout(session.checkoutCartCountCheckout)
                 BlueTriangle.updateCheckoutOrderNumber(session.checkoutOrderNumber)
                 BlueTriangle.updateCheckoutTimeValue(session.checkoutTimeValue)
+                BlueTriangle.updateIgnoreBreadcrumbs(session.ignoreBreadcrumbs)
+                BlueTriangle.updateEnableBreadcrumbs(session.enableBreadcrumbs)
+                BlueTriangle.updateConfigKey(session.configKey)
                 sessionStore.saveSession(session)
             }
         }
@@ -243,17 +240,122 @@ extension SessionManager {
 
 extension SessionManager {
     
+    private func resisterObserver() {
+#if os(iOS)
+        finishLaunchObserver = NotificationCenter.default.addObserver(forName: UIApplication.didFinishLaunchingNotification, object: nil, queue: nil) { notification in
+            BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.didFinishLaunch))
+        }
+        
+        didBecomeActiveObserver = NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { notification in
+            BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.didBecomeActive))
+        }
+        
+        willTerminateObserver = NotificationCenter.default.addObserver(forName: UIApplication.willTerminateNotification, object: nil, queue: nil) { notification in
+            BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.willTerminate))
+        }
+        
+        backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { notification in
+            self.appOffScreen()
+            BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.didEnterBackground))
+        }
+        
+        foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { notification in
+            self.onLaunch()
+            BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.willEnterForeground))
+        }
+        
+        orientationObserver = NotificationCenter.default.addObserver(
+            forName: UIDevice.orientationDidChangeNotification,
+            object: nil,
+            queue: nil
+        ) { _ in
+            let orientation = UIDevice.current.orientation
+            var orientationString = Constants.Breadcrums.Orientation.unknown
+            switch orientation {
+            case .portrait, .portraitUpsideDown:
+                orientationString = Constants.Breadcrums.Orientation.portrait
+            case .landscapeLeft, .landscapeRight:
+                orientationString = Constants.Breadcrums.Orientation.landscape
+            default:
+                break
+            }
+            BlueTriangle.collectBreadcrumb(AppSystemEvent(event: orientationString, eventType: Constants.Breadcrums.Orientation.className))
+        }
+        
+        keyboardShowObserver = NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillShowNotification,
+            object: nil,
+            queue: nil
+        ) { _ in
+            BlueTriangle.collectBreadcrumb(AppSystemEvent(event: Constants.Breadcrums.Keyboard.shown, eventType: Constants.Breadcrums.Keyboard.className))
+        }
+        
+        keyboardHideObserver = NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillHideNotification,
+            object: nil,
+            queue: nil
+        ) { _ in
+            BlueTriangle.collectBreadcrumb(AppSystemEvent(event: Constants.Breadcrums.Keyboard.hidden, eventType: Constants.Breadcrums.Keyboard.className))
+        }
+#endif
+        self.observeRemoteConfig()
+        self.updateSession()
+    }
+    
     private func removeConfigObserver(){
+        
+        if let observer = orientationObserver {
+#if os(iOS)
+            NotificationCenter.default.removeObserver(observer)
+#endif
+            orientationObserver = nil
+        }
+        
+        if let observer = keyboardShowObserver {
+#if os(iOS)
+            NotificationCenter.default.removeObserver(observer)
+#endif
+            keyboardShowObserver = nil
+        }
+        
+        if let observer = keyboardHideObserver {
+#if os(iOS)
+            NotificationCenter.default.removeObserver(observer)
+#endif
+            keyboardHideObserver = nil
+        }
+        
+        if let observer = finishLaunchObserver {
+#if os(iOS)
+            NotificationCenter.default.removeObserver(observer)
+#endif
+            finishLaunchObserver = nil
+        }
+        
+        if let observer = didBecomeActiveObserver {
+#if os(iOS)
+            NotificationCenter.default.removeObserver(observer)
+#endif
+            didBecomeActiveObserver = nil
+        }
+        
+        if let observer = willTerminateObserver {
+#if os(iOS)
+            NotificationCenter.default.removeObserver(observer)
+#endif
+            willTerminateObserver = nil
+        }
+        
         if let observer = foregroundObserver {
 #if os(iOS)
-             NotificationCenter.default.removeObserver(observer)
+            NotificationCenter.default.removeObserver(observer)
 #endif
             foregroundObserver = nil
         }
         
         if let observer = backgroundObserver {
 #if os(iOS)
-             NotificationCenter.default.removeObserver(observer)
+            NotificationCenter.default.removeObserver(observer)
 #endif
             backgroundObserver = nil
         }

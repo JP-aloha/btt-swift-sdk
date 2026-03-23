@@ -88,6 +88,7 @@ class NetworkStateMonitor : NetworkStateMonitorProtocol{
             self.networkSource.send(nil)
         }
         self.state.send(state)
+        BlueTriangle.collectBreadcrumb(NetworkStateEvent())
     }
     
     private func extractState(path: NWPath) -> NetworkState{

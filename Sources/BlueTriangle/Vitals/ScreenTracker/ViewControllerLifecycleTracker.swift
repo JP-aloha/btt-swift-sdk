@@ -25,17 +25,6 @@ fileprivate func swizzleMethod(_ cls: AnyClass, original: Selector, swizzled: Se
     return (originalMethod, swizzledMethod)
 }
 
-extension UIApplication {
-    @objc func swizzled_sendEvent(_ event: UIEvent) {
-        if let touches = event.allTouches {
-            for touch in touches where touch.phase == .began {
-                BlueTriangle.groupTimer.setLastAction(Date())
-            }
-        }
-        swizzled_sendEvent(event)
-    }
-}
-
 extension UIViewController{
     
     private static var isSwizzled = false
@@ -61,6 +50,10 @@ extension UIViewController{
             
             if let sendEventPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendEvent(_:)), swizzled: #selector(UIApplication.swizzled_sendEvent(_:))) {
                 swizzledPairs.append(sendEventPair)
+            }
+            
+            if let sendActionPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendAction(_:to:from:for:)), swizzled: #selector(UIApplication.swizzled_sendAction(_:to:from:for:))) {
+                swizzledPairs.append(sendActionPair)
             }
             
             isSwizzled = true
@@ -128,7 +121,12 @@ extension UIViewController{
             "NavigationStackHostingController",// SwiftUI navigation stack
             "UIPredictionViewController",      // Predictive typing view
             "UIPlaceholderPredictiveViewController",  // Placeholder for predictions
-            "UlKeyboardMediaServiceRemoteViewController"
+            "UlKeyboardMediaServiceRemoteViewController",
+            "UISystemKeyboardDockController",
+            "UICompatibilityInputViewController",
+            "UIMultiscriptCandidateViewController",
+            "_UICursorAccessoryViewController",
+            "UISystemInputAssistantViewController"
         ]
         
         let selfClassName = "\(type(of: self))"
@@ -157,20 +155,25 @@ extension UIViewController{
     @objc dynamic func viewDidLoad_Tracker() {
         if shouldTrackScreen(){
             BlueTriangle.screenTracker?.loadStarted(String(describing: self), "\(type(of: self))",  pageTitle())
+            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidLoad, className: "\(type(of: self))"))
         }
+
         viewDidLoad_Tracker()
     }
     
     @objc dynamic func viewWillAppear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
             BlueTriangle.screenTracker?.loadFinish(String(describing: self),"\(type(of: self))", pageTitle())
+            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewWillAppear, className: "\(type(of: self))"))
         }
+
         viewWillAppear_Tracker(animated)
     }
-                                
+    
     @objc dynamic func viewDidAppear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
             BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(type(of: self))", pageTitle())
+            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: "\(type(of: self))"))
         }
         viewDidAppear_Tracker(animated)
     }
@@ -178,10 +181,12 @@ extension UIViewController{
     @objc dynamic func viewDidDisappear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
             BlueTriangle.screenTracker?.viewingEnd(String(describing: self), "\(type(of: self))", pageTitle())
+            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidDisappear, className: "\(type(of: self))"))
         }
+
         viewDidDisappear_Tracker(animated)
     }
-
+    
     func pageTitle() -> String {
         let currentTitle = self.navigationItem.title ?? ""
         return currentTitle

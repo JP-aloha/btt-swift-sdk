@@ -32,7 +32,6 @@ final class BTTimerGroup {
     private var groupName: String?
     private let lock = NSLock()
     private let onGroupCompleted: (BTTimerGroup) -> Void
-    private let actionTracker = BTActionTracker()
     private var groupingCause: GroupingCause?
     private var causeInterval: Millisecond = 0
     private let groupingIdleTime = BlueTriangle.configuration.groupingIdleTime
@@ -91,11 +90,6 @@ final class BTTimerGroup {
     }
 
     func refreshGroupName() { updatePageNameFromSnapshot() }
-
-    func recordActions(_ action: UserAction) {
-        // actionTracker assumed thread-safe or queue-backed
-        actionTracker.recordAction(action)
-    }
 
     func submit() {
         // Snapshot all data needed for submission
@@ -261,12 +255,6 @@ final class BTTimerGroup {
                 startTime: groupTimer.startTime.milliseconds
             )
         }
-    }
-
-    private func submitActionsWcdRequests() {
-        let name = groupTimer.getPageName()
-        let start = groupTimer.startTime
-        Task { await actionTracker.uploadActions(name, pageStartTime: start) }
     }
 
     private func submitChildsWcdRequests() {

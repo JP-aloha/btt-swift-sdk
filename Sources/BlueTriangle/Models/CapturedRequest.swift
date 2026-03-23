@@ -142,14 +142,6 @@ extension CapturedRequest.InitiatorType {
 
 extension CapturedRequest {
     
-    init(startTime : Millisecond, endTime: Millisecond, groupStartTime: Millisecond, action: UserAction) {
-        self.init(
-            startTime: startTime - groupStartTime,
-            endTime:  endTime - groupStartTime,
-            duration: endTime - startTime,
-            action: action)
-    }
-    
     init(startTime : Millisecond, endTime: Millisecond, groupStartTime: Millisecond, response: CustomPageResponse) {
         self.init(
             startTime: startTime - groupStartTime,
@@ -211,27 +203,6 @@ extension CapturedRequest {
                 error: error)
         }
     }
-    
-    
-    init(
-        startTime: Millisecond,
-        endTime: Millisecond,
-        duration: Millisecond,
-        action: UserAction
-    ) {
-        self.host = ""
-        self.domain = ""
-        self.entryType = "Action"
-        self.url = action.action
-        self.initiatorType = .other
-        self.file =  action.actionType
-        self.startTime = startTime
-        self.endTime = endTime
-        self.duration = duration
-        self.decodedBodySize = 0
-        self.encodedBodySize = 0
-    }
-    
     
     init(
         startTime: Millisecond,
