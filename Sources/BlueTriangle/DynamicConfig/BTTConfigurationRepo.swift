@@ -41,7 +41,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
         
         let newConfig = BTTSavedRemoteConfig(
               networkSampleRateSDK: config.networkSampleRateSDK,
-              enableRemoteConfigAck: config.enableRemoteConfigAck,
+              configKey: config.configKey,
               enableAllTracking: config.enableAllTracking,
               enableScreenTracking: config.enableScreenTracking,
               enableGrouping: config.enableGrouping,
@@ -62,6 +62,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
               checkoutCartCountCheckout: config.checkoutCartCountCheckout,
               checkoutOrderNumber: config.checkoutOrderNumber,
               checkoutTimeValue: config.checkoutTimeValue,
+              ignoreBreadcrumbs: config.ignoreBreadcrumbs,
+              enableBreadcrumbs: config.enableBreadcrumbs,
               dateSaved: Date().timeIntervalSince1970.milliseconds
           )
         
@@ -78,7 +80,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
         
         let newConfig = BTTSavedRemoteConfig(
              networkSampleRateSDK: config.networkSampleRateSDK,
-             enableRemoteConfigAck: config.enableRemoteConfigAck,
+             configKey: config.configKey,
              enableAllTracking: config.enableAllTracking,
              enableScreenTracking: config.enableScreenTracking,
              enableGrouping: config.enableGrouping,
@@ -99,6 +101,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
              checkoutCartCountCheckout: config.checkoutCartCountCheckout,
              checkoutOrderNumber: config.checkoutOrderNumber,
              checkoutTimeValue: config.checkoutTimeValue,
+             ignoreBreadcrumbs: config.ignoreBreadcrumbs,
+             enableBreadcrumbs: config.enableBreadcrumbs,
              dateSaved: Date().timeIntervalSince1970.milliseconds
          )
         

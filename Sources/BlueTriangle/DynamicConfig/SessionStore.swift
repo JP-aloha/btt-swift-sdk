@@ -81,11 +81,16 @@ class SessionData: Codable {
     var checkoutOrderNumber : String
     var checkoutTimeValue : Int
     
+    var enableBreadcrumbs : Bool
+    var ignoreBreadcrumbs: Set<String>
+    var configKey : String
+    
     init(expiration: Millisecond) {
         self.expiration = expiration
         self.sessionID =  SessionData.generateSessionID()
         self.isNewSession = true
         self.shouldNetworkCapture = false
+        self.configKey = BlueTriangle.configuration.configKey
         self.enableGrouping = BlueTriangle.configuration.enableGrouping
         self.groupingIdleTime = BlueTriangle.configuration.groupingIdleTime
         self.enableScreenTracking = BlueTriangle.configuration.enableScreenTracking
@@ -108,6 +113,9 @@ class SessionData: Codable {
         self.checkoutCartCountCheckout = BlueTriangle.configuration.checkoutCartCountCheckout
         self.checkoutOrderNumber = BlueTriangle.configuration.checkoutOrderNumber
         self.checkoutTimeValue = BlueTriangle.configuration.checkoutTimeValue
+        
+        self.enableBreadcrumbs = BlueTriangle.configuration.enableBreadcrumbs
+        self.ignoreBreadcrumbs = BlueTriangle.configuration.ignoreBreadcrumbs
     }
     
     private static func generateSessionID()-> Identifier {

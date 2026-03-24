@@ -26,11 +26,13 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
                     id = UUID().uuidString
                     if let id = self.id{
                         BlueTriangle.screenTracker?.loadStarted(id, name)
+                        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.onAppear, className: name))
                     }
                 }
                 .onDisappear{
                     if let id = self.id{
                         BlueTriangle.screenTracker?.viewingEnd(id, name)
+                        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.onDisappear, className: name))
                     }
                 }
         }
@@ -40,6 +42,7 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
                     id = UUID().uuidString
                     if let id = self.id{
                         BlueTriangle.screenTracker?.viewStart(id, name)
+                        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.onAppear, className: name))
                     }
                     Task{
                         if let id = self.id{
@@ -51,6 +54,7 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
                 .onDisappear{
                     if let id = self.id{
                         BlueTriangle.screenTracker?.viewingEnd(id, name)
+                        BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.onDisappear, className: name))
                     }
                 }
         }
@@ -90,5 +94,3 @@ public extension View {
         }
     }
 }
-
-

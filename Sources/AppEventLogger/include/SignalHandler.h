@@ -30,6 +30,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void) debug_log:(NSString *)msg;
 
++ (void) setBreadcrumbs:(NSString *)breadcrumbs;
+
 @end
 
 NS_ASSUME_NONNULL_END

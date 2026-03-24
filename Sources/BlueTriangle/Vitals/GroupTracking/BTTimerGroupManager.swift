@@ -61,11 +61,6 @@ final class BTTimerGroupManager {
         open?.setGroupName(groupName)
     }
 
-    func recordAction(_ action: UserAction) {
-        let open = lock.sync { activeGroups.last(where: { !$0.hasGroupSubmitted }) }
-        open?.recordActions(action)
-    }
-
     func refreshGroupName() {
         let open = lock.sync { activeGroups.last(where: { !$0.hasGroupSubmitted }) }
         open?.refreshGroupName()

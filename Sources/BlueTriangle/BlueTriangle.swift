@@ -44,6 +44,26 @@ final public class BlueTriangle: NSObject {
         }
     }
     
+    private static var _appInstallTracker: AppInstallTracker?
+    internal static var appInstallTracker: AppInstallTracker?{
+        get {
+            trackingLock.sync { _appInstallTracker }
+        }
+        set{
+            trackingLock.sync { _appInstallTracker = newValue }
+        }
+    }
+    
+    private static var _breadcrumbManager: BreadcrumbManager?
+    internal static var breadcrumbManager: BreadcrumbManager?{
+        get {
+            trackingLock.sync { _breadcrumbManager }
+        }
+        set{
+            trackingLock.sync { _breadcrumbManager = newValue }
+        }
+    }
+    
     private static var _appEventObserver: AppEventObserver?
     internal static var appEventObserver: AppEventObserver?{
         get {
@@ -130,15 +150,14 @@ final public class BlueTriangle: NSObject {
     internal static let disableModeSessionManager : SessionManagerProtocol = {
         let configFetcher  =  BTTConfigurationFetcher(logger: logger)
         let configSyncer = BTTStoredConfigSyncer(configRepo: configRepo, logger: logger)
-        let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: nil)
+        let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger)
         return DisableModeSessionManager(logger, configRepo, updater, configSyncer)
     }()
     
     internal static let enabledModeSessionManager : SessionManagerProtocol = {
         let configFetcher  =  BTTConfigurationFetcher(logger: logger)
         let configSyncer = BTTStoredConfigSyncer(configRepo: configRepo, logger: logger)
-        let configAck  =  RemoteConfigAckReporter(logger: logger, uploader: uploader)
-        let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger, configAck: configAck)
+        let updater  =  BTTConfigurationUpdater(configFetcher: configFetcher, configRepo: configRepo, logger: logger)
         return SessionManager(logger, configRepo, updater, configSyncer)
     }()
     
@@ -226,19 +245,6 @@ final public class BlueTriangle: NSObject {
         }
     }
     
-    internal static func makeCapturedActionRequestCollector() -> CapturedActionRequestCollecting? {
-        if let _ = session(), shouldCaptureRequests {
-            let actionsCollector = configuration.capturedActionsRequestCollectorConfiguration.makeRequestCollector(
-                logger: logger,
-                networkCaptureConfiguration: .standard,
-                requestBuilder: CapturedRequestBuilder.makeBuilder {self.session()},
-                uploader: uploader)
-            return actionsCollector
-        } else {
-            return nil
-        }
-    }
-    
     private static var logger: Logging = {
         configuration.makeLogger()
     }()
@@ -269,6 +275,10 @@ final public class BlueTriangle: NSObject {
         sessionData()?.checkoutTrackingEnabled ?? false
     }()
     
+    internal static var shouldBreadcrumbsTracking: Bool = {
+        sessionData()?.enableBreadcrumbs ?? false
+    }()
+    
     /// A Boolean value indicating  whether the SDK has been successfully configured and initialized.
     ///
     /// - `true`: The SDK has been configured and is ready to function. This means
@@ -290,10 +300,6 @@ final public class BlueTriangle: NSObject {
     
     private static var _capturedGroupedViewRequestCollector: CapturedGroupRequestCollecting? = {
         return makeCapturedGroupRequestCollector()
-    }()
-    
-    private static var capturedActionsViewRequestCollector: CapturedActionRequestCollector? = {
-        return makeCapturedActionRequestCollector() as! CapturedActionRequestCollector
     }()
     
     private static func getNetworkRequestCapture() -> CapturedRequestCollecting? {
@@ -716,9 +722,16 @@ extension BlueTriangle {
     }
     
     // Starts screen tracking if not already configured
+    
+    private static func setupSwizzling(){
+#if os(iOS)
+        UIViewController.setUp()
+        logger.info("BlueTriangle :: Swizzling has done.")
+#endif
+    }
+    
     private static func startScreenTracking(){
         if screenTracker == nil{
-            
             configureScreenTracking(with: configuration.enableScreenTracking)
         }
         
@@ -729,7 +742,6 @@ extension BlueTriangle {
     private static func stopScreenTracking(){
         screenTracker?.stop()
         screenTracker = nil
-        
         logger.info("BlueTriangle :: Screen tracking was stopped due to SDK disable.")
     }
     
@@ -741,7 +753,7 @@ extension BlueTriangle {
         
         logger.info("BlueTriangle :: Network state tracking has started.")
     }
-    
+
     // Stops network state tracking
     private static func stopNetworkStatus(){
         networkStateMonitor?.stop()
@@ -749,6 +761,31 @@ extension BlueTriangle {
         
         logger.info("BlueTriangle :: Network state tracking was stopped due to SDK disable.")
     }
+    
+    private static func startBreadcrumbs(){
+        if breadcrumbManager == nil{
+            configureBreadcumbs()
+        }
+        logger.info("BlueTriangle :: Breadcrumbs tracking has started.")
+    }
+    
+    private static func stopBreadcrumbs(){
+        breadcrumbManager = nil
+        logger.info("BlueTriangle :: Breadcrumds tracking has stopped.")
+    }
+    
+    private static func startAppInstallTracker(){
+        if appInstallTracker == nil{
+            configureAppInstallTracker()
+        }
+        logger.info("BlueTriangle :: AppInstallTracker tracking has started.")
+    }
+    
+    private static func stopAppInstallTracker(){
+        appInstallTracker = nil
+        logger.info("BlueTriangle :: AppInstallTracker tracking has stopped.")
+    }
+
     
     private static func clearAllCache(){
         do{
@@ -792,7 +829,6 @@ extension BlueTriangle {
     ///
     internal static func applyAllTrackerState() {
         lock.sync {
-            
             self.configureSessionManager(forModeWithExpiry: configuration.sessionExpiryDuration)
             
             if self.enableAllTracking {
@@ -816,8 +852,10 @@ extension BlueTriangle {
     private static func startAllTrackers() {
         
         logger.info("BlueTriangle :: SDK is in enabled mode.")
-        
+        self.startBreadcrumbs()
         self.startSession()
+        self.startAppInstallTracker()
+        self.setupSwizzling()
         self.startHttpNetworkCapture()
         self.startHttpGroupedChildCapture()
         self.startScreenTracking()
@@ -864,6 +902,8 @@ extension BlueTriangle {
         self.stopMemoryWarning()
         self.stopANR()
         self.stopScreenTracking()
+        self.stopBreadcrumbs()
+        self.stopAppInstallTracker()
         self.stopNetworkStatus()
         self.stopLaunchTime()
         self.clearAllCache()
@@ -1163,7 +1203,7 @@ public extension BlueTriangle {
     }
     /// Returns a timer for network capture.
     static func startRequestTimer() -> InternalTimer? {
-        guard shouldCaptureRequests || shouldCheckoutTracking else {
+        guard shouldCaptureRequests || shouldCheckoutTracking || shouldBreadcrumbsTracking else {
             return nil
         }
         var timer = internalTimerFactory()
@@ -1192,14 +1232,14 @@ public extension BlueTriangle {
     static func captureRequest(timer: InternalTimer, response: URLResponse?) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, response: response)
-            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
         }
     }
 
     internal static func captureRequest(timer: InternalTimer, response: CustomResponse) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, response: response)
-            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
         }
     }
 
@@ -1210,14 +1250,14 @@ public extension BlueTriangle {
     static func captureRequest(timer: InternalTimer, tuple: (Data, URLResponse)) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, response: tuple.1)
-            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1))
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1))
         }
     }
     
     static func captureRequest(timer: InternalTimer, request : URLRequest, error: Error?) {
         Task {
             await getNetworkRequestCapture()?.collect(timer: timer, request: request, error: error)
-            await reportAutoCheckoutFor(CapturedRequest(timer: timer, relativeTo: 0, request: request, error: error))
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, request: request, error: error))
         }
     }
     /// Captures a network request.
@@ -1225,8 +1265,13 @@ public extension BlueTriangle {
     static func captureRequest(metrics: URLSessionTaskMetrics, error : Error?) {
         Task {
             await getNetworkRequestCapture()?.collect(metrics: metrics, error: error)
-            await reportAutoCheckoutFor(CapturedRequest(metrics: metrics, relativeTo: 0, error: error))
+            await recardNetworkFor(CapturedRequest(metrics: metrics, relativeTo: 0, error: error))
         }
+    }
+    
+    private static func recardNetworkFor(_ request: CapturedRequest) async {
+        await BlueTriangle.reportAutoCheckoutFor(request)
+        await BlueTriangle.reportNetworkBreadcrumbFor(request)
     }
     
     private static func reportAutoCheckoutFor(_ request: CapturedRequest) async {
@@ -1245,17 +1290,14 @@ public extension BlueTriangle {
         await getGroupRequestCapture()?.uploadCollectedRequests()
     }
     
-    //Actions
-    internal static func startActionTimerRequest(page : Page, startTime : Millisecond) async{
-        await capturedActionsViewRequestCollector?.start(page: page, startTime: startTime)
+    internal static func collectBreadcrumb(_ breadcrumb : BreadcrumbEvent) {
+        if BlueTriangle.shouldBreadcrumbsTracking {
+            self.breadcrumbManager?.collectBreadcrumb(breadcrumb)
+        }
     }
     
-    internal static func captureActionRequest(startTime : Millisecond, endTime: Millisecond, groupStartTime: Millisecond, action: UserAction) async {
-            await capturedActionsViewRequestCollector?.collect(startTime: startTime, endTime: endTime, groupStartTime: groupStartTime, action: action)
-    }
-    
-    internal static func uploadActionViewCollectedRequests() async{
-        await capturedActionsViewRequestCollector?.uploadCollectedRequests()
+    private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) async {
+        BlueTriangle.collectBreadcrumb(NetworkRequestEvent(url: request.url, statusCode: request.statusCode ?? ""))
     }
 }
 
@@ -1312,7 +1354,9 @@ extension BlueTriangle {
             let pageName = BlueTriangle.recentTimer()?.getPageName()
             let segment = BlueTriangle.recentTimer()?.getTrafficSegment() ?? session.trafficSegmentName
             let pageType = BlueTriangle.recentTimer()?.page.pageType ?? session.pageType
-            let crashReport = CrashReport(sessionID: sessionID, exception: exception, pageName: pageName, segment: segment, pageType: pageType)
+            var nativeApp = NativeAppProperties.nstEmpty
+            nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
+            let crashReport = CrashReport(sessionID: sessionID, exception: exception, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp)
             CrashReportPersistence.save(crashReport)
         }
     }
@@ -1351,10 +1395,19 @@ extension BlueTriangle{
 #if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
         BTTWebViewTracker.logger = logger
-        if enabled {
-            UIViewController.setUp()
-        }
+        UIViewController.setUp()
 #endif
+    }
+}
+
+// MARK: - Breadcrumbs
+extension BlueTriangle{
+    static func configureBreadcumbs(){
+        breadcrumbManager = BreadcrumbManager(collector: BreadcrumbCollector(logger: logger))
+    }
+    
+    static func configureAppInstallTracker(){
+        appInstallTracker = AppInstallTracker(logger: logger)
     }
 }
 
@@ -1470,13 +1523,6 @@ extension BlueTriangle {
     internal static func updateScreenTracking(_ enabled : Bool) {
         configuration.enableScreenTracking = enabled
         screenTracker?.setLifecycleTracker(enabled)
-#if os(iOS)
-        if enabled {
-            UIViewController.setUp()
-        } else {
-            UIViewController.removeSetUp()
-        }
-#endif
     }
     
     internal static func updateCaptureRequests() {
@@ -1591,5 +1637,21 @@ extension BlueTriangle {
 
     internal static func updateCheckoutTimeValue(_ timeValue: Int) {
         configuration.checkoutTimeValue = timeValue
+    }
+    
+    internal static func updateIgnoreBreadcrumbs(_ breadcrumbs : Set<String>?) {
+        if let breadcrumbs = breadcrumbs{
+            configuration.ignoreBreadcrumbs = breadcrumbs
+        }
+        breadcrumbManager?.updateBreadcrumbFeatures()
+    }
+    
+    internal static func updateEnableBreadcrumbs(_ enabled: Bool) {
+        configuration.enableBreadcrumbs = enabled
+        breadcrumbManager?.updateBreadcrumbFeatures()
+    }
+    
+    internal static func updateConfigKey(_ configKey: String) {
+        configuration.configKey = configKey
     }
 }

@@ -22,8 +22,8 @@ import SwiftUI
 #endif
 
 enum LaunchEvent {
-    case Cold(Date, TimeInterval)
-    case Hot(Date, TimeInterval)
+    case Cold(Date, TimeInterval, Int32)
+    case Hot(Date, TimeInterval, Int32)
 }
 
 enum SystemEvent {
@@ -35,6 +35,7 @@ enum SystemEvent {
 class LaunchTimeMonitor : ObservableObject {
     
     internal var launchEventPublisher = CurrentValueSubject<LaunchEvent?, Never>(nil)
+    private let launchTimeThreshold: TimeInterval = 120 // 2 minutes
     private let serialQueue = DispatchQueue(label: "com.launchtimemonitor.queue")
     private let logger: Logging
     private var systemEventLog = [SystemEvent]()
@@ -161,17 +162,26 @@ extension LaunchTimeMonitor {
     private func notifyHotLaunch(_ foregroundEvent: SystemEvent, _ activeTime: Date) {
         if case .didEnterForeground(let startTime) = foregroundEvent {
             let duration = activeTime.timeIntervalSince(startTime)
-            launchEventPublisher.send(.Hot(startTime, duration))
+            launchEventPublisher.send(.Hot(startTime, duration, 100))
             logger.info("Notify hot launch at \(startTime)")
         }
     }
     
     private func notifyColdLaunch(_ finishLaunchEvent: SystemEvent, _ activeTime: Date) {
         if case .didFinishLaunch(let startTime) = finishLaunchEvent {
+            
             let processStart  = processStartTime()
-            let actualStartTime = Date(timeIntervalSince1970: processStart)
-            let duration = activeTime.timeIntervalSince(actualStartTime)
-            launchEventPublisher.send(.Cold(actualStartTime, duration))
+            let processStartTime = Date(timeIntervalSince1970: processStart)
+            let processAge = activeTime.timeIntervalSince(processStartTime)
+            // If the threshold exceeds 2 minutes (e.g., due to background fetch processing),
+            // the launch is classified as a hot launch.
+            if processAge > launchTimeThreshold {
+                let duration = activeTime.timeIntervalSince(startTime)
+                launchEventPublisher.send(.Hot(startTime, duration, 70))
+            } else {
+                let duration = activeTime.timeIntervalSince(processStartTime)
+                launchEventPublisher.send(.Cold(processStartTime, duration, 100))
+            }
             logger.info("Notify cold launch at \(startTime)")
         }
     }
