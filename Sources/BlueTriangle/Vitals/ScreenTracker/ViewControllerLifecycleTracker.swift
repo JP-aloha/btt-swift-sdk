@@ -159,10 +159,10 @@ extension UIViewController{
     @objc dynamic func viewDidLoad_Tracker() {
         if shouldTrackScreen(){
             if isSwiftUIScreen(self) {
-                let screenName = getCurrentScreenName()
+               /* let screenName = getCurrentScreenName()
                 if !screenName.isEmpty {
                     print("SwiftUI View---viewDidLoad---\(String(describing: self))------\(screenName)")
-                }
+                }*/
             } else {
                 BlueTriangle.screenTracker?.loadStarted(String(describing: self), "\(type(of: self))",  pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidLoad, className: "\(type(of: self))"))
@@ -175,10 +175,10 @@ extension UIViewController{
     @objc dynamic func viewWillAppear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
             if isSwiftUIScreen(self) {
-                let screenName = getCurrentScreenName()
+               /* let screenName = getCurrentScreenName()
                 if !screenName.isEmpty {
                     print("SwiftUI View---viewWillAppear---\(String(describing: self))------\(screenName)")
-                }
+                }*/
             } else {
                 BlueTriangle.screenTracker?.loadFinish(String(describing: self),"\(type(of: self))", pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewWillAppear, className: "\(type(of: self))"))
@@ -206,10 +206,10 @@ extension UIViewController{
     @objc dynamic func viewDidDisappear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
             if isSwiftUIScreen(self) {
-                let screenName = getCurrentScreenName()
+               /* let screenName = getCurrentScreenName()
                 if !screenName.isEmpty {
                     print("SwiftUI View---viewDidDisappear---\(String(describing: self))------\(screenName)")
-                }
+                }*/
             } else {
                 BlueTriangle.screenTracker?.viewingEnd(String(describing: self), "\(type(of: self))", pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidDisappear, className: "\(type(of: self))"))
