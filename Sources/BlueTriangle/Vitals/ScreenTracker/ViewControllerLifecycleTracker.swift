@@ -351,40 +351,20 @@ extension UIViewController {
              return getSwiftUITitle(from: presented)
          }
          
-         if let text = findVisibleTextInWindow() {
-             return text
-         }
-         
          return nil
      }
-    
-    func findVisibleTextInWindow() -> String? {
-        guard let window = UIApplication.shared.activeKeyWindow else { return nil }
-        return findLabel(in: window)
-    }
-    
-    func findLabel(in view: UIView) -> String? {
-        
-        if let label = view as? UILabel,
-           let text = label.text,
-           !text.isEmpty {
-            return text
-        }
-        
-        for sub in view.subviews {
-            if let found = findLabel(in: sub) {
-                return found
-            }
-        }
-        
-        return nil
-    }
 
      private func findVisibleText(in view: UIView) -> String? {
          
          if let text = extractText(from: view) {
              return text
          }
+         
+         let label = view.accessibilityLabel
+         let id = view.accessibilityIdentifier
+         let large = view.largeContentTitle
+         
+         print("#: \(label) ------ \(id) ----- \(large)")
          
          for subview in view.subviews {
              if let found = findVisibleText(in: subview) {
