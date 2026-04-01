@@ -192,11 +192,9 @@ extension UIViewController{
         if shouldTrackScreen(){
             if isSwiftUIScreen(self) {
                 let screenName = getCurrentScreenName()
-                if !screenName.isEmpty {
+                if !screenName.isEmpty && screenName != UIViewController.lastTrackedScreenName {
+                    UIViewController.lastTrackedScreenName = screenName
                     print("SwiftUI View---viewDidAppear---\(String(describing: self))------\(screenName)")
-                }
-                if let presentationController = self.presentationController {
-                    presentationController.delegate = ModalDismissTracker.shared
                 }
             } else {
                 BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(type(of: self))", pageTitle())
@@ -229,6 +227,9 @@ extension UIViewController{
 }
 
 extension UIViewController {
+    
+    private static var lastTrackedScreenName: String = ""
+    
     // --------------------------
      func getCurrentScreenName() -> String {
          guard let vc = UIApplication.shared.topViewController() else {
@@ -444,16 +445,6 @@ extension UIView {
             return self
         } else {
             return self.superview?.superview(ofClassNamed: className)
-        }
-    }
-}
-
-final class ModalDismissTracker: NSObject, UIAdaptivePresentationControllerDelegate {
-    static let shared = ModalDismissTracker()
-    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
-        let screenName = UIViewController().getCurrentScreenName()
-        if !screenName.isEmpty {
-            print("SwiftUI View---viewDidAppear---\(String(describing: self))------\(screenName)")
         }
     }
 }
