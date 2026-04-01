@@ -351,10 +351,33 @@ extension UIViewController {
              return getSwiftUITitle(from: presented)
          }
          
+         if let bar = vc.navigationController?.navigationBar, let title = self.findLabel(in: bar) {
+             return title
+         }
+         
          return nil
      }
 
      // MARK: - Visible Text
+    
+    func findLabel(in view: UIView) -> String? {
+        
+        // Match visible title labels only
+        if let label = view as? UILabel,
+           let text = label.text,
+           !text.isEmpty,
+           label.bounds.height > 0 {
+            return label.text
+        }
+        
+        for subview in view.subviews {
+            if let found = findLabel(in: subview) {
+                return found
+            }
+        }
+        
+        return nil
+    }
 
      private func findVisibleText(in view: UIView) -> String? {
          
