@@ -160,7 +160,9 @@ extension UIViewController{
         if shouldTrackScreen(){
             if isSwiftUIScreen(self) {
                 let screenName = getCurrentScreenName()
-                print("SwiftUI View---\(screenName)")
+                if !screenName.isEmpty {
+                    print("SwiftUI View--\(String(describing: self))------\(screenName)")
+                }
             } else {
                 BlueTriangle.screenTracker?.loadStarted(String(describing: self), "\(type(of: self))",  pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidLoad, className: "\(type(of: self))"))
@@ -174,7 +176,9 @@ extension UIViewController{
         if shouldTrackScreen(){
             if isSwiftUIScreen(self) {
                 let screenName = getCurrentScreenName()
-                print("SwiftUI View---\(screenName)")
+                if !screenName.isEmpty {
+                    print("SwiftUI View--\(String(describing: self))------\(screenName)")
+                }
             } else {
                 BlueTriangle.screenTracker?.loadFinish(String(describing: self),"\(type(of: self))", pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewWillAppear, className: "\(type(of: self))"))
@@ -188,7 +192,9 @@ extension UIViewController{
         if shouldTrackScreen(){
             if isSwiftUIScreen(self) {
                 let screenName = getCurrentScreenName()
-                print("SwiftUI View---\(screenName)")
+                if !screenName.isEmpty {
+                    print("SwiftUI View--\(String(describing: self))------\(screenName)")
+                }
             } else {
                 BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(type(of: self))", pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: "\(type(of: self))"))
@@ -201,7 +207,9 @@ extension UIViewController{
         if shouldTrackScreen(){
             if isSwiftUIScreen(self) {
                 let screenName = getCurrentScreenName()
-                print("SwiftUI View---\(screenName)")
+                if !screenName.isEmpty {
+                    print("SwiftUI View--\(String(describing: self))------\(screenName)")
+                }
             } else {
                 BlueTriangle.screenTracker?.viewingEnd(String(describing: self), "\(type(of: self))", pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidDisappear, className: "\(type(of: self))"))
@@ -221,9 +229,14 @@ extension UIViewController {
     // --------------------------
      func getCurrentScreenName() -> String {
          guard let vc = UIApplication.shared.topViewController() else {
-             return "Unknown"
+             return ""
          }
-         return resolveScreenName(vc: vc)
+         let name = resolveScreenName(vc: vc)
+         
+         if name.contains("RootModifier")  {
+             return ""
+         }
+         return name
      }
      
      // MARK: - MAIN RESOLVER
