@@ -247,7 +247,7 @@ extension UIViewController {
 
      private func resolveScreenName(vc: UIViewController) -> String {
          
-         // 🔥 1. TAB NAME (FIXED)
+         // 1. TAB NAME (FIXED)
          if let tab = getTabBarTitle() {
              return tab
          }
@@ -351,27 +351,28 @@ extension UIViewController {
              return getSwiftUITitle(from: presented)
          }
          
-         if let bar = vc.navigationController?.navigationBar, let title = self.findLabel(in: bar) {
-             return title
+         if let text = findVisibleTextInWindow() {
+             return text
          }
          
          return nil
      }
-
-     // MARK: - Visible Text
+    
+    func findVisibleTextInWindow() -> String? {
+        guard let window = UIApplication.shared.activeKeyWindow else { return nil }
+        return findLabel(in: window)
+    }
     
     func findLabel(in view: UIView) -> String? {
         
-        // Match visible title labels only
         if let label = view as? UILabel,
            let text = label.text,
-           !text.isEmpty,
-           label.bounds.height > 0 {
-            return label.text
+           !text.isEmpty {
+            return text
         }
         
-        for subview in view.subviews {
-            if let found = findLabel(in: subview) {
+        for sub in view.subviews {
+            if let found = findLabel(in: sub) {
                 return found
             }
         }
