@@ -195,6 +195,9 @@ extension UIViewController{
                 if !screenName.isEmpty {
                     print("SwiftUI View---viewDidAppear---\(String(describing: self))------\(screenName)")
                 }
+                if let presentationController = self.presentationController {
+                    presentationController.delegate = ModalDismissTracker.shared
+                }
             } else {
                 BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(type(of: self))", pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: "\(type(of: self))"))
@@ -444,6 +447,17 @@ extension UIView {
         }
     }
 }
+
+final class ModalDismissTracker: NSObject, UIAdaptivePresentationControllerDelegate {
+    static let shared = ModalDismissTracker()
+    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        let screenName = UIViewController().getCurrentScreenName()
+        if !screenName.isEmpty {
+            print("SwiftUI View---viewDidAppear---\(String(describing: self))------\(screenName)")
+        }
+    }
+}
+
 #endif
 
 
