@@ -161,7 +161,7 @@ extension UIViewController{
             if isSwiftUIScreen(self) {
                 let screenName = getCurrentScreenName()
                 if !screenName.isEmpty {
-                    print("SwiftUI View--\(String(describing: self))------\(screenName)")
+                    print("SwiftUI View---viewDidLoad---\(String(describing: self))------\(screenName)")
                 }
             } else {
                 BlueTriangle.screenTracker?.loadStarted(String(describing: self), "\(type(of: self))",  pageTitle())
@@ -177,7 +177,7 @@ extension UIViewController{
             if isSwiftUIScreen(self) {
                 let screenName = getCurrentScreenName()
                 if !screenName.isEmpty {
-                    print("SwiftUI View--\(String(describing: self))------\(screenName)")
+                    print("SwiftUI View---viewWillAppear---\(String(describing: self))------\(screenName)")
                 }
             } else {
                 BlueTriangle.screenTracker?.loadFinish(String(describing: self),"\(type(of: self))", pageTitle())
@@ -193,7 +193,7 @@ extension UIViewController{
             if isSwiftUIScreen(self) {
                 let screenName = getCurrentScreenName()
                 if !screenName.isEmpty {
-                    print("SwiftUI View--\(String(describing: self))------\(screenName)")
+                    print("SwiftUI View---viewDidAppear---\(String(describing: self))------\(screenName)")
                 }
             } else {
                 BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(type(of: self))", pageTitle())
@@ -208,7 +208,7 @@ extension UIViewController{
             if isSwiftUIScreen(self) {
                 let screenName = getCurrentScreenName()
                 if !screenName.isEmpty {
-                    print("SwiftUI View--\(String(describing: self))------\(screenName)")
+                    print("SwiftUI View---viewDidDisappear---\(String(describing: self))------\(screenName)")
                 }
             } else {
                 BlueTriangle.screenTracker?.viewingEnd(String(describing: self), "\(type(of: self))", pageTitle())
