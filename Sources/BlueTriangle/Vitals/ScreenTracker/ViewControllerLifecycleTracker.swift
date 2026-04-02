@@ -236,11 +236,10 @@ extension UIViewController {
              return ""
          }*/
          let name = resolveScreenName(vc: vc)
-        
         let structName = getSwiftUIViewName(from: self)
-        let controllerType = identifyControllerType(self)
+        let controllerType = UIViewController.extract(from: self)
                 
-        print("SwiftUI View --- Type --- \(controllerType) ----Name-- \(structName)")
+        print("SwiftUI View --- Extract --- \(controllerType) ----Name-- \(structName)")
          
          if name.contains("RootModifier")  {
              return ""
@@ -533,6 +532,87 @@ extension UIViewController {
             return raw
         }
     }
+    
+    //---
+    
+    static func extract(from viewController: UIViewController) -> String? {
+
+         let vcTypeName = String(reflecting: type(of: viewController))
+
+         // 1. UIHostingController (SwiftUI screen)
+         if vcTypeName.contains("UIHostingController") {
+             return extractFromHostingController(viewController)
+         }
+
+         // 2. Normal UIKit ViewController
+         if vcTypeName != "UIKit.UIViewController",
+            !isSwiftUIInternal(vcTypeName) {
+             return sanitize(vcTypeName)
+         }
+
+         return nil
+     }
+
+     // MARK: - Hosting Controller Extraction
+
+     private static func extractFromHostingController(_ vc: UIViewController) -> String? {
+
+         // Reflection (best-effort)
+         let mirror = Mirror(reflecting: vc)
+
+         if let root = mirror.children.first(where: { $0.label == "rootView" }) {
+             let typeName = String(reflecting: type(of: root.value))
+             return sanitize(typeName)
+         }
+
+         // Fallback: generic parsing
+         let typeName = String(reflecting: type(of: vc))
+         return extractGenericTypeName(from: typeName)
+     }
+
+     // MARK: - Generic Type Parsing
+
+     // UIHostingController<MyView> → MyView
+     private static func extractGenericTypeName(from typeName: String) -> String? {
+         guard
+             let start = typeName.firstIndex(of: "<"),
+             let end = typeName.lastIndex(of: ">"),
+             start < end
+         else { return nil }
+
+         let inner = typeName[typeName.index(after: start)..<end]
+         return sanitize(String(inner))
+     }
+
+     // MARK: - Internal Filters
+
+     private static func isSwiftUIInternal(_ name: String) -> Bool {
+         return name.contains("SwiftUI") ||
+                name.contains("PlatformViewHost") ||
+                name.contains("UIInputWindowController") ||
+                name.contains("UIEditingOverlayViewController") ||
+                name.contains("UINavigationController")
+     }
+
+     // MARK: - Name Cleanup
+
+     private static func sanitize(_ raw: String) -> String? {
+         var name = raw
+
+         // Remove module prefix (MyApp.HomeView → HomeView)
+         if let dot = name.lastIndex(of: ".") {
+             name = String(name[name.index(after: dot)...])
+         }
+
+         // Ignore unwanted SwiftUI artifacts
+         if name.hasSuffix("_Previews") ||
+            name.hasPrefix("_") ||
+            name.contains("ModifiedContent") {
+             return nil
+         }
+
+         return name.isEmpty ? nil : name
+     }
 }
 
 #endif
