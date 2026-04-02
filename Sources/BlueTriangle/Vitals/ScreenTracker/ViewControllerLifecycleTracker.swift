@@ -236,6 +236,11 @@ extension UIViewController {
              return ""
          }*/
          let name = resolveScreenName(vc: vc)
+        
+        let structName = getSwiftUIViewName(from: self)
+        let controllerType = identifyControllerType(self)
+                
+        print("SwiftUI View --- Type --- \(controllerType) ----Name-- \(structName)")
          
          if name.contains("RootModifier")  {
              return ""
@@ -448,6 +453,84 @@ extension UIView {
             return self
         } else {
             return self.superview?.superview(ofClassNamed: className)
+        }
+    }
+}
+
+//-------
+extension UIViewController {
+    
+    func getSwiftUIViewName(from vc: UIViewController) -> String {
+        
+        // Step 1: Try Mirror to find rootView
+        var mirror: Mirror? = Mirror(reflecting: vc)
+        while let current = mirror {
+            for child in current.children {
+                if child.label == "rootView" {
+                    let rawName = String(describing: type(of: child.value))
+                    return cleanViewName(rawName)
+                }
+            }
+            mirror = current.superclassMirror
+        }
+        
+        // Step 2: Try children view controllers
+        for child in vc.children {
+            var childMirror: Mirror? = Mirror(reflecting: child)
+            while let current = childMirror {
+                for mirrorChild in current.children {
+                    if mirrorChild.label == "rootView" {
+                        let rawName = String(describing: type(of: mirrorChild.value))
+                        return cleanViewName(rawName)
+                    }
+                }
+                childMirror = current.superclassMirror
+            }
+        }
+        
+        return "Unknown"
+    }
+
+    // Clean AnyView / ModifiedContent wrappers
+    func cleanViewName(_ raw: String) -> String {
+        // If it's a plain name already
+        if !raw.contains("<") && !raw.contains("(") {
+            return raw
+        }
+        
+        // Strip ModifiedContent<ProductsView, RootModifier> → ProductsView
+        if raw.hasPrefix("ModifiedContent<") {
+            let inner = raw
+                .replacingOccurrences(of: "ModifiedContent<", with: "")
+            return inner.components(separatedBy: ",").first ?? raw
+        }
+        
+        // Strip AnyView wrapper
+        if raw == "AnyView" {
+            return "AnyView (wrapped)"
+        }
+        
+        return raw
+    }
+    
+    func identifyControllerType(_ vc: UIViewController) -> String {
+        let raw = String(describing: type(of: vc))
+        
+        switch true {
+        case raw.contains("NavigationStackHostingController"):
+            return "NavigationStack"
+            
+        case raw.contains("PresentationHostingController"):
+            return "Presentation (Sheet)"
+            
+        case raw.contains("TabHostingController"):
+            return "TabView"
+            
+        case raw.contains("UIHostingController"):
+            return "UIHostingController"
+            
+        default:
+            return raw
         }
     }
 }
