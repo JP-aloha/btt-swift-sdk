@@ -191,7 +191,7 @@ extension UIViewController{
     @objc dynamic func viewDidAppear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
             if isSwiftUIScreen(self) {
-                let screenName = getCurrentScreenName()
+                let screenName = getCurrentScreenName(self)
                 if !screenName.isEmpty && screenName != UIViewController.lastTrackedScreenName {
                     UIViewController.lastTrackedScreenName = screenName
                     print("SwiftUI View---viewDidAppear---\(String(describing: self))------\(screenName)")
@@ -231,10 +231,10 @@ extension UIViewController {
     private static var lastTrackedScreenName: String = ""
     
     // --------------------------
-     func getCurrentScreenName() -> String {
-         guard let vc = UIApplication.shared.topViewController() else {
+    func getCurrentScreenName(_ vc: UIViewController) -> String {
+         /*guard let vc = UIApplication.shared.topViewController() else {
              return ""
-         }
+         }*/
          let name = resolveScreenName(vc: vc)
          
          if name.contains("RootModifier")  {
@@ -276,8 +276,7 @@ extension UIViewController {
          return raw
      }
 
-     // MARK: - TAB BAR FIX (KEY 🔥)
-
+     // MARK: - TAB BAR FIX
      private func getTabBarTitle() -> String? {
          
          guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -454,5 +453,3 @@ extension UIView {
 }
 
 #endif
-
-
