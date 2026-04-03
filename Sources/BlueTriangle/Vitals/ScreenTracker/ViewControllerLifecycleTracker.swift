@@ -193,11 +193,12 @@ extension UIViewController{
             if isSwiftUIScreen(self) {
                 let screenName = getCurrentScreenName(self)
                 if !screenName.isEmpty && screenName != UIViewController.lastTrackedScreenName {
-                    BlueTriangle.screenTracker?.loadFinish(String(describing: self),"\(screenName)", pageTitle())
+                    BlueTriangle.screenTracker?.loadFinish(String(describing: self),"\(screenName)")
                     UIViewController.lastTrackedScreenName = screenName
                     print("SwiftUI View---viewDidAppear---\(String(describing: self))------\(screenName)")
-                    BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(screenName)", pageTitle())
+                    BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(screenName)")
                     BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: "\(screenName)"))
+                    BlueTriangle.screenTracker?.viewingEnd(String(describing: self), "\(screenName)")
                 }
             } else {
                 BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(type(of: self))", pageTitle())
