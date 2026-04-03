@@ -8,5 +8,5 @@
 
 import Foundation
 enum Constants {
-    static let siteID = "sdkdevtest500z"
+    static let siteID = "sdkdemo26621z"//"sdkdevtest500z"
 }
