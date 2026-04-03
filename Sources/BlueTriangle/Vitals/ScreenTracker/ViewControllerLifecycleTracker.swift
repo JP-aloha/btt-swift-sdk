@@ -236,7 +236,7 @@ extension UIViewController {
              return ""
          }*/
         let name = resolveScreenName(vc: vc)
-        let screenName = getNewCurrentScreenName(self)
+        let screenName = getCurrentScreenName_v2(self)
                 
         print("SwiftUI View --- Extract --- \(name) ----Name-- \(screenName)")
          
@@ -456,155 +456,226 @@ extension UIView {
 }
 
 extension UIViewController {
-        
+    
     // MARK: - Public Entry Point
-    func getNewCurrentScreenName(_ vc: UIViewController) -> String {
-        let name = resolveNewScreenName(vc: vc)
+    func getCurrentScreenName_v2(_ vc: UIViewController) -> String {
+        let name = resolveScreenName_v2(vc: vc)
         if name.contains("RootModifier") { return "" }
         return name
     }
-    
+
     // MARK: - Main Resolver
-    private func resolveNewScreenName(vc: UIViewController) -> String {
-        
-        // 1. SwiftUI HostingController — Mirror unwrap
+    private func resolveScreenName_v2(vc: UIViewController) -> String {
+
         let typeName = String(describing: type(of: vc))
+
+        // 1. ✅ SwiftUI HostingController — deep mirror
         if typeName.contains("HostingController") {
-            if let name = extractSwiftUIName(from: vc), !name.isEmpty {
+            if let name = extractSwiftUIName_v2(from: vc), !name.isEmpty {
                 return name
             }
         }
-        
+
         // 2. Tab bar title
-        if let tab = getNewTabBarTitle() { return tab }
-        
+        if let tab = getTabBarTitle_v2() { return tab }
+
         // 3. Navigation title
-        if let title = getNewSwiftUITitle(from: vc) { return title }
-        
+        if let title = getSwiftUITitle_v2(from: vc) { return title }
+
         // 4. Accessibility ID
         if let id = vc.view.accessibilityIdentifier, !id.isEmpty { return id }
-        
-        // 5. Clean type name fallback
-        return cleanNewSwiftUIName(typeName)
+
+        // 5. Fallback
+        return cleanSwiftUIName_v2(typeName)
     }
-    
-    // MARK: - Mirror: NavigationStackHostingController<AnyView> → Real View Name
-    //
-    // Layer 1: HostingController → rootView (AnyView)
-    // Layer 2: AnyView           → storage  (AnyViewStorage<HomeView>)
-    // Layer 3: AnyViewStorage    → view     (HomeView) ✅
-    
-    private func extractSwiftUIName(from vc: UIViewController) -> String? {
-        
-        // Layer 1 — rootView from HostingController
-        let vcMirror = Mirror(reflecting: vc)
-        guard let rootView = vcMirror.children
-            .first(where: { $0.label == "rootView" })?.value else {
+
+    // MARK: - Deep Mirror Unwrap
+    private func extractSwiftUIName_v2(from vc: UIViewController) -> String? {
+
+        // Layer 1 — get rootView from HostingController
+        guard let rootView = mirrorChild_v2(of: vc, labels: ["rootView"]) else {
             return nil
         }
-        
-        // Layer 2 — storage from AnyView
-        let anyViewMirror = Mirror(reflecting: rootView)
-        guard let storage = anyViewMirror.children.first?.value else {
-            // rootView is not AnyView — unwrap directly
-            return unwrapFinalName(from: rootView)
+
+        let rootTypeName = String(describing: type(of: rootView))
+        print("🔍 [v2] L1 rootView: \(rootTypeName)")
+
+        // If rootView is NOT AnyView — unwrap directly
+        if !rootTypeName.contains("AnyView") {
+            return unwrapFinalName_v2(from: rootView)
         }
-        
-        // Layer 3 — real view from AnyViewStorage
-        let storageMirror = Mirror(reflecting: storage)
-        guard let realView = storageMirror.children.first?.value else {
-            return unwrapFinalName(from: storage)
+
+        // Layer 2 — unwrap AnyView storage
+        let storage = mirrorChild_v2(of: rootView, labels: [
+            "storage",
+            "box",
+            "value",
+        ]) ?? Mirror(reflecting: rootView).children.first?.value
+
+        guard let storage = storage else {
+            return unwrapFinalName_v2(from: rootView)
         }
-        
-        // Unwrap ModifiedContent / wrappers if needed
-        return unwrapFinalName(from: realView)
+
+        let storageTypeName = String(describing: type(of: storage))
+        print("🔍 [v2] L2 storage: \(storageTypeName)")
+
+        // Layer 3 — get real view from storage
+        let realView = mirrorChild_v2(of: storage, labels: [
+            "view",
+            "content",
+            "base",
+        ]) ?? Mirror(reflecting: storage).children.first?.value
+
+        guard let realView = realView else {
+            return unwrapFinalName_v2(from: storage)
+        }
+
+        let realTypeName = String(describing: type(of: realView))
+        print("🔍 [v2] L3 realView: \(realTypeName)")
+
+        return unwrapFinalName_v2(from: realView)
     }
-    
-    // MARK: - Unwrap ModifiedContent wrappers to get real view name
-    private func unwrapFinalName(from view: Any, depth: Int = 0) -> String? {
-        
-        guard depth < 10 else { return nil }
-        
+
+    // MARK: - Mirror Child by Label
+    private func mirrorChild_v2(of object: Any, labels: [String]) -> Any? {
+        let mirror = Mirror(reflecting: object)
+        for label in labels {
+            if let child = mirror.children.first(where: { $0.label == label })?.value {
+                return child
+            }
+        }
+        return nil
+    }
+
+    // MARK: - Unwrap Wrappers → Real View Name
+    private func unwrapFinalName_v2(from view: Any, depth: Int = 0) -> String? {
+
+        guard depth < 15 else { return nil }
+
         let typeName = String(describing: type(of: view))
-        
+
         let wrappers = [
             "ModifiedContent",
+            "AnyView",
             "TupleView",
+            "NavigationStack",
             "Group",
             "Optional",
             "RootModifier",
-            "_ConditionalContent"
+            "_ConditionalContent",
+            "BackgroundModifier",
+            "PaddingLayout",
+            "EnvironmentKeyWritingModifier"
         ]
-        
+
         let isWrapper = wrappers.contains(where: { typeName.contains($0) })
-        
+
         if !isWrapper {
-            // Real view name — strip module + generics
-            return typeName
+            let name = typeName
                 .components(separatedBy: "<").first?
-                .components(separatedBy: ".").last
+                .components(separatedBy: ".").last ?? typeName
+
+            // Skip internal SwiftUI types
+            let internalPrefixes = ["_", "Rendering", "Animation", "Gesture"]
+            if !internalPrefixes.contains(where: { name.hasPrefix($0) }) {
+                print("✅ [v2] Found: \(name)")
+                return name
+            }
         }
-        
-        // Dig deeper into children
+
+        // Dig deeper
         let mirror = Mirror(reflecting: view)
         for child in mirror.children {
-            if let found = unwrapFinalName(from: child.value, depth: depth + 1) {
+            if let found = unwrapFinalName_v2(from: child.value, depth: depth + 1) {
                 return found
             }
         }
-        
+
         return nil
     }
-    
+
+    // MARK: - Full Debug
+    func debugMirrorLayers_v2(of vc: UIViewController) {
+        print("\n========= MIRROR DEBUG v2 =========")
+        print("VC: \(type(of: vc))")
+
+        // L1
+        let m1 = Mirror(reflecting: vc)
+        print("\n[L1] HostingController children:")
+        m1.children.forEach {
+            print("  label: '\($0.label ?? "nil")' | type: \(type(of: $0.value))")
+        }
+
+        // L2
+        guard let rootView = m1.children.first(where: { $0.label == "rootView" })?.value else {
+            print("❌ rootView not found"); return
+        }
+        print("\n[L2] rootView (\(type(of: rootView))) children:")
+        let m2 = Mirror(reflecting: rootView)
+        m2.children.forEach {
+            print("  label: '\($0.label ?? "nil")' | type: \(type(of: $0.value))")
+        }
+
+        // L3
+        guard let storage = m2.children.first?.value else {
+            print("❌ storage not found"); return
+        }
+        print("\n[L3] storage (\(type(of: storage))) children:")
+        let m3 = Mirror(reflecting: storage)
+        m3.children.forEach {
+            print("  label: '\($0.label ?? "nil")' | type: \(type(of: $0.value))")
+        }
+
+        // L4
+        guard let realView = m3.children.first?.value else {
+            print("❌ realView not found"); return
+        }
+        print("\n[L4] realView (\(type(of: realView))) children:")
+        let m4 = Mirror(reflecting: realView)
+        m4.children.forEach {
+            print("  label: '\($0.label ?? "nil")' | type: \(type(of: $0.value))")
+        }
+
+        print("\n✅ Final type: \(type(of: realView))")
+        print("===================================\n")
+    }
+
     // MARK: - Tab Bar Title
-    private func getNewTabBarTitle() -> String? {
+    private func getTabBarTitle_v2() -> String? {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first,
-              let tabBarController = findNewTabBarController(from: window.rootViewController) else {
-            return nil
-        }
-        
-        let index = tabBarController.selectedIndex
-        guard let items = tabBarController.tabBar.items, index < items.count else {
-            return nil
-        }
-        
-        let item = items[index]
-        return item.title ?? item.accessibilityLabel
+              let tab = findTabBarController_v2(from: window.rootViewController) else { return nil }
+        let index = tab.selectedIndex
+        guard let items = tab.tabBar.items, index < items.count else { return nil }
+        return items[index].title ?? items[index].accessibilityLabel
     }
-    
-    // MARK: - Find TabBarController
-    private func findNewTabBarController(from vc: UIViewController?) -> UITabBarController? {
+
+    private func findTabBarController_v2(from vc: UIViewController?) -> UITabBarController? {
         guard let vc = vc else { return nil }
         if let tab = vc as? UITabBarController { return tab }
-        if let nav = vc as? UINavigationController { return findTabBarController(from: nav.visibleViewController) }
-        if let presented = vc.presentedViewController { return findTabBarController(from: presented) }
-        for child in vc.children {
-            if let found = findTabBarController(from: child) { return found }
-        }
+        if let nav = vc as? UINavigationController { return findTabBarController_v2(from: nav.visibleViewController) }
+        if let presented = vc.presentedViewController { return findTabBarController_v2(from: presented) }
+        for child in vc.children { if let found = findTabBarController_v2(from: child) { return found } }
         return nil
     }
-    
-    // MARK: - Navigation / SwiftUI Title
-    private func getNewSwiftUITitle(from vc: UIViewController) -> String? {
+
+    // MARK: - Navigation Title
+    private func getSwiftUITitle_v2(from vc: UIViewController) -> String? {
         if let title = vc.navigationItem.title, !title.isEmpty { return title }
         if let title = vc.navigationController?.navigationBar.topItem?.title, !title.isEmpty { return title }
-        if let presented = vc.presentedViewController { return getSwiftUITitle(from: presented) }
+        if let presented = vc.presentedViewController { return getSwiftUITitle_v2(from: presented) }
         return nil
     }
-    
-    // MARK: - Clean Raw Type Name Fallback
-    private func cleanNewSwiftUIName(_ name: String) -> String {
+
+    // MARK: - Clean Fallback
+    private func cleanSwiftUIName_v2(_ name: String) -> String {
         guard let start = name.firstIndex(of: "<"),
               let end   = name.lastIndex(of: ">") else { return name }
-        
         var extracted = String(name[name.index(after: start)..<end])
-        
         ["ModifiedContent<", "AnyView", "TupleView<",
          "NavigationStack<", "_ConditionalContent<"].forEach {
             extracted = extracted.replacingOccurrences(of: $0, with: "")
         }
-        
         return extracted
             .replacingOccurrences(of: "<", with: "")
             .replacingOccurrences(of: ">", with: "")
