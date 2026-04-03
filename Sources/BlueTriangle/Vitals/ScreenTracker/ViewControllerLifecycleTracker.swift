@@ -467,61 +467,55 @@ extension UIViewController {
         return name
     }
     
-    // MARK: - MAIN RESOLVER
+    
     private func resolveScreenName(vc: UIViewController) -> String {
         
-        // 1. ✅ Mirror unwrap — NavigationStackHostingController<AnyView>
         let typeName = String(describing: type(of: vc))
-        if typeName.contains("HostingController") {
+        
+        // ✅ Catch ALL HostingController variants
+        let hostingVariants = [
+            "HostingController",        // UIHostingController
+            "PresentationHostingController",  // Sheet
+            "NavigationStackHostingController" // NavigationStack
+        ]
+        
+        if hostingVariants.contains(where: { typeName.contains($0) }) {
             if let name = extractSwiftUIStructName(from: vc), !name.isEmpty {
-                print("✅ Mirror resolved: \(name)")
+                print("✅ Resolved: \(name)")
                 return name
             }
         }
         
-        // 2. ✅ Check Sheet/Modal presented VC
-        if let presented = vc.presentedViewController {
-            let presentedType = String(describing: type(of: presented))
-            if presentedType.contains("HostingController") {
-                if let name = extractSwiftUIStructName(from: presented), !name.isEmpty {
-                    print("✅ Sheet Mirror resolved: \(name)")
-                    return name
-                }
-            }
-        }
-        
-        // 3. TAB BAR
+        // rest of your fallbacks...
         if let tab = getTabBarTitle() { return tab }
-        
-        // 4. SwiftUI navigationTitle
         if let title = getSwiftUITitle(from: vc) { return title }
-        
-        // 5. ✅ Large title text only (font size >= 20) — avoids "Cancel" button
         if let text = findLargeTitleText(in: vc.view) { return text }
-        
-        // 6. Accessibility ID on root view
         if let id = vc.view.accessibilityIdentifier, !id.isEmpty { return id }
         
-        // 7. SwiftUI type fallback
-        let raw = String(describing: type(of: vc))
-        if raw.contains("UIHostingController") { return cleanSwiftUIName(raw) }
-        
-        return raw
+        return cleanSwiftUIName(typeName)
     }
-    
-    // MARK: - ✅ Mirror: NavigationStackHostingController<AnyView> → Real Struct Name
-    //
-    // NavigationStackHostingController
-    //   └── rootView: AnyView                    L1
-    //         └── storage: AnyViewStorage<X>     L2
-    //               └── view/content: X          L3 ✅
     
     private func extractSwiftUIStructName(from vc: UIViewController) -> String? {
         
-        // L1 — rootView from HostingController
+        let vcTypeName = String(describing: type(of: vc))
+        print("🔍 VC Type: \(vcTypeName)")
+        
         let vcMirror = Mirror(reflecting: vc)
-        guard let rootView = vcMirror.children
-            .first(where: { $0.label == "rootView" })?.value else {
+        
+        // Print ALL L1 labels to find correct one
+        print("🔍 L1 All children:")
+        vcMirror.children.forEach {
+            print("   '\($0.label ?? "nil")' → \(type(of: $0.value))")
+        }
+        
+        // ✅ Try all possible rootView label names
+        // PresentationHostingController uses different labels than UIHostingController
+        let rootView = vcMirror.children.first(where: {
+            ["rootView", "content", "view", "hostedView", "_rootView"].contains($0.label ?? "")
+        })?.value ?? vcMirror.children.first?.value
+        
+        guard let rootView = rootView else {
+            print("❌ No rootView found in \(vcTypeName)")
             return nil
         }
         
@@ -533,31 +527,50 @@ extension UIViewController {
             return unwrapViewName(from: rootView)
         }
         
-        // L2 — storage inside AnyView (try all known labels)
+        // L2 — inside AnyView
         let anyViewMirror = Mirror(reflecting: rootView)
+        print("🔍 L2 AnyView children:")
+        anyViewMirror.children.forEach {
+            print("   '\($0.label ?? "nil")' → \(type(of: $0.value))")
+        }
+        
         let storage = anyViewMirror.children
             .first(where: { ["storage", "box", "value"].contains($0.label ?? "") })?.value
             ?? anyViewMirror.children.first?.value
         
         guard let storage = storage else {
+            print("❌ No storage in AnyView")
             return unwrapViewName(from: rootView)
         }
         
         let storageTypeName = String(describing: type(of: storage))
         print("🔍 L2 storage: \(storageTypeName)")
         
-        // L3 — real view inside storage (try all known labels)
+        // L3 — inside storage
         let storageMirror = Mirror(reflecting: storage)
+        print("🔍 L3 storage children:")
+        storageMirror.children.forEach {
+            print("   '\($0.label ?? "nil")' → \(type(of: $0.value))")
+        }
+        
         let realView = storageMirror.children
             .first(where: { ["view", "content", "base"].contains($0.label ?? "") })?.value
             ?? storageMirror.children.first?.value
         
         guard let realView = realView else {
+            print("❌ No realView in storage")
             return unwrapViewName(from: storage)
         }
         
         let realTypeName = String(describing: type(of: realView))
         print("🔍 L3 realView: \(realTypeName)")
+        
+        // L4 — realView might still be wrapped (ModifiedContent etc)
+        let l4Mirror = Mirror(reflecting: realView)
+        print("🔍 L4 realView children:")
+        l4Mirror.children.forEach {
+            print("   '\($0.label ?? "nil")' → \(type(of: $0.value))")
+        }
         
         return unwrapViewName(from: realView)
     }
