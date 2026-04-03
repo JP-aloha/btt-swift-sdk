@@ -457,6 +457,8 @@ extension UIView {
 
 extension UIViewController {
     
+    private static var lastTrackedScreenName_v2: String = ""
+
     // MARK: - Public Entry Point
     func getCurrentScreenName_v2(_ vc: UIViewController) -> String {
         let name = resolveScreenName_v2(vc: vc)
@@ -476,23 +478,35 @@ extension UIViewController {
             }
         }
 
-        // 2. Tab bar title
+        // 2. ✅ Check presented VC (Sheet/Modal)
+        if let presented = vc.presentedViewController {
+            let presentedType = String(describing: type(of: presented))
+            if presentedType.contains("HostingController") {
+                if let name = extractSwiftUIName_v2(from: presented), !name.isEmpty {
+                    return name
+                }
+            }
+        }
+
+        // 3. Tab bar title
         if let tab = getTabBarTitle_v2() { return tab }
 
-        // 3. Navigation title
+        // 4. Navigation title
         if let title = getSwiftUITitle_v2(from: vc) { return title }
 
-        // 4. Accessibility ID
+        // 5. ✅ Scan view labels / accessibility IDs
+        if let label = scanViewHierarchyLabel_v2(in: vc.view) { return label }
+
+        // 6. Accessibility ID
         if let id = vc.view.accessibilityIdentifier, !id.isEmpty { return id }
 
-        // 5. Fallback
+        // 7. Fallback
         return cleanSwiftUIName_v2(typeName)
     }
 
     // MARK: - Deep Mirror Unwrap
     private func extractSwiftUIName_v2(from vc: UIViewController) -> String? {
 
-        // Layer 1 — get rootView from HostingController
         guard let rootView = mirrorChild_v2(of: vc, labels: ["rootView"]) else {
             return nil
         }
@@ -500,16 +514,13 @@ extension UIViewController {
         let rootTypeName = String(describing: type(of: rootView))
         print("🔍 [v2] L1 rootView: \(rootTypeName)")
 
-        // If rootView is NOT AnyView — unwrap directly
         if !rootTypeName.contains("AnyView") {
             return unwrapFinalName_v2(from: rootView)
         }
 
-        // Layer 2 — unwrap AnyView storage
+        // Layer 2 — AnyView storage
         let storage = mirrorChild_v2(of: rootView, labels: [
-            "storage",
-            "box",
-            "value",
+            "storage", "box", "value"
         ]) ?? Mirror(reflecting: rootView).children.first?.value
 
         guard let storage = storage else {
@@ -519,11 +530,9 @@ extension UIViewController {
         let storageTypeName = String(describing: type(of: storage))
         print("🔍 [v2] L2 storage: \(storageTypeName)")
 
-        // Layer 3 — get real view from storage
+        // Layer 3 — real view
         let realView = mirrorChild_v2(of: storage, labels: [
-            "view",
-            "content",
-            "base",
+            "view", "content", "base"
         ]) ?? Mirror(reflecting: storage).children.first?.value
 
         guard let realView = realView else {
@@ -540,7 +549,8 @@ extension UIViewController {
     private func mirrorChild_v2(of object: Any, labels: [String]) -> Any? {
         let mirror = Mirror(reflecting: object)
         for label in labels {
-            if let child = mirror.children.first(where: { $0.label == label })?.value {
+            if let child = mirror.children
+                .first(where: { $0.label == label })?.value {
                 return child
             }
         }
@@ -575,7 +585,6 @@ extension UIViewController {
                 .components(separatedBy: "<").first?
                 .components(separatedBy: ".").last ?? typeName
 
-            // Skip internal SwiftUI types
             let internalPrefixes = ["_", "Rendering", "Animation", "Gesture"]
             if !internalPrefixes.contains(where: { name.hasPrefix($0) }) {
                 print("✅ [v2] Found: \(name)")
@@ -583,10 +592,40 @@ extension UIViewController {
             }
         }
 
-        // Dig deeper
         let mirror = Mirror(reflecting: view)
         for child in mirror.children {
             if let found = unwrapFinalName_v2(from: child.value, depth: depth + 1) {
+                return found
+            }
+        }
+
+        return nil
+    }
+
+    // MARK: - ✅ Scan UIView Hierarchy for Labels (Sheet fallback)
+    // Finds UILabel or accessibilityLabel in view tree
+    private func scanViewHierarchyLabel_v2(in view: UIView, depth: Int = 0) -> String? {
+
+        guard depth < 10 else { return nil }
+
+        // ✅ Check accessibilityIdentifier first
+        if let id = view.accessibilityIdentifier,
+           !id.isEmpty,
+           !id.hasPrefix("fld_"),    // skip text fields
+           !id.hasPrefix("btn_") {   // skip buttons
+            return id
+        }
+
+        // ✅ Check UILabel — find large title text
+        if let label = view as? UILabel,
+           let text = label.text,
+           !text.isEmpty,
+           label.font.pointSize >= 20 {   // only large titles
+            return text
+        }
+
+        for subview in view.subviews {
+            if let found = scanViewHierarchyLabel_v2(in: subview, depth: depth + 1) {
                 return found
             }
         }
@@ -599,15 +638,14 @@ extension UIViewController {
         print("\n========= MIRROR DEBUG v2 =========")
         print("VC: \(type(of: vc))")
 
-        // L1
         let m1 = Mirror(reflecting: vc)
         print("\n[L1] HostingController children:")
         m1.children.forEach {
             print("  label: '\($0.label ?? "nil")' | type: \(type(of: $0.value))")
         }
 
-        // L2
-        guard let rootView = m1.children.first(where: { $0.label == "rootView" })?.value else {
+        guard let rootView = m1.children
+            .first(where: { $0.label == "rootView" })?.value else {
             print("❌ rootView not found"); return
         }
         print("\n[L2] rootView (\(type(of: rootView))) children:")
@@ -616,7 +654,6 @@ extension UIViewController {
             print("  label: '\($0.label ?? "nil")' | type: \(type(of: $0.value))")
         }
 
-        // L3
         guard let storage = m2.children.first?.value else {
             print("❌ storage not found"); return
         }
@@ -626,13 +663,11 @@ extension UIViewController {
             print("  label: '\($0.label ?? "nil")' | type: \(type(of: $0.value))")
         }
 
-        // L4
         guard let realView = m3.children.first?.value else {
             print("❌ realView not found"); return
         }
         print("\n[L4] realView (\(type(of: realView))) children:")
-        let m4 = Mirror(reflecting: realView)
-        m4.children.forEach {
+        Mirror(reflecting: realView).children.forEach {
             print("  label: '\($0.label ?? "nil")' | type: \(type(of: $0.value))")
         }
 
@@ -642,9 +677,11 @@ extension UIViewController {
 
     // MARK: - Tab Bar Title
     private func getTabBarTitle_v2() -> String? {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first,
-              let tab = findTabBarController_v2(from: window.rootViewController) else { return nil }
+        guard
+            let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+            let window = windowScene.windows.first,
+            let tab = findTabBarController_v2(from: window.rootViewController)
+        else { return nil }
         let index = tab.selectedIndex
         guard let items = tab.tabBar.items, index < items.count else { return nil }
         return items[index].title ?? items[index].accessibilityLabel
@@ -653,17 +690,26 @@ extension UIViewController {
     private func findTabBarController_v2(from vc: UIViewController?) -> UITabBarController? {
         guard let vc = vc else { return nil }
         if let tab = vc as? UITabBarController { return tab }
-        if let nav = vc as? UINavigationController { return findTabBarController_v2(from: nav.visibleViewController) }
-        if let presented = vc.presentedViewController { return findTabBarController_v2(from: presented) }
-        for child in vc.children { if let found = findTabBarController_v2(from: child) { return found } }
+        if let nav = vc as? UINavigationController {
+            return findTabBarController_v2(from: nav.visibleViewController)
+        }
+        if let presented = vc.presentedViewController {
+            return findTabBarController_v2(from: presented)
+        }
+        for child in vc.children {
+            if let found = findTabBarController_v2(from: child) { return found }
+        }
         return nil
     }
 
     // MARK: - Navigation Title
     private func getSwiftUITitle_v2(from vc: UIViewController) -> String? {
         if let title = vc.navigationItem.title, !title.isEmpty { return title }
-        if let title = vc.navigationController?.navigationBar.topItem?.title, !title.isEmpty { return title }
-        if let presented = vc.presentedViewController { return getSwiftUITitle_v2(from: presented) }
+        if let title = vc.navigationController?.navigationBar.topItem?.title,
+           !title.isEmpty { return title }
+        if let presented = vc.presentedViewController {
+            return getSwiftUITitle_v2(from: presented)
+        }
         return nil
     }
 
