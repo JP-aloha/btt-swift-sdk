@@ -236,7 +236,7 @@ extension UIViewController {
              return ""
          }*/
         let name = resolveScreenName(vc: vc)
-        print("SwiftUI View --- Extract --- \(vc) ----Name-- \(screenName)")
+        print("SwiftUI View --- Extract --- \(vc) ----Name-- \(name)")
          
          if name.contains("RootModifier")  {
              return ""
