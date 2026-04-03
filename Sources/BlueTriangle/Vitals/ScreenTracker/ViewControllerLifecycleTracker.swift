@@ -235,11 +235,10 @@ extension UIViewController {
          /*guard let vc = UIApplication.shared.topViewController() else {
              return ""
          }*/
-         let name = resolveScreenName(vc: vc)
-        let structName = getSwiftUIViewName(from: self)
-        let controllerType = UIViewController.extract(from: self)
+        let name = resolveScreenName(vc: vc)
+        let screenName = getNewCurrentScreenName(self)
                 
-        print("SwiftUI View --- Extract --- \(controllerType) ----Name-- \(structName)")
+        print("SwiftUI View --- Extract --- \(name) ----Name-- \(screenName)")
          
          if name.contains("RootModifier")  {
              return ""
@@ -456,163 +455,161 @@ extension UIView {
     }
 }
 
-//-------
 extension UIViewController {
-    
-    func getSwiftUIViewName(from vc: UIViewController) -> String {
         
-        // Step 1: Try Mirror to find rootView
-        var mirror: Mirror? = Mirror(reflecting: vc)
-        while let current = mirror {
-            for child in current.children {
-                if child.label == "rootView" {
-                    let rawName = String(describing: type(of: child.value))
-                    return cleanViewName(rawName)
-                }
+    // MARK: - Public Entry Point
+    func getNewCurrentScreenName(_ vc: UIViewController) -> String {
+        let name = resolveNewScreenName(vc: vc)
+        if name.contains("RootModifier") { return "" }
+        return name
+    }
+    
+    // MARK: - Main Resolver
+    private func resolveNewScreenName(vc: UIViewController) -> String {
+        
+        // 1. SwiftUI HostingController — Mirror unwrap
+        let typeName = String(describing: type(of: vc))
+        if typeName.contains("HostingController") {
+            if let name = extractSwiftUIName(from: vc), !name.isEmpty {
+                return name
             }
-            mirror = current.superclassMirror
         }
         
-        // Step 2: Try children view controllers
+        // 2. Tab bar title
+        if let tab = getNewTabBarTitle() { return tab }
+        
+        // 3. Navigation title
+        if let title = getNewSwiftUITitle(from: vc) { return title }
+        
+        // 4. Accessibility ID
+        if let id = vc.view.accessibilityIdentifier, !id.isEmpty { return id }
+        
+        // 5. Clean type name fallback
+        return cleanNewSwiftUIName(typeName)
+    }
+    
+    // MARK: - Mirror: NavigationStackHostingController<AnyView> → Real View Name
+    //
+    // Layer 1: HostingController → rootView (AnyView)
+    // Layer 2: AnyView           → storage  (AnyViewStorage<HomeView>)
+    // Layer 3: AnyViewStorage    → view     (HomeView) ✅
+    
+    private func extractSwiftUIName(from vc: UIViewController) -> String? {
+        
+        // Layer 1 — rootView from HostingController
+        let vcMirror = Mirror(reflecting: vc)
+        guard let rootView = vcMirror.children
+            .first(where: { $0.label == "rootView" })?.value else {
+            return nil
+        }
+        
+        // Layer 2 — storage from AnyView
+        let anyViewMirror = Mirror(reflecting: rootView)
+        guard let storage = anyViewMirror.children.first?.value else {
+            // rootView is not AnyView — unwrap directly
+            return unwrapFinalName(from: rootView)
+        }
+        
+        // Layer 3 — real view from AnyViewStorage
+        let storageMirror = Mirror(reflecting: storage)
+        guard let realView = storageMirror.children.first?.value else {
+            return unwrapFinalName(from: storage)
+        }
+        
+        // Unwrap ModifiedContent / wrappers if needed
+        return unwrapFinalName(from: realView)
+    }
+    
+    // MARK: - Unwrap ModifiedContent wrappers to get real view name
+    private func unwrapFinalName(from view: Any, depth: Int = 0) -> String? {
+        
+        guard depth < 10 else { return nil }
+        
+        let typeName = String(describing: type(of: view))
+        
+        let wrappers = [
+            "ModifiedContent",
+            "TupleView",
+            "Group",
+            "Optional",
+            "RootModifier",
+            "_ConditionalContent"
+        ]
+        
+        let isWrapper = wrappers.contains(where: { typeName.contains($0) })
+        
+        if !isWrapper {
+            // Real view name — strip module + generics
+            return typeName
+                .components(separatedBy: "<").first?
+                .components(separatedBy: ".").last
+        }
+        
+        // Dig deeper into children
+        let mirror = Mirror(reflecting: view)
+        for child in mirror.children {
+            if let found = unwrapFinalName(from: child.value, depth: depth + 1) {
+                return found
+            }
+        }
+        
+        return nil
+    }
+    
+    // MARK: - Tab Bar Title
+    private func getNewTabBarTitle() -> String? {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first,
+              let tabBarController = findNewTabBarController(from: window.rootViewController) else {
+            return nil
+        }
+        
+        let index = tabBarController.selectedIndex
+        guard let items = tabBarController.tabBar.items, index < items.count else {
+            return nil
+        }
+        
+        let item = items[index]
+        return item.title ?? item.accessibilityLabel
+    }
+    
+    // MARK: - Find TabBarController
+    private func findNewTabBarController(from vc: UIViewController?) -> UITabBarController? {
+        guard let vc = vc else { return nil }
+        if let tab = vc as? UITabBarController { return tab }
+        if let nav = vc as? UINavigationController { return findTabBarController(from: nav.visibleViewController) }
+        if let presented = vc.presentedViewController { return findTabBarController(from: presented) }
         for child in vc.children {
-            var childMirror: Mirror? = Mirror(reflecting: child)
-            while let current = childMirror {
-                for mirrorChild in current.children {
-                    if mirrorChild.label == "rootView" {
-                        let rawName = String(describing: type(of: mirrorChild.value))
-                        return cleanViewName(rawName)
-                    }
-                }
-                childMirror = current.superclassMirror
-            }
+            if let found = findTabBarController(from: child) { return found }
         }
-        
-        return "Unknown"
-    }
-
-    // Clean AnyView / ModifiedContent wrappers
-    func cleanViewName(_ raw: String) -> String {
-        // If it's a plain name already
-        if !raw.contains("<") && !raw.contains("(") {
-            return raw
-        }
-        
-        // Strip ModifiedContent<ProductsView, RootModifier> → ProductsView
-        if raw.hasPrefix("ModifiedContent<") {
-            let inner = raw
-                .replacingOccurrences(of: "ModifiedContent<", with: "")
-            return inner.components(separatedBy: ",").first ?? raw
-        }
-        
-        // Strip AnyView wrapper
-        if raw == "AnyView" {
-            return "AnyView (wrapped)"
-        }
-        
-        return raw
+        return nil
     }
     
-    func identifyControllerType(_ vc: UIViewController) -> String {
-        let raw = String(describing: type(of: vc))
-        
-        switch true {
-        case raw.contains("NavigationStackHostingController"):
-            return "NavigationStack"
-            
-        case raw.contains("PresentationHostingController"):
-            return "Presentation (Sheet)"
-            
-        case raw.contains("TabHostingController"):
-            return "TabView"
-            
-        case raw.contains("UIHostingController"):
-            return "UIHostingController"
-            
-        default:
-            return raw
-        }
+    // MARK: - Navigation / SwiftUI Title
+    private func getNewSwiftUITitle(from vc: UIViewController) -> String? {
+        if let title = vc.navigationItem.title, !title.isEmpty { return title }
+        if let title = vc.navigationController?.navigationBar.topItem?.title, !title.isEmpty { return title }
+        if let presented = vc.presentedViewController { return getSwiftUITitle(from: presented) }
+        return nil
     }
     
-    //---
-    
-    static func extract(from viewController: UIViewController) -> String? {
-
-         let vcTypeName = String(reflecting: type(of: viewController))
-
-         // 1. UIHostingController (SwiftUI screen)
-         if vcTypeName.contains("UIHostingController") {
-             return extractFromHostingController(viewController)
-         }
-
-         // 2. Normal UIKit ViewController
-         if vcTypeName != "UIKit.UIViewController",
-            !isSwiftUIInternal(vcTypeName) {
-             return sanitize(vcTypeName)
-         }
-
-         return nil
-     }
-
-     // MARK: - Hosting Controller Extraction
-
-     private static func extractFromHostingController(_ vc: UIViewController) -> String? {
-
-         // Reflection (best-effort)
-         let mirror = Mirror(reflecting: vc)
-
-         if let root = mirror.children.first(where: { $0.label == "rootView" }) {
-             let typeName = String(reflecting: type(of: root.value))
-             return sanitize(typeName)
-         }
-
-         // Fallback: generic parsing
-         let typeName = String(reflecting: type(of: vc))
-         return extractGenericTypeName(from: typeName)
-     }
-
-     // MARK: - Generic Type Parsing
-
-     // UIHostingController<MyView> → MyView
-     private static func extractGenericTypeName(from typeName: String) -> String? {
-         guard
-             let start = typeName.firstIndex(of: "<"),
-             let end = typeName.lastIndex(of: ">"),
-             start < end
-         else { return nil }
-
-         let inner = typeName[typeName.index(after: start)..<end]
-         return sanitize(String(inner))
-     }
-
-     // MARK: - Internal Filters
-
-     private static func isSwiftUIInternal(_ name: String) -> Bool {
-         return name.contains("SwiftUI") ||
-                name.contains("PlatformViewHost") ||
-                name.contains("UIInputWindowController") ||
-                name.contains("UIEditingOverlayViewController") ||
-                name.contains("UINavigationController")
-     }
-
-     // MARK: - Name Cleanup
-
-     private static func sanitize(_ raw: String) -> String? {
-         var name = raw
-
-         // Remove module prefix (MyApp.HomeView → HomeView)
-         if let dot = name.lastIndex(of: ".") {
-             name = String(name[name.index(after: dot)...])
-         }
-
-         // Ignore unwanted SwiftUI artifacts
-         if name.hasSuffix("_Previews") ||
-            name.hasPrefix("_") ||
-            name.contains("ModifiedContent") {
-             return nil
-         }
-
-         return name.isEmpty ? nil : name
-     }
+    // MARK: - Clean Raw Type Name Fallback
+    private func cleanNewSwiftUIName(_ name: String) -> String {
+        guard let start = name.firstIndex(of: "<"),
+              let end   = name.lastIndex(of: ">") else { return name }
+        
+        var extracted = String(name[name.index(after: start)..<end])
+        
+        ["ModifiedContent<", "AnyView", "TupleView<",
+         "NavigationStack<", "_ConditionalContent<"].forEach {
+            extracted = extracted.replacingOccurrences(of: $0, with: "")
+        }
+        
+        return extracted
+            .replacingOccurrences(of: "<", with: "")
+            .replacingOccurrences(of: ">", with: "")
+            .components(separatedBy: ".").last ?? extracted
+    }
 }
 
 #endif
