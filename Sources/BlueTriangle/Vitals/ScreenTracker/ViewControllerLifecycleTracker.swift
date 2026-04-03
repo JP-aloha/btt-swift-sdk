@@ -498,84 +498,117 @@ extension UIViewController {
     private func extractSwiftUIStructName(from vc: UIViewController) -> String? {
         
         let vcTypeName = String(describing: type(of: vc))
-        print("🔍 VC Type: \(vcTypeName)")
-        
         let vcMirror = Mirror(reflecting: vc)
         
-        // Print ALL L1 labels to find correct one
-        print("🔍 L1 All children:")
-        vcMirror.children.forEach {
-            print("   '\($0.label ?? "nil")' → \(type(of: $0.value))")
+        // ✅ Standard HostingController path
+        if let rootView = vcMirror.children
+            .first(where: { $0.label == "rootView" })?.value {
+            let rootTypeName = String(describing: type(of: rootView))
+            print("🔍 rootView: \(rootTypeName)")
+            return extractFromAnyView(rootView)
         }
         
-        // ✅ Try all possible rootView label names
-        // PresentationHostingController uses different labels than UIHostingController
-        let rootView = vcMirror.children.first(where: {
-            ["rootView", "content", "view", "hostedView", "_rootView"].contains($0.label ?? "")
-        })?.value ?? vcMirror.children.first?.value
+        // ✅ PresentationHostingController path — no rootView, uses delegate
+        if vcTypeName.contains("PresentationHostingController") {
+            return extractFromPresentationController(vcMirror)
+        }
         
-        guard let rootView = rootView else {
-            print("❌ No rootView found in \(vcTypeName)")
+        return nil
+    }
+
+    // MARK: - PresentationHostingController → delegate → content → LoginView
+    private func extractFromPresentationController(_ vcMirror: Mirror) -> String? {
+        
+        // Step 1 — get delegate
+        guard let delegate = vcMirror.children
+            .first(where: { $0.label == "delegate" })?.value else {
+            print("❌ No delegate found")
             return nil
         }
         
-        let rootTypeName = String(describing: type(of: rootView))
-        print("🔍 L1 rootView: \(rootTypeName)")
+        print("🔍 delegate type: \(type(of: delegate))")
         
-        // If not AnyView — unwrap directly
+        // Step 2 — unwrap Optional<delegate>
+        let delegateMirror = Mirror(reflecting: delegate)
+        print("🔍 delegate children:")
+        delegateMirror.children.forEach {
+            print("   '\($0.label ?? "nil")' → \(type(of: $0.value))")
+        }
+        
+        // Step 3 — find content/view/rootView inside delegate
+        let contentLabels = ["content", "view", "rootView", "body", "presentation", "some"]
+        
+        // Try direct label match
+        if let content = delegateMirror.children
+            .first(where: { contentLabels.contains($0.label ?? "") })?.value {
+            print("🔍 delegate content: \(type(of: content))")
+            return extractFromAnyView(content)
+        }
+        
+        // Try unwrap Optional (delegate is Optional<X>)
+        if let some = delegateMirror.children.first?.value {
+            print("🔍 delegate.some: \(type(of: some))")
+            let someMirror = Mirror(reflecting: some)
+            print("🔍 delegate.some children:")
+            someMirror.children.forEach {
+                print("   '\($0.label ?? "nil")' → \(type(of: $0.value))")
+            }
+            
+            // Find content inside unwrapped delegate
+            if let content = someMirror.children
+                .first(where: { contentLabels.contains($0.label ?? "") })?.value {
+                print("🔍 delegate.some content: \(type(of: content))")
+                return extractFromAnyView(content)
+            }
+            
+            // Last — try all children recursively
+            for child in someMirror.children {
+                if let found = unwrapViewName(from: child.value) {
+                    return found
+                }
+            }
+        }
+        
+        return nil
+    }
+
+    // MARK: - AnyView → storage → view → RealView
+    private func extractFromAnyView(_ rootView: Any) -> String? {
+        
+        let rootTypeName = String(describing: type(of: rootView))
+        
         if !rootTypeName.contains("AnyView") {
             return unwrapViewName(from: rootView)
         }
         
-        // L2 — inside AnyView
+        // L2 — storage inside AnyView
         let anyViewMirror = Mirror(reflecting: rootView)
-        print("🔍 L2 AnyView children:")
-        anyViewMirror.children.forEach {
-            print("   '\($0.label ?? "nil")' → \(type(of: $0.value))")
-        }
-        
         let storage = anyViewMirror.children
             .first(where: { ["storage", "box", "value"].contains($0.label ?? "") })?.value
             ?? anyViewMirror.children.first?.value
         
         guard let storage = storage else {
-            print("❌ No storage in AnyView")
             return unwrapViewName(from: rootView)
         }
         
-        let storageTypeName = String(describing: type(of: storage))
-        print("🔍 L2 storage: \(storageTypeName)")
+        print("🔍 AnyView storage: \(type(of: storage))")
         
-        // L3 — inside storage
+        // L3 — real view inside storage
         let storageMirror = Mirror(reflecting: storage)
-        print("🔍 L3 storage children:")
-        storageMirror.children.forEach {
-            print("   '\($0.label ?? "nil")' → \(type(of: $0.value))")
-        }
-        
         let realView = storageMirror.children
             .first(where: { ["view", "content", "base"].contains($0.label ?? "") })?.value
             ?? storageMirror.children.first?.value
         
         guard let realView = realView else {
-            print("❌ No realView in storage")
             return unwrapViewName(from: storage)
         }
         
-        let realTypeName = String(describing: type(of: realView))
-        print("🔍 L3 realView: \(realTypeName)")
-        
-        // L4 — realView might still be wrapped (ModifiedContent etc)
-        let l4Mirror = Mirror(reflecting: realView)
-        print("🔍 L4 realView children:")
-        l4Mirror.children.forEach {
-            print("   '\($0.label ?? "nil")' → \(type(of: $0.value))")
-        }
+        print("🔍 realView: \(type(of: realView))")
         
         return unwrapViewName(from: realView)
     }
-    
-    // MARK: - Recursively Unwrap ModifiedContent → Real View Name
+
+    // MARK: - Unwrap Wrappers → Real View Name
     private func unwrapViewName(from view: Any, depth: Int = 0) -> String? {
         
         guard depth < 15 else { return nil }
@@ -590,13 +623,11 @@ extension UIViewController {
             "Group",
             "Optional",
             "RootModifier",
+            "SheetBridge",              // ✅ Skip SheetBridge wrapper
+            "PresentationBridge",       // ✅ Skip PresentationBridge
             "_ConditionalContent",
             "BackgroundModifier",
-            "PaddingLayout",
-            "EnvironmentKeyWritingModifier",
-            "ZStack",
-            "VStack",
-            "HStack"
+            "EnvironmentKeyWritingModifier"
         ]
         
         let isWrapper = wrappers.contains(where: { typeName.contains($0) })
@@ -606,15 +637,14 @@ extension UIViewController {
                 .components(separatedBy: "<").first?
                 .components(separatedBy: ".").last ?? typeName
             
-            // Skip internal SwiftUI types
-            let skip = ["_", "Rendering", "Animation", "Gesture", "Color", "Text", "Button"]
-            if !skip.contains(where: { name.hasPrefix($0) }) {
-                print("✅ Unwrapped: \(name)")
+            let skip = ["_", "Rendering", "Animation", "Gesture", "Delegate", "Bridge"]
+            if !skip.contains(where: { name.hasPrefix($0) || name.hasSuffix($0) }) {
+                print("✅ Found: \(name)")
                 return name
             }
         }
         
-        // Dig into children
+        // Dig deeper
         let mirror = Mirror(reflecting: view)
         for child in mirror.children {
             if let found = unwrapViewName(from: child.value, depth: depth + 1) {
