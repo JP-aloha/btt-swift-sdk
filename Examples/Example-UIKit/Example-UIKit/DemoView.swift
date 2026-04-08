@@ -1,4 +1,3 @@
-// BTT_INJECTED: DemoView.swift
 import SwiftUI
 
 struct DemoView: View {
@@ -15,7 +14,6 @@ struct DemoView: View {
                         Button("Go to Ship") {
                             isShipActive = true
                         }
-    .bttTrackScreen("DemoView")
                     }
                     
                     NavigationLink(destination: HomeView() , isActive: $isHomeActive) {

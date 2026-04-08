@@ -1,4 +1,3 @@
-// BTT_INJECTED: ShipView.swift
 import SwiftUI
 
 struct ShipView: View {
@@ -6,7 +5,6 @@ struct ShipView: View {
         VStack {
             Text("Ship")
         }
-    .bttTrackScreen("ShipView")
     }
 }
 

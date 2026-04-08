@@ -1,4 +1,3 @@
-// BTT_INJECTED: HomeView.swift
 import SwiftUI
 
 struct HomeView: View {
@@ -6,6 +5,5 @@ struct HomeView: View {
         VStack {
             Text("Home")
         }
-    .bttTrackScreen("HomeView")
     }
 }
