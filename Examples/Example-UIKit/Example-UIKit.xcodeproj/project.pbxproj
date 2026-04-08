@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		514B17A72F86528C00EF3622 /* ShipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 514B17A62F86528500EF3622 /* ShipView.swift */; };
+		514B17A92F86529400EF3622 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 514B17A82F86529000EF3622 /* HomeView.swift */; };
 		51522EC32A6042D7002D126D /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E902A6042D7002D126D /* HomeViewModel.swift */; };
 		51522EC42A6042D7002D126D /* TestPresentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E932A6042D7002D126D /* TestPresentViewController.swift */; };
 		51522EC52A6042D7002D126D /* TestFullPresentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E942A6042D7002D126D /* TestFullPresentViewController.swift */; };
@@ -96,6 +98,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		514B17A62F86528500EF3622 /* ShipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipView.swift; sourceTree = "<group>"; };
+		514B17A82F86529000EF3622 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		51522E902A6042D7002D126D /* HomeViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		51522E932A6042D7002D126D /* TestPresentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPresentViewController.swift; sourceTree = "<group>"; };
 		51522E942A6042D7002D126D /* TestFullPresentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestFullPresentViewController.swift; sourceTree = "<group>"; };
@@ -392,6 +396,8 @@
 		C9015ABA2719CA60003BC6C2 /* Example-UIKit */ = {
 			isa = PBXGroup;
 			children = (
+				514B17A82F86529000EF3622 /* HomeView.swift */,
+				514B17A62F86528500EF3622 /* ShipView.swift */,
 				516C88502F8516D6004D3FEE /* DemoView.swift */,
 				5184F30D2AC1C0AE00A34161 /* CPUUsesTest.swift */,
 				8405FECD2A40A99900CC13B5 /* ANRTests.swift */,
@@ -665,7 +671,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo \"🔧 BTT Instrumentation Started\"\n\n# FIXED PATH\nTOOL_PATH=\"$SRCROOT/../../BTTInstrumentor\"\nEXEC=\"$TOOL_PATH/.build/release/BTTInstrumentor\"\n\necho \"📁 SRCROOT: $SRCROOT\"\necho \"📁 TOOL_PATH: $TOOL_PATH\"\necho \"📁 EXEC: $EXEC\"\n\n# Check tool exists\nif [ ! -f \"$EXEC\" ]; then\n  echo \"⚙️ Building Instrumentor...\"\n\n  cd \"$TOOL_PATH\" || exit 1\n  swift build -c release\nfi\n\n# Final safety check\nif [ ! -f \"$EXEC\" ]; then\n  echo \"❌ Instrumentor still not found\"\n  exit 0\nfi\n\necho \"🚀 Running Instrumentor...\"\n\nfind \"$SRCROOT\" -name \"*.swift\" \\\n  ! -path \"*/Pods/*\" \\\n  ! -path \"*/.build/*\" \\\n  ! -path \"*/BTTInstrumentor/*\" \\\n  | while read file; do\n\n    echo \"➡️ Processing: $file\"\n\n    \"$EXEC\" \"$file\"\n\ndone\n\necho \"✅ Done\"\n";
+			shellScript = "echo \"🔧 BTT Instrumentation Started\"\n\n# FIXED PATH\nTOOL_PATH=\"$SRCROOT/../../BTTInstrumentor\"\nEXEC=\"$TOOL_PATH/.build/release/BTTInstrumentor\"\n\necho \"📁 SRCROOT: $SRCROOT\"\necho \"📁 TOOL_PATH: $TOOL_PATH\"\necho \"📁 EXEC: $EXEC\"\n\n# Check tool exists\nif [ ! -f \"$EXEC\" ]; then\n  echo \"⚙️ Building Instrumentor...\"\n\n  cd \"$TOOL_PATH\" || exit 1\n  swift build -c release\nfi\n\n# Final safety check\nif [ ! -f \"$EXEC\" ]; then\n  echo \"❌ Instrumentor still not found\"\n  exit 0\nfi\n\necho \"🚀 Running Instrumentor...\"\n\nfind \"$SRCROOT\" -name \"*.swift\" \\\n  ! -path \"*/Pods/*\" \\\n  ! -path \"*/.build/*\" \\\n  ! -path \"*/BTTInstrumentor/*\" \\\n  | while read file; do\n\n    echo \"➡️ Processing: $file\"\n\n    \"$EXEC\" \"$file\"\n    \n    echo \"📄 After injection:\"\n    cat \"$file\"\n\ndone\n\necho \"✅ Done\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -721,6 +727,7 @@
 				516C88512F8516DF004D3FEE /* DemoView.swift in Sources */,
 				C9D79C9928B1929A002FBB28 /* Album.swift in Sources */,
 				51522EE52A6042D7002D126D /* HomeViewController.swift in Sources */,
+				514B17A92F86529400EF3622 /* HomeView.swift in Sources */,
 				51522ED22A6042D7002D126D /* SlideViewController.swift in Sources */,
 				51522ED42A6042D7002D126D /* TestPadPresentViewController.swift in Sources */,
 				51522EE22A6042D7002D126D /* TestPadSubviewViewController.swift in Sources */,
@@ -731,6 +738,7 @@
 				51522EDA2A6042D7002D126D /* Tab1PadViewController.swift in Sources */,
 				51522ECA2A6042D7002D126D /* FirstViewController.swift in Sources */,
 				5184F30E2AC1C0AE00A34161 /* CPUUsesTest.swift in Sources */,
+				514B17A72F86528C00EF3622 /* ShipView.swift in Sources */,
 				51522EDC2A6042D7002D126D /* TestPadContainerViewController.swift in Sources */,
 				51522EDB2A6042D7002D126D /* SecondPadViewController.swift in Sources */,
 				51522EE02A6042D7002D126D /* Subview2PadViewController.swift in Sources */,
