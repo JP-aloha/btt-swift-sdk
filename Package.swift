@@ -1,5 +1,6 @@
-// swift-tools-version:5.5
+// swift-tools-version:5.9
 import PackageDescription
+import CompilerPluginSupport
 
 let package = Package(
     name: "blue-triangle",
@@ -14,10 +15,26 @@ let package = Package(
             name: "BlueTriangle",
             targets: ["BlueTriangle"])
     ],
+    dependencies: [
+        .package(
+            url: "https://github.com/apple/swift-syntax.git",
+            from: "509.0.0"
+        )
+    ],
     targets: [
+        .macro(
+            name: "BTTMacrosPlugin",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+            ]
+        ),
+        .target(
+            name: "BTTMacros",
+            dependencies: ["BTTMacrosPlugin"]),
         .target(
           name: "BlueTriangle",
-          dependencies: ["Backtrace","AppEventLogger"],
+          dependencies: ["Backtrace","AppEventLogger", "BTTMacros"],
           resources: [.copy("PrivacyInfo.xcprivacy")]
         ),
         .target(

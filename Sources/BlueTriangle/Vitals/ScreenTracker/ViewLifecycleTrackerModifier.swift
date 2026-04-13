@@ -61,6 +61,24 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
     }
 }
 
+public struct BTTTrackScreen<Content: View>: View {
+
+    private let screenName: String
+    private let content: Content
+
+    public init(_ screenName: String, @ViewBuilder content: () -> Content) {
+        self.screenName = screenName
+        self.content    = content()
+    }
+
+    public var body: some View {
+        Group {
+            content
+                .bttTrackScreen(screenName)
+        }
+    }
+}
+
 public extension View {
     
     private func shouldTrackScreen(_ name : String) -> Bool{
