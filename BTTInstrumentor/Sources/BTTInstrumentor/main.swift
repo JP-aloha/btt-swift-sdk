@@ -1,3 +1,10 @@
+//
+//  main.swift
+//  blue-triangle
+//
+//  Created by Ashok Singh on 10/04/26.
+//
+
 import Foundation
 
 guard CommandLine.arguments.count > 1 else {
@@ -32,22 +39,25 @@ do {
         exit(0)
     }
 
-    // Already injected — skip
-    if source.contains("_bttOriginalBody") {
+    // Skip if already macro injected anywhere
+    if source.contains("@BTTTrackScreen") {
         print("⚠️ Already injected:", filePath)
         exit(0)
     }
 
-    // Backup original before touching anything
+    // Backup original
     if !FileManager.default.fileExists(atPath: backupPath) {
         try source.write(toFile: backupPath, atomically: true, encoding: .utf8)
     }
 
-    // Find all View structs and inject each one
-    let rewritten = injectAll(into: source)
+    // Step 1: Ensure import
+    var rewritten = ensureImports(in: source)
+
+    // Step 2: Inject macro on structs
+    rewritten = injectAllMacros(into: rewritten)
 
     guard rewritten != source else {
-        print("⏭ No View structs found:", filePath)
+        print("⏭ No changes needed:", filePath)
         exit(0)
     }
 
@@ -59,31 +69,30 @@ do {
     exit(1)
 }
 
-// MARK: - Inject All View Structs
+////////////////////////////////////////////////////////////
+// MARK: - Inject Macro into All View Structs
+////////////////////////////////////////////////////////////
 
-func injectAll(into source: String) -> String {
+func injectAllMacros(into source: String) -> String {
     var result = source
+    var safetyLimit = 100
 
-    // Keep injecting from the top until no more un-injected View structs remain.
-    // We restart from the beginning each pass because string indices are
-    // invalidated after every replaceSubrange call.
-    var safetyLimit = 100   // never loop forever on pathological input
     while safetyLimit > 0 {
         safetyLimit -= 1
         guard let match = findNextInjectableViewStruct(in: result) else { break }
-        result = inject(into: result, match: match)
+        result = injectMacro(into: result, match: match)
     }
 
     return result
 }
 
-// MARK: - Find Next Injectable View Struct
+////////////////////////////////////////////////////////////
+// MARK: - Struct Detection
+////////////////////////////////////////////////////////////
 
 struct StructMatch {
     let structName: String
-    let bodyVarRange: Range<String.Index>   // "var body: some View"
-    let bodyOpenBrace: String.Index          // the `{` of the body block
-    let bodyCloseBrace: String.Index         // the matching `}`
+    let structKeywordRange: Range<String.Index>
 }
 
 func findNextInjectableViewStruct(in source: String) -> StructMatch? {
@@ -91,182 +100,94 @@ func findNextInjectableViewStruct(in source: String) -> StructMatch? {
 
     while cursor < source.endIndex {
 
-        // ── 1. Find next `struct <Name> ... : ... View` ──────────────────
-        guard let structKwRange = source.range(
+        guard let structRange = source.range(
             of: #"\bstruct\s+([A-Za-z_][A-Za-z0-9_]*)"#,
             options: .regularExpression,
             range: cursor..<source.endIndex
         ) else { return nil }
 
-        // Extract struct name
-        let structName = extractName(from: String(source[structKwRange]))
+        let structDecl = String(source[structRange])
+        let structName = extractName(from: structDecl)
 
-        // Find the `{` that opens the struct body
-        guard let structOpenBrace = source[structKwRange.upperBound...]
-            .firstIndex(of: "{")
-        else { cursor = structKwRange.upperBound; continue }
+        // Find opening brace
+        guard let openBrace = source[structRange.upperBound...].firstIndex(of: "{") else {
+            cursor = structRange.upperBound
+            continue
+        }
 
-        // Text between struct name and `{` is the conformance list
-        let conformance = String(source[structKwRange.upperBound..<structOpenBrace])
+        // Check conformance
+        let conformance = String(source[structRange.upperBound..<openBrace])
         guard isViewConformance(conformance) else {
-            cursor = structOpenBrace
+            cursor = openBrace
             continue
         }
 
-        // Find the struct's closing `}`
-        guard let structCloseBrace = matchingBrace(in: source, open: structOpenBrace) else {
-            cursor = structOpenBrace
+        // Skip ignored
+        if hasBTTIgnore(in: source, before: structRange.lowerBound) {
+            cursor = openBrace
             continue
         }
 
-        let structBodyRange = structOpenBrace..<structCloseBrace
+        // Skip if macro already above struct
+        let structLineStart = findLineStart(in: source, from: structRange.lowerBound)
+        let previousLines = source[..<structLineStart]
+            .split(separator: "\n")
+            .suffix(3)
 
-        // ── 2. Find `var body: some View` inside this struct ─────────────
-        guard let bodyVarRange = source.range(
-            of: #"\bvar\s+body\s*:\s*some\s+View\b"#,
-            options: .regularExpression,
-            range: structBodyRange
-        ) else { cursor = structCloseBrace; continue }
-
-        // Find the `{` of the body implementation
-        guard let bodyOpenBrace = source[bodyVarRange.upperBound..<structCloseBrace]
-            .firstIndex(of: "{")
-        else { cursor = structCloseBrace; continue }
-
-        // Find its matching `}`
-        guard let bodyCloseBrace = matchingBrace(in: source, open: bodyOpenBrace) else {
-            cursor = structCloseBrace
-            continue
-        }
-
-        // ── 3. Skip if already injected ───────────────────────────────────
-        let existingBody = String(source[bodyOpenBrace...bodyCloseBrace])
-        if existingBody.contains("_bttOriginalBody") || existingBody.contains("bttTrackScreen") {
-            cursor = structCloseBrace
-            continue
-        }
-
-        // ── 4. Skip if opted out ──────────────────────────────────────────
-        if hasBTTIgnore(in: source, before: structKwRange.lowerBound) {
-            cursor = structCloseBrace
+        if previousLines.contains(where: { $0.contains("@BTTTrackScreen") }) {
+            cursor = openBrace
             continue
         }
 
         return StructMatch(
             structName: structName,
-            bodyVarRange: bodyVarRange,
-            bodyOpenBrace: bodyOpenBrace,
-            bodyCloseBrace: bodyCloseBrace
+            structKeywordRange: structRange
         )
     }
 
     return nil
 }
 
-// MARK: - Inject Into One Struct
+////////////////////////////////////////////////////////////
+// MARK: - Inject Macro
+////////////////////////////////////////////////////////////
 
-func inject(into source: String, match: StructMatch) -> String {
+func injectMacro(into source: String, match: StructMatch) -> String {
     var result = source
 
-    // The body content — everything between the outer { and }
-    // e.g. "\n        VStack { Text(\"Ship\") }\n    "
-    let bodyContent = String(
-        result[result.index(after: match.bodyOpenBrace)..<match.bodyCloseBrace]
-    )
+    let lineStart = findLineStart(in: result, from: match.structKeywordRange.lowerBound)
+    let indent = detectIndent(of: result, at: lineStart)
 
-    // Detect the indentation level of the `var body` line
-    // so generated code lines up correctly
-    let bodyIndent  = detectIndent(of: result, at: match.bodyVarRange.lowerBound)
-    let innerIndent = bodyIndent + "    "
+    let macroLine = "\(indent)@BTTTrackScreen\n"
 
-    // Build replacement:
-    //
-    //     @ViewBuilder
-    //     private func _bttOriginalBody() -> some View {
-    //         <original body content>
-    //     }
-    //
-    //     var body: some View {
-    //         _bttOriginalBody()
-    //             .bttTrackScreen("ShipView")
-    //     }
-    //
-    let replacement = """
+    result.insert(contentsOf: macroLine, at: lineStart)
 
-    \(bodyIndent)@ViewBuilder
-    \(bodyIndent)private var _bttOriginalBody: some View {\(bodyContent)}
-
-    \(bodyIndent)var body: some View {
-    \(innerIndent)_bttOriginalBody
-    \(innerIndent)    .bttTrackScreen("\(match.structName)")
-    \(bodyIndent)}
-    """
-
-    // Replace the entire `var body: some View { ... }` declaration
-    let replaceStart = match.bodyVarRange.lowerBound
-    let replaceEnd   = match.bodyCloseBrace
-
-    result.replaceSubrange(replaceStart...replaceEnd, with: replacement)
     return result
 }
 
-// MARK: - Brace Matching
+////////////////////////////////////////////////////////////
+// MARK: - Ensure Imports
+////////////////////////////////////////////////////////////
 
-/// Returns the index of the `}` matching the `{` at `open`.
-func matchingBrace(in source: String, open: String.Index) -> String.Index? {
-    guard source[open] == "{" else { return nil }
+func ensureImports(in source: String) -> String {
+    var result = source
 
-    var depth          = 0
-    var idx            = open
-    var inLineComment  = false
-    var inBlockComment = false
-    var inString       = false
-    var prevChar: Character = "\0"
+    guard result.contains("import SwiftUI") else { return result }
 
-    while idx < source.endIndex {
-        let ch   = source[idx]
-        let next = source.index(after: idx)
-
-        // Block comment
-        if !inString && !inLineComment && !inBlockComment
-            && ch == "/" && next < source.endIndex && source[next] == "*" {
-            inBlockComment = true
-            prevChar = ch; idx = next; continue
+    if !result.contains("import BlueTriangle") {
+        if let range = result.range(of: "import SwiftUI") {
+            result.insert(contentsOf: "\nimport BlueTriangle", at: range.upperBound)
         }
-        if inBlockComment && prevChar == "*" && ch == "/" {
-            inBlockComment = false
-            prevChar = ch; idx = next; continue
-        }
-        if inBlockComment { prevChar = ch; idx = next; continue }
-
-        // Line comment
-        if !inString && ch == "/" && next < source.endIndex && source[next] == "/" {
-            inLineComment = true
-        }
-        if inLineComment && ch == "\n" { inLineComment = false }
-        if inLineComment { prevChar = ch; idx = next; continue }
-
-        // String literal
-        if ch == "\"" && prevChar != "\\" { inString.toggle() }
-        if inString && ch != "\"" { prevChar = ch; idx = next; continue }
-
-        // Brace counting
-        if ch == "{" { depth += 1 }
-        if ch == "}" {
-            depth -= 1
-            if depth == 0 { return idx }   // return index OF the closing brace
-        }
-
-        prevChar = ch
-        idx = next
     }
-    return nil
+
+    return result
 }
 
+////////////////////////////////////////////////////////////
 // MARK: - Helpers
+////////////////////////////////////////////////////////////
 
 func extractName(from structDecl: String) -> String {
-    // "struct ShipView" → "ShipView"
     return structDecl
         .replacingOccurrences(of: "struct", with: "")
         .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -275,7 +196,6 @@ func extractName(from structDecl: String) -> String {
 }
 
 func isViewConformance(_ text: String) -> Bool {
-    // Must contain bare `View` — not `ViewModifier`, not `SomeOtherView`
     let pattern = #"(?<![A-Za-z0-9_])View(?![A-Za-z0-9_])"#
     return text.range(of: pattern, options: .regularExpression) != nil
 }
@@ -288,22 +208,34 @@ func hasBTTIgnore(in source: String, before idx: String.Index) -> Bool {
         .contains(where: { $0.contains("btt:ignore") })
 }
 
-/// Returns the leading whitespace of the line containing `idx`.
 func detectIndent(of source: String, at idx: String.Index) -> String {
-    // Walk backwards to find the start of the line
     var lineStart = idx
     while lineStart > source.startIndex {
         let prev = source.index(before: lineStart)
         if source[prev] == "\n" { break }
         lineStart = prev
     }
-    // Count leading spaces/tabs
+
     var indent = ""
     var i = lineStart
-    while i < idx {
+    while i < source.endIndex {
         let ch = source[i]
-        if ch == " " || ch == "\t" { indent.append(ch) } else { break }
-        i = source.index(after: i)
+        if ch == " " || ch == "\t" {
+            indent.append(ch)
+            i = source.index(after: i)
+        } else {
+            break
+        }
     }
     return indent
+}
+
+func findLineStart(in source: String, from index: String.Index) -> String.Index {
+    var idx = index
+    while idx > source.startIndex {
+        let prev = source.index(before: idx)
+        if source[prev] == "\n" { break }
+        idx = prev
+    }
+    return idx
 }
