@@ -1,7 +1,5 @@
 import SwiftUI
-import BlueTriangle
 
-@BTTTrackScreen
 struct DemoView: View {
     
     @State private var isShipActive: Bool = false
