@@ -359,7 +359,7 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
                               sinfo->si_code,
                               sinfo->si_status,
                               crash_time,
-                              __app_version,
+                              app_version,
                               btt_sessionid,
                               current_page_name,
                               trafic_segment,

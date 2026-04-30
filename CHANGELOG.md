@@ -1,6 +1,6 @@
 # Blue Triangle 3.15.11, Apr 30 2026
 ### Bug Fixes and Improvements
-- Fixed an occasional concurrency crash while enabling signal crash feature.
+- Fixed an occasional concurrency crash while updating session Id.
 
 # Blue Triangle 3.15.10, Mar 23 2026
 ### Bug Fixes and Improvements
