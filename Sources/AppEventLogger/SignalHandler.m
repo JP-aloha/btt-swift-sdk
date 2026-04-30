@@ -52,7 +52,6 @@ static int __max_cache_files = 5;
 static bool __is_register = false;
 
 static pthread_mutex_t page_context_lock   = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t session_context_lock   = PTHREAD_MUTEX_INITIALIZER;
 
 void register_btt_tracker(void){
     
@@ -330,16 +329,11 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
         default:
             break;
     }
-    
-    const char* btt_sessionid = "";
-    const char* app_version = "";
-    pthread_mutex_lock(&session_context_lock);
-    btt_sessionid = __btt_session_id ? __btt_session_id : "unknown";
-    app_version = __app_version ? __app_version : "unknown";
-    pthread_mutex_unlock(&session_context_lock);
 
     // --- UPDATED: compute buffer size from actual string lengths ---
     pthread_mutex_lock(&page_context_lock);
+    const char* btt_sessionid = __btt_session_id ? __btt_session_id : "unknown";
+    const char* app_version = __app_version ? __app_version : "unknown";
     const char *current_page_name = __current_page_name ? __current_page_name : "";
     const char *trafic_segment    = __trafic_segment    ? __trafic_segment    : "";
     const char *page_type         = __page_type         ? __page_type         : "";
@@ -408,26 +402,26 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
     }
 
     const char *appVersionUtf8 = app_version.UTF8String ?: "unknown";
-    pthread_mutex_lock(&session_context_lock);
+    pthread_mutex_lock(&page_context_lock);
     if (__app_version) {
         free(__app_version);
         __app_version = NULL;
     }
     __app_version = strdup(appVersionUtf8);
-    pthread_mutex_unlock(&session_context_lock);
+    pthread_mutex_unlock(&page_context_lock);
         
     //copy logging status
     __debug_log = debug_log;
 
     //Copy sessionID
     const char *sessionUtf8 = session_id.UTF8String ?: "unknown";
-    pthread_mutex_lock(&session_context_lock);
+    pthread_mutex_lock(&page_context_lock);
     if (__btt_session_id) {
         free(__btt_session_id);
         __btt_session_id = NULL;
     }
     __btt_session_id = strdup(sessionUtf8);
-    pthread_mutex_unlock(&session_context_lock);
+    pthread_mutex_unlock(&page_context_lock);
 
 #if TARGET_OS_IOS
     if (__is_register) {
@@ -440,7 +434,7 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
     
     __is_register = true;
     
-    pthread_mutex_lock(&session_context_lock);
+    pthread_mutex_lock(&page_context_lock);
     const char *session = __btt_session_id ? __btt_session_id : "unknown";
     const char *version = __app_version ? __app_version : "unknown";
 
@@ -449,7 +443,7 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
         session,
         version]];
 
-    pthread_mutex_unlock(&session_context_lock);
+    pthread_mutex_unlock(&page_context_lock);
 #endif
     
 }
@@ -688,13 +682,13 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
     const char *sessionIdUtf8 = session_id.UTF8String;
     if (!sessionIdUtf8) return;
     
-    pthread_mutex_lock(&session_context_lock);
+    pthread_mutex_lock(&page_context_lock);
     if (__btt_session_id ) {
         free(__btt_session_id);
         __btt_session_id = NULL;
     }
     __btt_session_id = strdup(sessionIdUtf8);
-    pthread_mutex_unlock(&session_context_lock);
+    pthread_mutex_unlock(&page_context_lock);
 }
 
 + (void) debug_log:(NSString *)msg{
