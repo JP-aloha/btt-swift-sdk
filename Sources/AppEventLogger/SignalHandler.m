@@ -442,16 +442,14 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
     
     pthread_mutex_lock(&session_context_lock);
     const char *session = __btt_session_id ? __btt_session_id : "unknown";
-    pthread_mutex_unlock(&session_context_lock);
-
-    pthread_mutex_lock(&page_context_lock);
     const char *version = __app_version ? __app_version : "unknown";
-    pthread_mutex_unlock(&page_context_lock);
 
     [self debug_log:[NSString stringWithFormat:
         @"Signal registration successful session %s, version %s",
         session,
         version]];
+
+    pthread_mutex_unlock(&session_context_lock);
 #endif
     
 }
