@@ -73,6 +73,7 @@ class SessionManager : SessionManagerProtocol{
     public func start(with expiry : Millisecond){
         self.expirationDurationInMS = expiry
         self.resisterObserver()
+        self.updateRemoteConfig()
     }
     
     public func stop(){
