@@ -13,7 +13,8 @@ let package = Package(
     products: [
         .library(
             name: "BlueTriangle",
-            targets: ["BlueTriangle"])
+            targets: ["BlueTriangle"]
+        ),
     ],
     dependencies: [
         .package(
@@ -31,25 +32,16 @@ let package = Package(
         ),
         .target(
             name: "BTTMacros",
-            dependencies: ["BTTMacrosPlugin"]),
-        .target(
-          name: "BlueTriangle",
-          dependencies: ["Backtrace","AppEventLogger", "BTTMacros"],
-          resources: [
-            .copy("PrivacyInfo.xcprivacy")
-          ]
+            dependencies: ["BTTMacrosPlugin"]
         ),
         .target(
-            name: "Backtrace",
-            dependencies: []),
-        .target(
-            name: "AppEventLogger",
-            dependencies: []),
-        .testTarget(
-            name: "BlueTriangleTests",
-            dependencies: ["BlueTriangle"]),
-        .testTarget(
-            name: "ObjcCompatibilityTests",
-            dependencies: ["BlueTriangle"])
+            name: "BlueTriangle",
+            dependencies: ["Backtrace", "AppEventLogger", "BTTMacros"],
+            resources: [.copy("PrivacyInfo.xcprivacy")]
+        ),
+        .target(name: "Backtrace"),
+        .target(name: "AppEventLogger"),
+        .testTarget(name: "BlueTriangleTests", dependencies: ["BlueTriangle"]),
+        .testTarget(name: "ObjcCompatibilityTests", dependencies: ["BlueTriangle"])
     ]
 )
