@@ -1,5 +1,6 @@
 // swift-tools-version:5.9
 import PackageDescription
+import CompilerPluginSupport
 
 let package = Package(
     name: "blue-triangle",
@@ -12,25 +13,35 @@ let package = Package(
     products: [
         .library(
             name: "BlueTriangle",
-            targets: ["BlueTriangle"])
+            targets: ["BlueTriangle"]
+        )
+    ],
+    dependencies: [
+        .package(
+            url: "https://github.com/apple/swift-syntax.git",
+            from: "509.0.0"
+        )
     ],
     targets: [
-        .target(
-          name: "BlueTriangle",
-          dependencies: ["Backtrace","AppEventLogger"],
-          resources: [.copy("PrivacyInfo.xcprivacy")]
+        .macro(
+            name: "BTTMacrosPlugin",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+            ]
         ),
         .target(
-            name: "Backtrace",
-            dependencies: []),
+            name: "BTTMacros",
+            dependencies: ["BTTMacrosPlugin"]
+        ),
         .target(
-            name: "AppEventLogger",
-            dependencies: []),
-        .testTarget(
-            name: "BlueTriangleTests",
-            dependencies: ["BlueTriangle"]),
-        .testTarget(
-            name: "ObjcCompatibilityTests",
-            dependencies: ["BlueTriangle"])
+            name: "BlueTriangle",
+            dependencies: ["Backtrace", "AppEventLogger", "BTTMacros"],
+            resources: [.copy("PrivacyInfo.xcprivacy")]
+        ),
+        .target(name: "Backtrace"),
+        .target(name: "AppEventLogger"),
+        .testTarget(name: "BlueTriangleTests", dependencies: ["BlueTriangle"]),
+        .testTarget(name: "ObjcCompatibilityTests", dependencies: ["BlueTriangle"])
     ]
 )
