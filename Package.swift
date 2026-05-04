@@ -34,8 +34,11 @@ let package = Package(
             dependencies: ["BTTMacrosPlugin"]),
         .target(
           name: "BlueTriangle",
-          dependencies: ["Backtrace","AppEventLogger", "BTTMacros"],
-          resources: [.copy("PrivacyInfo.xcprivacy")]
+          dependencies: ["Backtrace","AppEventLogger", "BTTMacros", "BTTInstrumentor"],
+          resources: [
+            .copy("PrivacyInfo.xcprivacy"),
+            .process("Scripts")
+          ]
         ),
         .target(
             name: "Backtrace",
@@ -43,6 +46,10 @@ let package = Package(
         .target(
             name: "AppEventLogger",
             dependencies: []),
+         .binaryTarget(
+                name: "BTTInstrumentor",
+                path: "Artifacts/BTTInstrumentor.artifactbundle"
+            ),
         .testTarget(
             name: "BlueTriangleTests",
             dependencies: ["BlueTriangle"]),

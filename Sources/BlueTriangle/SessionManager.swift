@@ -58,6 +58,7 @@ class SessionManager : SessionManagerProtocol{
     private var orientationObserver: NSObjectProtocol?
     private var keyboardShowObserver: NSObjectProtocol?
     private var keyboardHideObserver: NSObjectProtocol?
+    private var terminateObserver: NSObjectProtocol?
     
     init(_ logger: Logging,
          _ configRepo : BTTConfigurationRepo,
@@ -242,6 +243,10 @@ extension SessionManager {
     
     private func resisterObserver() {
 #if os(iOS)
+        terminateObserver = NotificationCenter.default.addObserver(forName: UIApplication.willTerminateNotification, object: nil, queue: nil) { notification in
+            NSLog("BTT Log :  UIApplication.willTerminateNotification")
+        }
+        
         finishLaunchObserver = NotificationCenter.default.addObserver(forName: UIApplication.didFinishLaunchingNotification, object: nil, queue: nil) { notification in
             BlueTriangle.collectBreadcrumb(AppLifecycleEvent(event: Constants.Breadcrums.AppLifeCycle.didFinishLaunch))
         }
