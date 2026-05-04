@@ -36,8 +36,7 @@ let package = Package(
           name: "BlueTriangle",
           dependencies: ["Backtrace","AppEventLogger", "BTTMacros"],
           resources: [
-            .copy("PrivacyInfo.xcprivacy"),
-            .process("Scripts")
+            .copy("PrivacyInfo.xcprivacy")
           ]
         ),
         .target(
