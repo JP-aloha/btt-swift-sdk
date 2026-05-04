@@ -72,10 +72,8 @@ public struct BTTTrackScreen<Content: View>: View {
     }
 
     public var body: some View {
-        Group {
-            content
-                .bttTrackScreen(screenName)
-        }
+        content
+            .bttTrackScreen(screenName)
     }
 }
 

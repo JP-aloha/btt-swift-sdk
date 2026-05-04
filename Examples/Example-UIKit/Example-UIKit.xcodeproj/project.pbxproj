@@ -676,7 +676,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo \"🔧 BTT Instrumentation Started\"\n\n# Resolve correct path safely\nTOOL_PATH=\"$(cd \"$SRCROOT/../../BTTInstrumentor\" && pwd)\"\nEXEC=\"$TOOL_PATH/.build/release/BTTInstrumentor\"\n\necho \"📁 SRCROOT: $SRCROOT\"\necho \"📁 TOOL_PATH: $TOOL_PATH\"\necho \"📁 EXEC: $EXEC\"\n\n# Check tool exists\nif [ ! -f \"$EXEC\" ]; then\n  echo \"⚙️ Building Instrumentor...\"\n\n  cd \"$TOOL_PATH\" || exit 1\n  swift build -c release\nfi\n\n# Final safety check\nif [ ! -f \"$EXEC\" ]; then\n  echo \"❌ Instrumentor still not found\"\n  exit 1\nfi\n\necho \"🚀 Running Instrumentor...\"\n\nfind \"$SRCROOT\" -name \"*.swift\" \\\n  ! -path \"*/Pods/*\" \\\n  ! -path \"*/.build/*\" \\\n  ! -path \"*/BTTInstrumentor/*\" \\\n  | while read file; do\n\n    echo \"➡️ Processing: $file\"\n    \"$EXEC\" \"$file\"\n\ndone\n\necho \"✅ Done\"\n\n";
+			shellScript = "SCRIPT=$(find \"$SRCROOT/../../../\" \\\n    -maxdepth 8 \\\n    -name \"btt-inject.sh\" \\\n    -type f 2>/dev/null | head -1)\n\nif [ -z \"$SCRIPT\" ]; then\n    echo \"⚠️ btt-inject.sh not found\"\n    exit 0\nfi\n\nbash \"$SCRIPT\" \"${BUILD_DIR}/../../SourcePackages\" \"$SRCROOT\"\n";
 		};
 		514B17B12F8669CB00EF3622 /* BTT Post-Build Restore */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -694,7 +694,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo \"♻️ BTT Restore Started\"\n\n# SAME PATH LOGIC AS PRE-BUILD\nTOOL_PATH=\"$(cd \"$SRCROOT/../../BTTInstrumentor\" && pwd)\"\nEXEC=\"$TOOL_PATH/.build/release/BTTInstrumentor\"\n\necho \"📁 SRCROOT: $SRCROOT\"\necho \"📁 TOOL_PATH: $TOOL_PATH\"\necho \"📁 EXEC: $EXEC\"\n\n# Check tool exists\nif [ ! -f \"$EXEC\" ]; then\n  echo \"❌ Instrumentor not found for restore\"\n  exit 0\nfi\n\necho \"🚀 Restoring files...\"\n\nfind \"$SRCROOT\" -name \"*.swift\" \\\n  ! -path \"*/Pods/*\" \\\n  ! -path \"*/.build/*\" \\\n  ! -path \"*/BTTInstrumentor/*\" \\\n  | while read file; do\n\n    \"$EXEC\" \"$file\" --restore\n\ndone\n\necho \"✅ Restore Done\"\n";
+			shellScript = "SCRIPT=$(find \"$SRCROOT/../../../\" \\\n    -maxdepth 8 \\\n    -name \"btt-inject.sh\" \\\n    -type f 2>/dev/null | head -1)\n\nif [ -z \"$SCRIPT\" ]; then\n    exit 0\nfi\n\nbash \"$SCRIPT\" \"${BUILD_DIR}/../../SourcePackages\" \"$SRCROOT\" --restore\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
