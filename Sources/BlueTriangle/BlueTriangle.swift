@@ -44,8 +44,8 @@ final public class BlueTriangle: NSObject {
         }
     }
     
-    private static var _appInstallTracker: AppInstallTracker?
-    internal static var appInstallTracker: AppInstallTracker?{
+    private static var _appInstallTracker: AppStartupTracker?
+    internal static var appInstallTracker: AppStartupTracker?{
         get {
             trackingLock.sync { _appInstallTracker }
         }
@@ -1407,7 +1407,14 @@ extension BlueTriangle{
     }
     
     static func configureAppInstallTracker(){
-        appInstallTracker = AppInstallTracker(logger: logger)
+        let appInstallReporter = AppInstallReporter(using: {session()},
+                                                    uploader: uploader,
+                                                    logger: logger)
+        let forceKillReporter = ForceRestartReporter(using: {session()},
+                                                    uploader: uploader,
+                                                    logger: logger)
+                                                    
+        appInstallTracker = AppStartupTracker(appInstallReporter, forceKillReporter, logger)
     }
 }
 

@@ -134,9 +134,35 @@ extension CrashReport {
     }
 }
 
+//ForceRestart
+extension CrashReport {
+    init(
+        sessionID: Identifier,
+        forceRestartMessage: String,
+        eCount: Int = 1,
+        pageName:String?,
+        segment:String?,
+        pageType:String?,
+        nativeApp : NativeAppProperties = .nstEmpty,
+        intervalProvider: TimeInterval = Date().timeIntervalSince1970
+    ) {
+        self.sessionID = sessionID
+        self.pageName = pageName
+        self.segment = segment
+        self.pageType = pageType
+        self.report = ErrorReport(eCnt: eCount,
+                                  nativeApp: nativeApp,
+                                  eTp: BT_ErrorType.ForceRestart.rawValue,
+                                  message: forceRestartMessage,
+                                  line: 1,
+                                  column: 1,
+                                  time: intervalProvider.milliseconds)
+    }
+}
+
 enum BT_ErrorType : String{
     case NativeAppCrash
     case ANRWarning
     case MemoryWarning
-    case BTTConfigUpdateError
+    case ForceRestart
 }
