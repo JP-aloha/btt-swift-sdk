@@ -854,11 +854,11 @@ extension BlueTriangle {
         logger.info("BlueTriangle :: SDK is in enabled mode.")
         self.startBreadcrumbs()
         self.startSession()
-        self.startAppInstallTracker()
         self.setupSwizzling()
         self.startHttpNetworkCapture()
         self.startHttpGroupedChildCapture()
         self.startScreenTracking()
+        self.startAppInstallTracker()
         
         if  BlueTriangle.configuration.crashTracking == .nsException {
             self.startNsAndSignalCrashTracking()
