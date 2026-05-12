@@ -198,7 +198,6 @@ class BTTActivityStore {
 }
 
 // MARK: - Model
-
 struct ActivityRecord {
     let date:           Date
     let pageName:       String

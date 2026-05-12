@@ -21,6 +21,9 @@ class ForceRestartReporter {
     }
     
     func reportForceRestartForPage(_ activity : ActivityRecord){
+        guard let sessionData = BlueTriangle.sessionData(), sessionData.enableForceRestart else {
+            return
+        }
         logger.debug("BlueTriangle:ForceRestartReporter -Force Restart detected...  ")
         let message = "User force restarted app."
         self.uploadMemoryWarningReport(message: message, pageName: activity.pageName, segment: activity.trafficSegment, pageType: activity.pageType)

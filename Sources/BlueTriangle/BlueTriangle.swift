@@ -1646,6 +1646,14 @@ extension BlueTriangle {
         configuration.checkoutTimeValue = timeValue
     }
     
+    internal static func updateAppInstall(_ appInstall: Bool) {
+        configuration.enableAppInstall = appInstall
+    }
+    
+    internal static func updateForceRestart(_ forceRestart: Bool) {
+        configuration.enableForceRestart = forceRestart
+    }
+    
     internal static func updateIgnoreBreadcrumbs(_ breadcrumbs : Set<String>?) {
         if let breadcrumbs = breadcrumbs{
             configuration.ignoreBreadcrumbs = breadcrumbs

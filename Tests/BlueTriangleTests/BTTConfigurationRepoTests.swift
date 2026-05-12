@@ -47,7 +47,9 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                      checkoutOrderNumber: "",
                                      checkoutTimeValue: 100,
                                      ignoreBreadcrumbs: [],
-                                     enableBreadcrumbs: true)
+                                     enableBreadcrumbs: true,
+                                     enableAppInstall: true,
+                                     enableForceRestart: true)
         
         configurationRepo.save(config)
         
@@ -82,6 +84,8 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                                checkoutTimeValue: 100,
                                                ignoreBreadcrumbs: [],
                                                enableBreadcrumbs: true,
+                                               enableAppInstall: true,
+                                               enableForceRestart: true,
                                                dateSaved: Date().timeIntervalSince1970.milliseconds)
 
         configurationRepo.store[key] = savedConfig

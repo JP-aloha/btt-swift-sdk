@@ -21,6 +21,9 @@ class AppInstallReporter {
     }
     
     func reportAppInstallEvent(_ installTime: Date = Date()){
+        guard let sessionData = BlueTriangle.sessionData(), sessionData.enableAppInstall else {
+            return
+        }
         self.uploadReports(BTTEvents.appInstall, installTime)
     }
 }
