@@ -106,15 +106,15 @@ extension AppStartupTracker {
     }
     
     @objc private func appWillResignActive() {
-        store.updatePageName()
+        store.updatePageDetail()
     }
     
     @objc private func appDidEnterBackground() {
-        store.updatePageName()
+        store.updatePageDetail()
     }
  
     @objc private func appWillTerminate() {
-        store.updatePageName()
+        store.updatePageDetail()
         store.save()
     }
 }
@@ -139,7 +139,7 @@ class BTTActivityStore {
     private var pageType = Constants.defaultPageType
 
     // MARK: - Public
-    func updatePageName() {
+    func updatePageDetail() {
         queue.async {
             guard let timer = BlueTriangle.recentTimer() else { return }
             let name    = timer.getPageName()
