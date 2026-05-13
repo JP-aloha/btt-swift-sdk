@@ -19,6 +19,7 @@ public class AppStartupTracker {
     private let appInstallReporter : AppInstallReporter
     private let forceKillReporter : ForceRestartReporter
     private let store = BTTActivityStore()
+    private var appInstallTime: Date?
     private let userDefaults: UserDefaults
     private let versionKey = "com.bluetriangle.app.version"
     
@@ -28,7 +29,7 @@ public class AppStartupTracker {
         self.forceKillReporter = forceKillReporter
         self.logger = logger
         self.userDefaults = userDefaults
-        self.observeLifecycle()
+        self.registerLifecycle()
         let result = detect()
         handle(result)
     }
@@ -62,12 +63,11 @@ public class AppStartupTracker {
 
 // MARK: - Tracking
 extension AppStartupTracker {
-    
+
     func trackInstall(version: String) {
-        let appInstallDate = self.getAppInstallTimeFromBundle()
+        appInstallTime = self.getAppInstallTimeFromBundle()
         BlueTriangle.collectBreadcrumb(AppInstallEvent(version: version))
-        appInstallReporter.reportAppInstallEvent(appInstallDate)
-        logger.info("App Installed with version: \(version) at \(appInstallDate) - current - \(Date())")
+        logger.info("App installed \(version) at \(self.appInstallTime ?? Date())")
     }
     
     func trackUpdate(old: String, new: String) {
@@ -80,19 +80,23 @@ extension AppStartupTracker {
         logger.info("Force kill detected on page '\(activity.pageName) - \(activity.trafficSegment) - \(activity.pageType)' (relaunch in \(at) sec)")
     }
     
+    func reportAppInstall() {
+        guard  let installTime = self.appInstallTime else { return }
+        appInstallReporter.reportAppInstallEvent(installTime)
+        self.appInstallTime = nil
+    }
+    
     private func checkForceKill() {
         defer { store.clear() }
         guard let result = store.get() else { return }
         let diff = Date().timeIntervalSince(result.date)
-        if diff < 10 {
-            trackForceKill(diff, result)
-        }
+        if diff < 10 { trackForceKill(diff, result) }
     }
 }
 
 // MARK: - Lifecycle
 extension AppStartupTracker {
-    private func observeLifecycle() {
+    private func registerLifecycle() {
         NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground),
             name: UIApplication.didEnterBackgroundNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive),
@@ -101,16 +105,14 @@ extension AppStartupTracker {
             name: UIApplication.willTerminateNotification, object: nil)
     }
     
-    @objc private func appDidEnterBackground() {
-        store.updatePageName()
-        store.save()
-    }
-    
     @objc private func appWillResignActive() {
         store.updatePageName()
-        store.save()
     }
     
+    @objc private func appDidEnterBackground() {
+        store.updatePageName()
+    }
+ 
     @objc private func appWillTerminate() {
         store.updatePageName()
         store.save()

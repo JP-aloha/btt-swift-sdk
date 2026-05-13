@@ -1,3 +1,8 @@
+# Blue Triangle 3.15.12, May 13 2026
+### Improvements
+- Added support for app install reporting.
+- Added support for force restart error reporting.
+
 # Blue Triangle 3.15.11, Apr 30 2026
 ### Bug Fixes and Improvements
 - Fixed an occasional concurrency crash while updating session Id.

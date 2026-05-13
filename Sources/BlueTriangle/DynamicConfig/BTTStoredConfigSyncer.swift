@@ -231,10 +231,15 @@ class BTTStoredConfigSyncer {
     func updateAndApplySDKState(){
         do{
             if let config = try configRepo.get(){
+                
                 let isEnable = config.enableAllTracking ?? true
                 if BlueTriangle.initialized && isEnable != BlueTriangle.enableAllTracking{
                     BlueTriangle.enableAllTracking = isEnable
                     BlueTriangle.applyAllTrackerState()
+                }
+                
+                if BlueTriangle.initialized {
+                    BlueTriangle.reportAppInstall()
                 }
             }
         }

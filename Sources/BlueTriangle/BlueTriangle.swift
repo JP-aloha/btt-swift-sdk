@@ -1670,3 +1670,9 @@ extension BlueTriangle {
         configuration.configKey = configKey
     }
 }
+
+extension BlueTriangle {
+    internal static func reportAppInstall() {
+        appInstallTracker?.reportAppInstall()
+    }
+}

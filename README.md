@@ -20,6 +20,8 @@ The Blue Triangle SDK for iOS enables application owners to track their users’
  - Memory Warnings
  - Memory/Out of Memory
  - Hot/Cold Launch
+ - AppInstall
+ - ForceRestart
 Coming Soon
 - Network Type
  
@@ -644,6 +646,15 @@ You can disable it by setting "enableLaunchTime" configuration property to "fals
  }
 ```
 
+### App Install
+
+   The BlueTriangle SDK automatically tracks an AppInstall event during the first app launch after a fresh installation. The event is recorded only once per installation and is not triggered for offloaded app restores.
+  
+### Force Restart
+
+   A force restart tracks when a user force closes the app and relaunches it quickly, which may indicate a poor user experience or app issue.
+   The BlueTriangle SDK automatically detects a ForceRestart when a user force closes the app (swipes it away) and relaunches it within 10 seconds, helping identify poor user experiences or app instability. The event is reported as an error with breadcrumbs and page details.
+ 
 ### Crash tracking
 
 Blue triangle tracks app crashes to report crash revenue correlation. By default crash tracking is enabled.
