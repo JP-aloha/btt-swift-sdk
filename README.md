@@ -648,12 +648,27 @@ You can disable it by setting "enableLaunchTime" configuration property to "fals
 
 ### App Install
 
-   The BlueTriangle SDK automatically tracks an AppInstall event during the first app launch after a fresh installation. The event is recorded only once per installation and is not triggered for offloaded app restores.
-  
+The BlueTriangle SDK automatically tracks an AppInstall event when the app is launched for the first time after a fresh installation.
+
+This event is tracked only once per installation and is not triggered again during normal app launches or when the app is restored from an offloaded state.
+
+The event is captured automatically by the SDK and does not require any additional setup.
+
 ### Force Restart
 
-   A force restart tracks when a user force closes the app and relaunches it quickly, which may indicate a poor user experience or app issue.
-   The BlueTriangle SDK automatically detects a ForceRestart when a user force closes the app (swipes it away) and relaunches it within 10 seconds, helping identify poor user experiences or app instability. The event is reported as an error with breadcrumbs and page details.
+A ForceRestart tracks when a user force closes the app and relaunches it quickly, which may indicate a poor user experience.
+
+The BlueTriangle SDK automatically detects a ForceRestart when a user force closes the app (swipes it away) and relaunches it within 10 seconds. This may indicate that the app became unresponsive, slow, frozen, or behaved unexpectedly.
+
+When a ForceRestart is detected, BlueTriangle reports it as an error event along with useful diagnostic information such as breadcrumbs, page details, and session data. This helps developers understand what the user was doing before the restart occurred.
+
+ForceRestart tracking can help identify issues that may not cause a crash but still create a poor user experience, such as:
+- App freezes
+- Slow screens
+- Long loading times
+- Unresponsive UI
+
+The SDK handles ForceRestart detection automatically and no additional configuration is required.
  
 ### Crash tracking
 
