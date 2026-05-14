@@ -36,7 +36,6 @@ final class BreadcrumbCollector {
             guard let encoded = try? self.encoder.encode(breadcrumb) else { return }
             self.collected.append((breadcrumb, encoded))
             self.trimIfNeeded()
-            self.diskStore.save(self.collected.map { $0.data })
             SignalHandler.setBreadcrumbs(self.generateBreadcrumbsString(true))
             self.logger.debug("BlueTriangle:BreadcrumbCollector - Added breadcrumb: \(breadcrumb)")
         }
@@ -52,6 +51,10 @@ final class BreadcrumbCollector {
 
     func clear() {
         queue.sync { collected.removeAll() }
+    }
+    
+    func saveBreadcrumbsToDisk() {
+        queue.sync { diskStore.save(collected.map(\.data)) }
     }
 
     // MARK: - Private

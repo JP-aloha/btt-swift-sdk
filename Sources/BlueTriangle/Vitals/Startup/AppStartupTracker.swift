@@ -97,10 +97,10 @@ extension AppStartupTracker {
 // MARK: - Lifecycle
 extension AppStartupTracker {
     private func registerLifecycle() {
-        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground),
-            name: UIApplication.didEnterBackgroundNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive),
             name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appWillTerminate),
             name: UIApplication.willTerminateNotification, object: nil)
     }
@@ -111,10 +111,12 @@ extension AppStartupTracker {
     
     @objc private func appDidEnterBackground() {
         store.updatePageDetail()
+        BlueTriangle.saveBreadcrumbsToDisk()
     }
  
     @objc private func appWillTerminate() {
         store.updatePageDetail()
+        BlueTriangle.saveBreadcrumbsToDisk()
         store.save()
     }
 }

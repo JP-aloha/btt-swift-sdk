@@ -1666,6 +1666,10 @@ extension BlueTriangle {
         breadcrumbManager?.updateBreadcrumbFeatures()
     }
     
+    internal static func saveBreadcrumbsToDisk() {
+        breadcrumbManager?.saveBreadcrumbsToDisk()
+    }
+    
     internal static func updateConfigKey(_ configKey: String) {
         configuration.configKey = configKey
     }
