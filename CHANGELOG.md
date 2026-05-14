@@ -1,4 +1,4 @@
-# Blue Triangle 3.15.12, May 13 2026
+# Blue Triangle 3.15.12, May 15 2026
 ### Improvements
 - Added support for app install reporting.
 - Added support for force restart error reporting.
