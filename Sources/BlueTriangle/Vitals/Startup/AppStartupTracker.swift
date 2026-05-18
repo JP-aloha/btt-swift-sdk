@@ -55,7 +55,7 @@ public class AppStartupTracker {
         case .update(let old, let new):
             trackUpdate(old: old, new: new)
         case .normalLaunch:
-            checkForceKill()
+            appNormalRelaunched()
             logger.info("App normal launch")
         }
     }
@@ -64,26 +64,36 @@ public class AppStartupTracker {
 // MARK: - Tracking
 extension AppStartupTracker {
 
-    func trackInstall(version: String) {
-        appInstallTime = self.getAppInstallTimeFromBundle()
+    private func trackInstall(version: String) {
         BlueTriangle.collectBreadcrumb(AppInstallEvent(version: version))
-        logger.info("App installed \(version) at \(self.appInstallTime ?? Date())")
+        self.appInstalled(version: version)
     }
     
-    func trackUpdate(old: String, new: String) {
+    private func trackUpdate(old: String, new: String) {
         BlueTriangle.collectBreadcrumb(AppUpdateEvent(from: old, to: new))
         logger.info("App Updated from \(old) → \(new) at \(self.getAppInstallTimeFromBundle()) - current - \(Date())")
     }
     
-    func trackForceKill(_ at : TimeInterval, _ activity : ActivityRecord) {
-        forceKillReporter.reportForceRestartForPage(activity)
-        logger.info("Force kill detected on page '\(activity.pageName) - \(activity.trafficSegment) - \(activity.pageType)' (relaunch in \(at) sec)")
-    }
-    
-    func reportAppInstall() {
-        guard  let installTime = self.appInstallTime else { return }
+    internal func reportAppInstall() {
+        guard isAppInstallEnabled(), let installTime = self.appInstallTime else { return }
         appInstallReporter.reportAppInstallEvent(installTime)
         self.appInstallTime = nil
+    }
+}
+
+extension AppStartupTracker {
+    
+    private func appInstalled(version: String){
+        if isAppInstallEnabled() {
+            appInstallTime = self.getAppInstallTimeFromBundle()
+            logger.info("App installed \(version) at \(self.appInstallTime ?? Date())")
+        }
+    }
+    
+    private func appNormalRelaunched(){
+        if isForceRestartEnabled() {
+            checkForceKill()
+        }
     }
     
     private func checkForceKill() {
@@ -92,19 +102,41 @@ extension AppStartupTracker {
         let diff = Date().timeIntervalSince(result.date)
         if diff < 10 { trackForceKill(diff, result) }
     }
+    
+    private func trackForceKill(_ at : TimeInterval, _ activity : ActivityRecord) {
+        forceKillReporter.reportForceRestartForPage(activity)
+        logger.info("Force kill detected on page '\(activity.pageName) - \(activity.trafficSegment) - \(activity.pageType)' (relaunch in \(at) sec)")
+    }
+
+    private func registerLifecycle() {
+        if isForceRestartEnabled() {
+            NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive),
+                                                   name: UIApplication.willResignActiveNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground),
+                                                   name: UIApplication.didEnterBackgroundNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(appWillTerminate),
+                                                   name: UIApplication.willTerminateNotification, object: nil)
+        }
+    }
+    
+    private func isForceRestartEnabled() -> Bool {
+        guard let sessionData = BlueTriangle.sessionData(), sessionData.enableForceRestart else {
+            return false
+        }
+        return true
+    }
+    
+    private func isAppInstallEnabled() -> Bool {
+        guard let sessionData = BlueTriangle.sessionData(), sessionData.enableForceRestart else {
+            return false
+        }
+        return true
+    }
 }
 
 // MARK: - Lifecycle
 extension AppStartupTracker {
-    private func registerLifecycle() {
-        NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive),
-            name: UIApplication.willResignActiveNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground),
-            name: UIApplication.didEnterBackgroundNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(appWillTerminate),
-            name: UIApplication.willTerminateNotification, object: nil)
-    }
-    
+
     @objc private func appWillResignActive() {
         store.updatePageDetail()
     }
