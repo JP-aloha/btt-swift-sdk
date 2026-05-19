@@ -1,7 +1,8 @@
-# Blue Triangle 3.15.12, May 15 2026
-### Improvements
+# Blue Triangle 3.15.12, May 19 2026
+### New Features and Bug Fixes
 - Added support for app install reporting.
 - Added support for force restart error reporting.
+- Added remote configuration support to enable or disable user action tap interception.
 
 # Blue Triangle 3.15.11, Apr 30 2026
 ### Bug Fixes and Improvements
