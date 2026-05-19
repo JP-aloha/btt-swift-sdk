@@ -84,10 +84,8 @@ extension AppStartupTracker {
 extension AppStartupTracker {
     
     private func appInstalled(version: String){
-        if isAppInstallEnabled() {
-            appInstallTime = self.getAppInstallTimeFromBundle()
-            logger.info("App installed \(version) at \(self.appInstallTime ?? Date())")
-        }
+        appInstallTime = self.getAppInstallTimeFromBundle()
+        logger.info("App installed \(version) at \(self.appInstallTime ?? Date())")
     }
     
     private func appNormalRelaunched(){
@@ -109,25 +107,23 @@ extension AppStartupTracker {
     }
 
     private func registerLifecycle() {
-        if isForceRestartEnabled() {
             NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive),
                                                    name: UIApplication.willResignActiveNotification, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground),
                                                    name: UIApplication.didEnterBackgroundNotification, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(appWillTerminate),
                                                    name: UIApplication.willTerminateNotification, object: nil)
-        }
     }
     
     private func isForceRestartEnabled() -> Bool {
-        guard let sessionData = BlueTriangle.sessionData(), sessionData.enableForceRestart else {
+        guard BlueTriangle.configuration.enableForceRestart else {
             return false
         }
         return true
     }
     
     private func isAppInstallEnabled() -> Bool {
-        guard let sessionData = BlueTriangle.sessionData(), sessionData.enableForceRestart else {
+        guard BlueTriangle.configuration.enableAppInstall else {
             return false
         }
         return true
@@ -138,15 +134,18 @@ extension AppStartupTracker {
 extension AppStartupTracker {
 
     @objc private func appWillResignActive() {
+        guard isForceRestartEnabled() else { return }
         store.updatePageDetail()
     }
     
     @objc private func appDidEnterBackground() {
+        guard isForceRestartEnabled() else { return }
         store.updatePageDetail()
         BlueTriangle.saveBreadcrumbsToDisk()
     }
  
     @objc private func appWillTerminate() {
+        guard isForceRestartEnabled() else { return }
         store.updatePageDetail()
         BlueTriangle.saveBreadcrumbsToDisk()
         store.save()
