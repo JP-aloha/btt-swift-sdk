@@ -27,51 +27,55 @@ fileprivate func swizzleMethod(_ cls: AnyClass, original: Selector, swizzled: Se
 
 extension UIViewController{
     
-    private static var isSwizzled = false
-    private static var swizzledPairs: [(Method, Method)] = []
     private static var lock = NSLock()
     
+    private static var isVCSwizzled = false
+    private static var isActionSwizzled = false
+    
+    private static var vcPairs: [(Method, Method)] = []
+    private static var actionPairs: [(Method, Method)] = []
+    
     static func setUp() {
+        setUpVcSwizzling()
+        setUpActionSwizzling()
+    }
+    
+    static func setUpVcSwizzling() {
         lock.sync {
-            guard !isSwizzled else { return }
+            guard !isVCSwizzled else { return }
             
             if let didLoadPair = swizzleMethod(UIViewController.self, original: #selector(viewDidLoad), swizzled: #selector(viewDidLoad_Tracker)) {
-                swizzledPairs.append(didLoadPair)
+                vcPairs.append(didLoadPair)
             }
             if let willAppearPair = swizzleMethod(UIViewController.self, original: #selector(viewWillAppear(_:)), swizzled: #selector(viewWillAppear_Tracker(_:))) {
-                swizzledPairs.append(willAppearPair)
+                vcPairs.append(willAppearPair)
             }
             if let didAppearPair = swizzleMethod(UIViewController.self, original: #selector(viewDidAppear(_:)), swizzled: #selector(viewDidAppear_Tracker(_:))) {
-                swizzledPairs.append(didAppearPair)
+                vcPairs.append(didAppearPair)
             }
             if let didDisappearPair = swizzleMethod(UIViewController.self, original: #selector(viewDidDisappear(_:)), swizzled: #selector(viewDidDisappear_Tracker(_:))) {
-                swizzledPairs.append(didDisappearPair)
+                vcPairs.append(didDisappearPair)
             }
             
-            if let sendEventPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendEvent(_:)), swizzled: #selector(UIApplication.swizzled_sendEvent(_:))) {
-                swizzledPairs.append(sendEventPair)
-            }
-            
-            if let sendActionPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendAction(_:to:from:for:)), swizzled: #selector(UIApplication.swizzled_sendAction(_:to:from:for:))) {
-                swizzledPairs.append(sendActionPair)
-            }
-            
-            isSwizzled = true
-            BlueTriangle.screenTracker?.logger?.debug("View Screen Tracker: setup completed.")
+            isVCSwizzled = true
+            BlueTriangle.screenTracker?.logger?.debug("View Swizzling: setup completed.")
         }
     }
     
-    static func removeSetUp() {
+    static func setUpActionSwizzling() {
         lock.sync {
-            guard isSwizzled else { return }
+            guard !isActionSwizzled, BlueTriangle.configuration.enableGroupingTapDetection else { return }
             
-            for (original, swizzled) in swizzledPairs {
-                method_exchangeImplementations(swizzled, original)
+            if let sendEventPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendEvent(_:)), swizzled: #selector(UIApplication.swizzled_sendEvent(_:))) {
+                actionPairs.append(sendEventPair)
             }
             
-            swizzledPairs.removeAll()
-            isSwizzled = false
-            BlueTriangle.screenTracker?.logger?.debug("View Screen Tracker: setup removed.")
+            if let sendActionPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendAction(_:to:from:for:)), swizzled: #selector(UIApplication.swizzled_sendAction(_:to:from:for:))) {
+                actionPairs.append(sendActionPair)
+            }
+            
+            isActionSwizzled = true
+            BlueTriangle.screenTracker?.logger?.debug("Action Swizzling: setup completed.")
         }
     }
     

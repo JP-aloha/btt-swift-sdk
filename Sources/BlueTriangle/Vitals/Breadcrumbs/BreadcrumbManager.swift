@@ -30,6 +30,7 @@ final class BreadcrumbManager {
     
     func updateBreadcrumbFeatures() {
         let ignoredBreadcrumbs = BlueTriangle.configuration.ignoreBreadcrumbs.map { $0.lowercased() }
+        let enableTabDetection = BlueTriangle.configuration.enableGroupingTapDetection
         var newFeatures: [BreadcrumbFeatrure] = []
         
         if BlueTriangle.configuration.enableBreadcrumbs {
@@ -54,7 +55,7 @@ final class BreadcrumbManager {
             if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.networkState.rawValue.lowercased()) {
                 newFeatures.append(NetworkStateFeature(collector: collector))
             }
-            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.userEvent.rawValue.lowercased()) {
+            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.userEvent.rawValue.lowercased()) && enableTabDetection {
                 newFeatures.append(UserEventFeature(collector: collector))
             }
         }

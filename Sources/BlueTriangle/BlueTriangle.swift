@@ -852,9 +852,12 @@ extension BlueTriangle {
     private static func startAllTrackers() {
         
         logger.info("BlueTriangle :: SDK is in enabled mode.")
-        self.startBreadcrumbs()
+        
         self.startSession()
         self.setupSwizzling()
+        if  BlueTriangle.configuration.enableBreadcrumbs {
+            self.startBreadcrumbs()
+        }
         self.startHttpNetworkCapture()
         self.startHttpGroupedChildCapture()
         self.startScreenTracking()
@@ -1612,6 +1615,10 @@ extension BlueTriangle {
     
     internal static func updateGroupingTapDetection(_ enabled : Bool) {
         configuration.enableGroupingTapDetection = enabled
+        breadcrumbManager?.updateBreadcrumbFeatures()
+        if enabled {
+            UIViewController.setUpActionSwizzling()
+        }
     }
     
     internal static func updateCheckoutTracking(_ enabled: Bool) {
@@ -1664,6 +1671,11 @@ extension BlueTriangle {
     internal static func updateEnableBreadcrumbs(_ enabled: Bool) {
         configuration.enableBreadcrumbs = enabled
         breadcrumbManager?.updateBreadcrumbFeatures()
+        if enabled {
+            startBreadcrumbs()
+        } else {
+            stopBreadcrumbs()
+        }
     }
     
     internal static func saveBreadcrumbsToDisk() {

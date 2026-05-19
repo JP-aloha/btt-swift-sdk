@@ -30,6 +30,8 @@ char* make_report(char*, siginfo_t*, time_t);
 
 void print_reg_status(void);
 
+static volatile sig_atomic_t handlingCrash = 0;
+
 
 
 #define SIG_COUNT 8
@@ -159,6 +161,12 @@ int register_handler(int signal, struct sigaction *prev_act){
 
 void btt_signal_handler(int signo, siginfo_t *sinfo, void *context)
 {
+    if (handlingCrash) {
+        return;
+    }
+    
+    handlingCrash = 1;
+    
     [SignalHandler debug_log:[NSString stringWithFormat:@"Received crash signal %d", signo]];
 
     //reset handlers to defaults
