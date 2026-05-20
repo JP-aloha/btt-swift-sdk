@@ -7,7 +7,7 @@
 
 import Foundation
 
-class ForceRestartReporter {
+class AppForceRestartReporter {
     private let session: SessionProvider
     private let uploader: Uploading
     private let logger: Logging
@@ -26,14 +26,14 @@ class ForceRestartReporter {
         }
         logger.debug("BlueTriangle:ForceRestartReporter -Force Restart detected...  ")
         let message = "User force restarted app."
-        self.uploadMemoryWarningReport(message: message, pageName: activity.pageName, segment: activity.trafficSegment, pageType: activity.pageType)
+        self.uploadForceRestartReport(message: message, pageName: activity.pageName, segment: activity.trafficSegment, pageType: activity.pageType)
         logger.debug(message)
     }
 }
 
-extension ForceRestartReporter {
+extension AppForceRestartReporter {
    
-    internal func uploadMemoryWarningReport(message : String, pageName: String, segment : String, pageType : String) {
+    internal func uploadForceRestartReport(message : String, pageName: String, segment : String, pageType : String) {
         Task {
             do {
                 guard let session = self.session() else { return }

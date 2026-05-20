@@ -138,13 +138,13 @@ class BTTStoredConfigSyncer {
     }
     
     private func syncAppInstall(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
-        if let enableAppInstall = config.enableAppInstall ?? defaultConfig.enableAppInstall {
+        if BlueTriangle.initialized, let enableAppInstall = config.enableAppInstall ?? defaultConfig.enableAppInstall {
             BlueTriangle.updateAppInstall(enableAppInstall)
         }
     }
     
     private func syncForceRestart(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
-        if let enableForceRestart = config.enableForceRestart ?? defaultConfig.enableForceRestart {
+        if BlueTriangle.initialized, let enableForceRestart = config.enableForceRestart ?? defaultConfig.enableForceRestart {
             BlueTriangle.updateForceRestart(enableForceRestart)
         }
     }

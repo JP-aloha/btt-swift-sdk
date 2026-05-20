@@ -101,19 +101,24 @@ final class BreadcrumbCollector {
 
 // MARK: - Disk Store
 final class BreadcrumbDiskStore {
+    private let queue = DispatchQueue( label: "com.bluetriangle.breadcrumb.diskstore")
     private static let fileURL: URL = {
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
         return caches.appendingPathComponent("com.bluetriangle.breadcrumbs.bplist")
     }()
 
     func save(_ items: [Data]) {
-        guard let data = try? PropertyListEncoder().encode(items) else { return }
-        try? data.write(to: Self.fileURL, options: .atomic)
+        queue.sync {
+            guard let data = try? PropertyListEncoder().encode(items) else { return }
+            try? data.write(to: Self.fileURL, options: .atomic)
+        }
     }
 
     func load() -> [Data]? {
-        guard let data = try? Data(contentsOf: Self.fileURL) else { return nil }
-        return try? PropertyListDecoder().decode([Data].self, from: data)
+        queue.sync {
+            guard let data = try? Data(contentsOf: Self.fileURL) else { return nil }
+            return try? PropertyListDecoder().decode([Data].self, from: data)
+        }
     }
 }
 
