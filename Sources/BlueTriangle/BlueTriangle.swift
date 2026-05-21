@@ -1294,8 +1294,9 @@ public extension BlueTriangle {
     }
     
     private static func recardNetworkFor(_ request: CapturedRequest) async {
+        guard let _ = getNetworkRequestCapture() else { return }
         await BlueTriangle.reportAutoCheckoutFor(request)
-        await BlueTriangle.reportNetworkBreadcrumbFor(request)
+        BlueTriangle.reportNetworkBreadcrumbFor(request)
     }
     
     private static func reportAutoCheckoutFor(_ request: CapturedRequest) async {
@@ -1318,7 +1319,7 @@ public extension BlueTriangle {
         self.breadcrumbManager?.collectBreadcrumb(breadcrumb)
     }
     
-    private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) async {
+    private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) {
         BlueTriangle.collectBreadcrumb(NetworkRequestEvent(url: request.url, statusCode: request.statusCode ?? ""))
     }
 }
@@ -1727,3 +1728,4 @@ extension BlueTriangle {
         appInstallUpdateTracker?.reportAppInstall()
     }
 }
+
