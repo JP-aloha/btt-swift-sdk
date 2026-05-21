@@ -25,7 +25,7 @@ class BTTConfigurationFetcher : ConfigurationFetcher {
     private var networking :  Networking
     private var cancellables: Set<AnyCancellable>
     
-    init(logger: Logging, rootUrl : URL? = Constants.configEndPoint(for: BlueTriangle.siteID),
+    init(logger: Logging, rootUrl : URL? = Constants.configEndPoint(for: BlueTriangle.configuration.siteID),
          cancellable : Set<AnyCancellable> = Set<AnyCancellable>(),
          networking : @escaping Networking = URLSession.live){
         self.logger = logger

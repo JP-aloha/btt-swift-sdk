@@ -281,14 +281,6 @@ final public class BlueTriangle: NSObject {
         sessionData()?.shouldNetworkCapture ?? false
     }()
     
-    internal static var shouldCheckoutTracking: Bool = {
-        sessionData()?.checkoutTrackingEnabled ?? false
-    }()
-    
-    internal static var shouldBreadcrumbsTracking: Bool = {
-        sessionData()?.enableBreadcrumbs ?? false
-    }()
-    
     /// A Boolean value indicating  whether the SDK has been successfully configured and initialized.
     ///
     /// - `true`: The SDK has been configured and is ready to function. This means
@@ -1235,7 +1227,7 @@ public extension BlueTriangle {
     }
     /// Returns a timer for network capture.
     static func startRequestTimer() -> InternalTimer? {
-        guard shouldCaptureRequests || shouldCheckoutTracking || shouldBreadcrumbsTracking else {
+        guard shouldCaptureRequests else {
             return nil
         }
         var timer = internalTimerFactory()
@@ -1323,9 +1315,7 @@ public extension BlueTriangle {
     }
     
     internal static func collectBreadcrumb(_ breadcrumb : BreadcrumbEvent) {
-        if BlueTriangle.shouldBreadcrumbsTracking {
-            self.breadcrumbManager?.collectBreadcrumb(breadcrumb)
-        }
+        self.breadcrumbManager?.collectBreadcrumb(breadcrumb)
     }
     
     private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) async {
