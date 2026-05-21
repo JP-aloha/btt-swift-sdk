@@ -21,6 +21,8 @@ public final class AppInstallUpdateTracker {
     private let userDefaults: UserDefaults
     private let versionKey = "com.bluetriangle.app.version"
     private var appInstallTime: Date?
+    private var oldVersion: String?
+    private var newVersion: String?
 
     // MARK: - Init
     init(_ appInstallReporter: AppInstallReporter, _ logger: Logging, _ userDefaults: UserDefaults = .standard) {
@@ -84,18 +86,22 @@ extension AppInstallUpdateTracker {
 extension AppInstallUpdateTracker {
 
     private func trackInstall(version: String) {
-        BlueTriangle.collectBreadcrumb(AppInstallEvent(version: version))
-        appInstalled(version: version)
+        newVersion = version
+        appInstallTime = self.getAppInstallTimeFromBundle()
+        logger.info("App installed \(version) at \(self.appInstallTime ?? Date())")
     }
 
     private func trackUpdate(old: String, new: String) {
-        BlueTriangle.collectBreadcrumb(AppUpdateEvent(from: old, to: new))
+        oldVersion = old
+        newVersion = new
         logger.info("App Updated from \(old) → \(new) at \(self.getAppInstallTimeFromBundle()) - current - \(Date())")
     }
 
     internal func reportAppInstall() {
         guard let installTime = self.appInstallTime else { return }
         appInstallReporter.reportAppInstallEvent(installTime)
+        if let version = newVersion { BlueTriangle.collectBreadcrumb(AppInstallEvent(version: version)) }
+        if let old = oldVersion, let new = newVersion { BlueTriangle.collectBreadcrumb(AppUpdateEvent(from: old, to: new)) }
         self.appInstallTime = nil
     }
 }
@@ -103,11 +109,6 @@ extension AppInstallUpdateTracker {
 // MARK: - Helpers
 
 extension AppInstallUpdateTracker {
-    
-    private func appInstalled(version: String) {
-        appInstallTime = self.getAppInstallTimeFromBundle()
-        logger.info("App installed \(version) at \(self.appInstallTime ?? Date())")
-    }
     
     private func getAppInstallTimeFromBundle() -> Date {
         guard let url = FileManager.default.urls(
