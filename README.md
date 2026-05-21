@@ -648,27 +648,13 @@ You can disable it by setting "enableLaunchTime" configuration property to "fals
 
 ### App Install
 
-The BlueTriangle SDK automatically tracks an AppInstall event when the app is launched for the first time after a fresh installation.
-
-This event is tracked only once per installation and is not triggered again during normal app launches or when the app is restored from an offloaded state.
-
-The event is captured automatically by the SDK and does not require any additional setup.
+The BlueTriangle SDK automatically tracks new App Installs. Install event will be reported on next app launch after install. Hence, the time of the event may not necessarily be time of install it will be the time when user first time launched app after installation. If user launches app after 72 hours(3 days) post installation, BlueTriangle ignores this installation reporting.
 
 ### Force Restart
 
-A ForceRestart tracks when a user force closes the app and relaunches it quickly, which may indicate a poor user experience.
+User has a tendency to force-kill the app and launch it again if something is not working on a screen. BlueTriangle treats this as bad performance and tracks this as "ForceRestart" error. BlueTriangle tracks sequence of evens including app being killed by user and then launched again in 10 seconds. We show this error in error explorer with type "ForceRestart". BlueTriangle tries to collect name of controller or view visible when user forces restarts the can be seen under page name.
 
-The BlueTriangle SDK automatically detects a ForceRestart when a user force closes the app (swipes it away) and relaunches it within 10 seconds. This may indicate that the app became unresponsive, slow, frozen, or behaved unexpectedly.
-
-When a ForceRestart is detected, BlueTriangle reports it as an error event along with useful diagnostic information such as breadcrumbs, page details, and session data. This helps developers understand what the user was doing before the restart occurred.
-
-ForceRestart tracking can help identify issues that may not cause a crash but still create a poor user experience, such as:
-- App freezes
-- Slow screens
-- Long loading times
-- Unresponsive UI
-
-The SDK handles ForceRestart detection automatically and no additional configuration is required.
+BlueTriangle tracks user-terminated app, and user launched app again by listening to notifications UIApplication.willTerminateNotification and didFinishLaunchingNotification. These two sequence of notifications in a short time period make "Force Restart" error.
  
 ### Crash tracking
 
