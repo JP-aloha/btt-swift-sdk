@@ -867,13 +867,21 @@ extension BlueTriangle {
         logger.info("BlueTriangle :: SDK is in enabled mode.")
         
         self.startSession()
-        self.setUpSwizzling()
+        
+        if  BlueTriangle.configuration.enableScreenTracking {
+            self.setUpSwizzling()
+        }
+        
         if  BlueTriangle.configuration.enableBreadcrumbs {
             self.startBreadcrumbs()
         }
+        
         self.startHttpNetworkCapture()
         self.startHttpGroupedChildCapture()
-        self.startScreenTracking()
+        
+        if  BlueTriangle.configuration.enableScreenTracking {
+            self.startScreenTracking()
+        }
         
         if  BlueTriangle.configuration.enableAppInstall {
             self.startAppInstallUpdateTracker()
@@ -1559,6 +1567,11 @@ extension BlueTriangle {
     internal static func updateScreenTracking(_ enabled : Bool) {
         configuration.enableScreenTracking = enabled
         screenTracker?.setLifecycleTracker(enabled)
+        if enabled {
+            startScreenTracking()
+        } else {
+            stopScreenTracking()
+        }
     }
     
     internal static func updateCaptureRequests() {
