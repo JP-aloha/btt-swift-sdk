@@ -144,6 +144,9 @@ class BTTStoredConfigSyncer {
     }
     
     private func syncForceRestart(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let forceRestartDuration = config.forceRestartDuration ?? defaultConfig.forceRestartDuration {
+            BlueTriangle.updateForceRestartDuration(forceRestartDuration)
+        }
         if BlueTriangle.initialized, let enableForceRestart = config.enableForceRestart ?? defaultConfig.enableForceRestart {
             BlueTriangle.updateForceRestart(enableForceRestart)
         }

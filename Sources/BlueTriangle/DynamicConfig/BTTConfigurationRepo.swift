@@ -66,6 +66,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
               enableBreadcrumbs: config.enableBreadcrumbs,
               enableAppInstall: config.enableAppInstall,
               enableForceRestart: config.enableForceRestart,
+              forceRestartDuration: config.forceRestartDuration,
               dateSaved: Date().timeIntervalSince1970.milliseconds
           )
         
@@ -107,6 +108,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
              enableBreadcrumbs: config.enableBreadcrumbs,
              enableAppInstall: config.enableAppInstall,
              enableForceRestart: config.enableForceRestart,
+             forceRestartDuration: config.forceRestartDuration,
              dateSaved: Date().timeIntervalSince1970.milliseconds
          )
         

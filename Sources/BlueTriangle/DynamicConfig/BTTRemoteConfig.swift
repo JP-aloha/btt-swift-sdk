@@ -35,6 +35,7 @@ class BTTRemoteConfig: Codable, Equatable {
     var ignoreBreadcrumbs: [String]?
     var enableAppInstall: Bool?
     var enableForceRestart: Bool?
+    var forceRestartDuration: Double?
     
     init(networkSampleRateSDK: Double?,
          configKey : String?,
@@ -61,7 +62,8 @@ class BTTRemoteConfig: Codable, Equatable {
          ignoreBreadcrumbs : [String]?,
          enableBreadcrumbs : Bool?,
          enableAppInstall: Bool?,
-         enableForceRestart: Bool?) {
+         enableForceRestart: Bool?,
+         forceRestartDuration: Double?) {
         self.networkSampleRateSDK = networkSampleRateSDK
         self.configKey = configKey
         self.ignoreScreens = ignoreScreens
@@ -91,6 +93,7 @@ class BTTRemoteConfig: Codable, Equatable {
         
         self.enableAppInstall = enableAppInstall
         self.enableForceRestart = enableForceRestart
+        self.forceRestartDuration = forceRestartDuration
     }
     
     static func == (lhs: BTTRemoteConfig, rhs: BTTRemoteConfig) -> Bool {
@@ -121,7 +124,8 @@ class BTTRemoteConfig: Codable, Equatable {
         lhs.enableBreadcrumbs == rhs.enableBreadcrumbs &&
         
         lhs.enableAppInstall == rhs.enableAppInstall &&
-        lhs.enableForceRestart == rhs.enableForceRestart
+        lhs.enableForceRestart == rhs.enableForceRestart &&
+        lhs.forceRestartDuration == rhs.forceRestartDuration
     }
     
     internal static var defaultConfig: BTTSavedRemoteConfig {
@@ -151,6 +155,7 @@ class BTTRemoteConfig: Codable, Equatable {
                              enableBreadcrumbs: BlueTriangle.configuration.enableBreadcrumbs,
                              enableAppInstall: BlueTriangle.configuration.enableAppInstall,
                              enableForceRestart: BlueTriangle.configuration.enableForceRestart,
+                             forceRestartDuration: BlueTriangle.configuration.forceRestartDuration,
                              dateSaved: Date().timeIntervalSince1970.milliseconds)
     }
 }

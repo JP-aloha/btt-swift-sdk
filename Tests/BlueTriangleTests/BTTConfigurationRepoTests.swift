@@ -49,7 +49,8 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                      ignoreBreadcrumbs: [],
                                      enableBreadcrumbs: true,
                                      enableAppInstall: true,
-                                     enableForceRestart: true)
+                                     enableForceRestart: true,
+                                     forceRestartDuration: 10.0)
         
         configurationRepo.save(config)
         
@@ -86,6 +87,7 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                                enableBreadcrumbs: true,
                                                enableAppInstall: true,
                                                enableForceRestart: true,
+                                               forceRestartDuration: 10.0,
                                                dateSaved: Date().timeIntervalSince1970.milliseconds)
 
         configurationRepo.store[key] = savedConfig

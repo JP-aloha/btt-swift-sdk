@@ -95,6 +95,7 @@ final public class BlueTriangleConfiguration: NSObject {
     internal var enableAppInstall: Bool =  true
     /// Boolean indicating whether force restart  is enabled.
     internal var enableForceRestart: Bool =  true
+    internal var forceRestartDuration: Double =  10.0
     
     internal var enableWebViewStitching: Bool  = true
     internal var enableGroupingTapDetection: Bool  = true

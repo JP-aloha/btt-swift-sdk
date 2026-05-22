@@ -1697,6 +1697,10 @@ extension BlueTriangle {
         }
     }
     
+    internal static func updateForceRestartDuration(_ duration: Double) {
+        configuration.forceRestartDuration = duration
+    }
+    
     internal static func updateIgnoreBreadcrumbs(_ breadcrumbs : Set<String>?) {
         if let breadcrumbs = breadcrumbs{
             configuration.ignoreBreadcrumbs = breadcrumbs

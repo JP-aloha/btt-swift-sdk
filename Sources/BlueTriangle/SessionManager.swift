@@ -210,6 +210,7 @@ extension SessionManager {
                 session.enableBreadcrumbs = BlueTriangle.configuration.enableBreadcrumbs
                 session.enableAppInstall = BlueTriangle.configuration.enableAppInstall
                 session.enableForceRestart = BlueTriangle.configuration.enableForceRestart
+                session.forceRestartDuration = BlueTriangle.configuration.forceRestartDuration
                 session.configKey = BlueTriangle.configuration.configKey
                 sessionStore.saveSession(session)
             } else {
@@ -236,6 +237,7 @@ extension SessionManager {
                 BlueTriangle.updateEnableBreadcrumbs(session.enableBreadcrumbs)
                 BlueTriangle.updateAppInstall(session.enableAppInstall)
                 BlueTriangle.updateForceRestart(session.enableForceRestart)
+                BlueTriangle.updateForceRestartDuration(session.forceRestartDuration)
                 BlueTriangle.updateConfigKey(session.configKey)
                 sessionStore.saveSession(session)
             }

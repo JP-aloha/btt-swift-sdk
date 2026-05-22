@@ -35,7 +35,8 @@ extension AppForceRestartTracker {
         defer { store.clear() }
         guard let result = store.get() else { return }
         let diff = Date().timeIntervalSince(result.date)
-        if diff < 10 {
+        let duration = BlueTriangle.configuration.forceRestartDuration
+        if diff < duration {
             trackForceKill(diff, result)
         }
     }

@@ -37,6 +37,7 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
          enableBreadcrumbs: Bool?,
          enableAppInstall: Bool?,
          enableForceRestart: Bool?,
+         forceRestartDuration: Double?,
          dateSaved: Millisecond) {
         self.dateSaved = dateSaved
         super.init(networkSampleRateSDK: networkSampleRateSDK,
@@ -64,7 +65,8 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
                    ignoreBreadcrumbs: ignoreBreadcrumbs,
                    enableBreadcrumbs: enableBreadcrumbs,
                    enableAppInstall: enableAppInstall,
-                   enableForceRestart: enableForceRestart
+                   enableForceRestart: enableForceRestart,
+                   forceRestartDuration: forceRestartDuration
         )
     }
 
