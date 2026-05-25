@@ -37,11 +37,11 @@ extension AppForceRestartTracker {
         let diff = Date().timeIntervalSince(result.date)
         let duration = BlueTriangle.configuration.forceRestartDuration
         if diff < duration {
-            trackForceKill(diff, result)
+            reportForceKill(diff, result)
         }
     }
 
-    private func trackForceKill( _ at: TimeInterval, _ activity: ActivityRecord) {
+    private func reportForceKill( _ at: TimeInterval, _ activity: ActivityRecord) {
         forceRestartReporter.reportForceRestartForPage(activity)
         logger.info("Force kill detected on page '\(activity.pageName) - \(activity.trafficSegment) - \(activity.pageType)' (relaunch in \(at) sec)")
     }

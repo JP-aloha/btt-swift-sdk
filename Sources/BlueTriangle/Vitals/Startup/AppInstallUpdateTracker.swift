@@ -94,6 +94,7 @@ extension AppInstallUpdateTracker {
     private func trackUpdate(old: String, new: String) {
         oldVersion = old
         newVersion = new
+        if let old = oldVersion, let new = newVersion { BlueTriangle.collectBreadcrumb(AppUpdateEvent(from: old, to: new)) }
         logger.info("App Updated from \(old) → \(new) at \(self.getAppInstallTimeFromBundle()) - current - \(Date())")
     }
 
@@ -101,7 +102,6 @@ extension AppInstallUpdateTracker {
         guard let installTime = self.appInstallTime else { return }
         appInstallReporter.reportAppInstallEvent(installTime)
         if let version = newVersion { BlueTriangle.collectBreadcrumb(AppInstallEvent(version: version)) }
-        if let old = oldVersion, let new = newVersion { BlueTriangle.collectBreadcrumb(AppUpdateEvent(from: old, to: new)) }
         self.appInstallTime = nil
     }
 }
