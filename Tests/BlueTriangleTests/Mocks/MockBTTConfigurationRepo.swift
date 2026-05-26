@@ -43,6 +43,9 @@ class MockBTTConfigurationRepo: ConfigurationRepo {
                                              checkoutTimeValue: config.checkoutTimeValue,
                                              ignoreBreadcrumbs: config.ignoreBreadcrumbs,
                                              enableBreadcrumbs: config.enableBreadcrumbs,
+                                             enableAppInstall: config.enableAppInstall,
+                                             enableForceRestart: config.enableForceRestart,
+                                             forceRestartDuration: config.forceRestartDuration,
                                              dateSaved: Date().timeIntervalSince1970.milliseconds)
         store[key] = newConfig
     }

@@ -55,7 +55,10 @@ final class BTTConfigurationFetcherTests: XCTestCase {
                                              checkoutOrderNumber: "",
                                              checkoutTimeValue: 100,
                                              ignoreBreadcrumbs: [],
-                                             enableBreadcrumbs: true)
+                                             enableBreadcrumbs: true,
+                                             enableAppInstall: true,
+                                             enableForceRestart: true,
+                                             forceRestartDuration: 10.0)
             
             let mockData = try! JSONEncoder().encode(mockConfig)
             

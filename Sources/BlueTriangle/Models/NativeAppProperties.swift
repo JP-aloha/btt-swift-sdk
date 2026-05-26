@@ -47,6 +47,7 @@ struct NativeAppProperties: Equatable {
     var grouped: Bool?
     var err: String?
     var eventId: String?
+    var installTime: Millisecond = 0
     var groupingCause: String?
     var breadcrumbs: String?
     var configKey: String?
@@ -71,6 +72,10 @@ extension NativeAppProperties: Codable{
         
         if loadTime > 0{
             try con.encode(loadTime, forKey: .loadTime)
+        }
+        
+        if installTime > 0{
+            try con.encode(installTime, forKey: .installTime)
         }
         
         if self.type != NativeAppType.NST.description{
@@ -185,6 +190,7 @@ extension NativeAppProperties: Codable{
         self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID) ?? ""
         self.autoCheckout = try container.decodeIfPresent(Bool.self, forKey: .autoCheckout) ?? false
         self.breadcrumbs = try container.decodeIfPresent(String.self, forKey: .breadcrumbs) ?? ""
+        self.installTime = try container.decodeIfPresent(Millisecond.self, forKey: .installTime)  ?? 0
         self.configKey = try container.decodeIfPresent(String.self, forKey: .configKey) ?? ""
     }
     
@@ -217,6 +223,7 @@ extension NativeAppProperties: Codable{
         case eventID
         case autoCheckout
         case breadcrumbs
+        case installTime
         case configKey
     }
 }

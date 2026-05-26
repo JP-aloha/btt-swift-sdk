@@ -81,6 +81,11 @@ class SessionData: Codable {
     var checkoutOrderNumber : String
     var checkoutTimeValue : Int
     
+    var enableAppInstall: Bool
+    var enableForceRestart: Bool
+    var forceRestartDuration: Double
+
+    
     var enableBreadcrumbs : Bool
     var ignoreBreadcrumbs: Set<String>
     var configKey : String
@@ -116,6 +121,10 @@ class SessionData: Codable {
         
         self.enableBreadcrumbs = BlueTriangle.configuration.enableBreadcrumbs
         self.ignoreBreadcrumbs = BlueTriangle.configuration.ignoreBreadcrumbs
+        
+        self.enableAppInstall = BlueTriangle.configuration.enableAppInstall
+        self.enableForceRestart = BlueTriangle.configuration.enableForceRestart
+        self.forceRestartDuration = BlueTriangle.configuration.forceRestartDuration
     }
     
     private static func generateSessionID()-> Identifier {

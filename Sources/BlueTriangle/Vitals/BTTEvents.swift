@@ -31,6 +31,16 @@ internal struct BTTEvents {
         id: BTTEventId.iOSCrash.rawValue,
         defaultPageName: BTTEventDefaultPageName.iOSCrash.rawValue
     )
+    
+    static let appInstall = BTTEvent(
+        id: BTTEventId.appInstall.rawValue,
+        defaultPageName: BTTEventDefaultPageName.appInstall.rawValue
+    )
+    
+    static let forceRestart = BTTEvent(
+        id: BTTEventId.forceRestart.rawValue,
+        defaultPageName: BTTEventDefaultPageName.forceRestart.rawValue
+    )
 }
 
 internal struct BTTEvent {
@@ -44,6 +54,8 @@ internal enum BTTEventDefaultPageName : String {
     case anrWarning     = "ANRWarning"
     case memoryWarning  = "MemoryWarning"
     case iOSCrash       = "iOS Crash"
+    case appInstall     = "AppInstall"
+    case forceRestart   = "ForceRestart"
 }
 
 internal enum BTTEventId: String {
@@ -52,4 +64,6 @@ internal enum BTTEventId: String {
     case anrWarning    = "4"
     case memoryWarning = "5"
     case iOSCrash      = "6"
+    case appInstall    = "8"
+    case forceRestart  = "9"
 }

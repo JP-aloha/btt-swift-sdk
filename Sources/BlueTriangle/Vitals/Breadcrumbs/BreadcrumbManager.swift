@@ -30,33 +30,32 @@ final class BreadcrumbManager {
     
     func updateBreadcrumbFeatures() {
         let ignoredBreadcrumbs = BlueTriangle.configuration.ignoreBreadcrumbs.map { $0.lowercased() }
+        let enableTabDetection = BlueTriangle.configuration.enableGroupingTapDetection
         var newFeatures: [BreadcrumbFeatrure] = []
         
-        if BlueTriangle.configuration.enableBreadcrumbs {
-            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appInstall.rawValue.lowercased()) {
-                newFeatures.append(AppInstallFeature(collector: collector))
-            }
-            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.systemEvent.rawValue.lowercased()) {
-                newFeatures.append(AppSystemEventFeature(collector: collector))
-            }
-            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appUpdate.rawValue.lowercased()) {
-                newFeatures.append(AppUpdateFeature(collector: collector))
-            }
-            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appLifecycle.rawValue.lowercased()) {
-                newFeatures.append(AppLifecycleFeature(collector: collector))
-            }
-            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.uiLifecycle.rawValue.lowercased()) {
-                newFeatures.append(UILifecycleFeature(collector: collector))
-            }
-            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.networkRequest.rawValue.lowercased()) {
-                newFeatures.append(NetworkRequestFeature(collector: collector))
-            }
-            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.networkState.rawValue.lowercased()) {
-                newFeatures.append(NetworkStateFeature(collector: collector))
-            }
-            if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.userEvent.rawValue.lowercased()) {
-                newFeatures.append(UserEventFeature(collector: collector))
-            }
+        if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appInstall.rawValue.lowercased()) {
+            newFeatures.append(AppInstallFeature(collector: collector))
+        }
+        if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.systemEvent.rawValue.lowercased()) {
+            newFeatures.append(AppSystemEventFeature(collector: collector))
+        }
+        if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appUpdate.rawValue.lowercased()) {
+            newFeatures.append(AppUpdateFeature(collector: collector))
+        }
+        if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.appLifecycle.rawValue.lowercased()) {
+            newFeatures.append(AppLifecycleFeature(collector: collector))
+        }
+        if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.uiLifecycle.rawValue.lowercased()) {
+            newFeatures.append(UILifecycleFeature(collector: collector))
+        }
+        if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.networkRequest.rawValue.lowercased()) {
+            newFeatures.append(NetworkRequestFeature(collector: collector))
+        }
+        if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.networkState.rawValue.lowercased()) {
+            newFeatures.append(NetworkStateFeature(collector: collector))
+        }
+        if !ignoredBreadcrumbs.contains(BreadcrumbsFeature.userEvent.rawValue.lowercased()) && enableTabDetection {
+            newFeatures.append(UserEventFeature(collector: collector))
         }
         
         // Single atomic barrier read/write
@@ -76,6 +75,12 @@ final class BreadcrumbManager {
     func breadcrumbs() -> String? {
         queue.sync {
             collector.breadcrumbsString()
+        }
+    }
+    
+    func saveBreadcrumbsToDisk() {
+        queue.sync {
+            collector.saveBreadcrumbsToDisk()
         }
     }
 }

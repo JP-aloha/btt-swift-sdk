@@ -1,3 +1,11 @@
+# Blue Triangle 3.15.12, May 22 2026
+### New Features and Bug Fixes
+- App installs tracking: BlueTriangle can now track new app installs.
+- App Force Restart Tracking: If the user force restarts the app, kills it, and restarts immediately, BlueTriangle tracks it as Force Restart. User has a tendency to force restart the app if something on the current screen is not working. BlueTriangle can now track this as an error.
+
+### Bug Fixes and Improvements
+- Disabling user tap interspersion for groups will also disable it in breadcrumbs.
+
 # Blue Triangle 3.15.11, Apr 30 2026
 ### Bug Fixes and Improvements
 - Fixed an occasional concurrency crash while updating session Id.

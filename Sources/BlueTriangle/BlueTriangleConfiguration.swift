@@ -91,6 +91,12 @@ final public class BlueTriangleConfiguration: NSObject {
     internal var enableGrouping: Bool =  true
     internal var groupingIdleTime: Double =  2.0
     
+    /// Boolean indicating whether appInstall  is enabled.
+    internal var enableAppInstall: Bool =  true
+    /// Boolean indicating whether force restart  is enabled.
+    internal var enableForceRestart: Bool =  true
+    internal var forceRestartDuration: Double =  10.0
+    
     internal var enableWebViewStitching: Bool  = true
     internal var enableGroupingTapDetection: Bool  = true
     
