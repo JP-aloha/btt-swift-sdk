@@ -102,6 +102,9 @@ enum Constants {
     static let SCREEN_TRACKING_PAGE_TYPE = "ScreenTracker"
     static let SCREEN_TRACKING_TRAFFIC_SEGMENT = "ScreenTracker"
     
+    static let APP_INSTALL_PAGE_GROUP = "AppInstall"
+    static let APP_INSTALLTRAFFIC_SEGMENT = "AppInstall"
+    
     //Dynamic Config
     static let FULL_SAMPLE_RATE_ARGUMENT  = "-FullSampleRate"
     static let NEW_SESSION_ON_LAUNCH_ARGUMENT  = "-NewSessionOnLaunch"

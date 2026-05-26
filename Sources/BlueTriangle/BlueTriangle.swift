@@ -44,13 +44,23 @@ final public class BlueTriangle: NSObject {
         }
     }
     
-    private static var _appInstallTracker: AppInstallTracker?
-    internal static var appInstallTracker: AppInstallTracker?{
+    private static var _appInstallUpdateTracker: AppInstallUpdateTracker?
+    internal static var appInstallUpdateTracker: AppInstallUpdateTracker?{
         get {
-            trackingLock.sync { _appInstallTracker }
+            trackingLock.sync { _appInstallUpdateTracker }
         }
         set{
-            trackingLock.sync { _appInstallTracker = newValue }
+            trackingLock.sync { _appInstallUpdateTracker = newValue }
+        }
+    }
+    
+    private static var _appForceRestartTracker: AppForceRestartTracker?
+    internal static var appForceRestartTracker: AppForceRestartTracker?{
+        get {
+            trackingLock.sync { _appForceRestartTracker }
+        }
+        set{
+            trackingLock.sync { _appForceRestartTracker = newValue }
         }
     }
     
@@ -269,14 +279,6 @@ final public class BlueTriangle: NSObject {
 
     internal static var shouldCaptureRequests: Bool = {
         sessionData()?.shouldNetworkCapture ?? false
-    }()
-    
-    internal static var shouldCheckoutTracking: Bool = {
-        sessionData()?.checkoutTrackingEnabled ?? false
-    }()
-    
-    internal static var shouldBreadcrumbsTracking: Bool = {
-        sessionData()?.enableBreadcrumbs ?? false
     }()
     
     /// A Boolean value indicating  whether the SDK has been successfully configured and initialized.
@@ -723,9 +725,9 @@ extension BlueTriangle {
     
     // Starts screen tracking if not already configured
     
-    private static func setupSwizzling(){
+    private static func setUpSwizzling(){
 #if os(iOS)
-        UIViewController.setUp()
+        setUpAppSwizzling()
         logger.info("BlueTriangle :: Swizzling has done.")
 #endif
     }
@@ -774,18 +776,29 @@ extension BlueTriangle {
         logger.info("BlueTriangle :: Breadcrumds tracking has stopped.")
     }
     
-    private static func startAppInstallTracker(){
-        if appInstallTracker == nil{
-            configureAppInstallTracker()
+    private static func startAppInstallUpdateTracker(){
+        if appInstallUpdateTracker == nil {
+            configureAppInstallUpdateTracker()
         }
-        logger.info("BlueTriangle :: AppInstallTracker tracking has started.")
+        logger.info("BlueTriangle :: AppInstall tracking has started.")
     }
     
-    private static func stopAppInstallTracker(){
-        appInstallTracker = nil
-        logger.info("BlueTriangle :: AppInstallTracker tracking has stopped.")
+    private static func stopAppInstallUpdateTracker(){
+        appInstallUpdateTracker = nil
+        logger.info("BlueTriangle :: AppInstall tracking has stopped.")
     }
-
+    
+    private static func startAppForceRestartTracker(){
+        if appForceRestartTracker == nil {
+            configureAppForceRestartTracker()
+        }
+        logger.info("BlueTriangle :: AppForceRestart tracking has started.")
+    }
+    
+    private static func stopAppForceRestartTracker(){
+        appForceRestartTracker = nil
+        logger.info("BlueTriangle :: AppForceRestart tracking has stopped.")
+    }
     
     private static func clearAllCache(){
         do{
@@ -852,13 +865,31 @@ extension BlueTriangle {
     private static func startAllTrackers() {
         
         logger.info("BlueTriangle :: SDK is in enabled mode.")
-        self.startBreadcrumbs()
+        
         self.startSession()
-        self.startAppInstallTracker()
-        self.setupSwizzling()
+        
+        if  BlueTriangle.configuration.enableScreenTracking {
+            self.setUpSwizzling()
+        }
+        
+        if  BlueTriangle.configuration.enableBreadcrumbs {
+            self.startBreadcrumbs()
+        }
+        
         self.startHttpNetworkCapture()
         self.startHttpGroupedChildCapture()
-        self.startScreenTracking()
+        
+        if  BlueTriangle.configuration.enableScreenTracking {
+            self.startScreenTracking()
+        }
+        
+        if  BlueTriangle.configuration.enableAppInstall {
+            self.startAppInstallUpdateTracker()
+        }
+        
+        if  BlueTriangle.configuration.enableForceRestart {
+            self.startAppForceRestartTracker()
+        }
         
         if  BlueTriangle.configuration.crashTracking == .nsException {
             self.startNsAndSignalCrashTracking()
@@ -903,7 +934,8 @@ extension BlueTriangle {
         self.stopANR()
         self.stopScreenTracking()
         self.stopBreadcrumbs()
-        self.stopAppInstallTracker()
+        self.stopAppInstallUpdateTracker()
+        self.stopAppForceRestartTracker()
         self.stopNetworkStatus()
         self.stopLaunchTime()
         self.clearAllCache()
@@ -1203,7 +1235,7 @@ public extension BlueTriangle {
     }
     /// Returns a timer for network capture.
     static func startRequestTimer() -> InternalTimer? {
-        guard shouldCaptureRequests || shouldCheckoutTracking || shouldBreadcrumbsTracking else {
+        guard shouldCaptureRequests else {
             return nil
         }
         var timer = internalTimerFactory()
@@ -1270,8 +1302,9 @@ public extension BlueTriangle {
     }
     
     private static func recardNetworkFor(_ request: CapturedRequest) async {
+        guard let _ = getNetworkRequestCapture() else { return }
         await BlueTriangle.reportAutoCheckoutFor(request)
-        await BlueTriangle.reportNetworkBreadcrumbFor(request)
+        BlueTriangle.reportNetworkBreadcrumbFor(request)
     }
     
     private static func reportAutoCheckoutFor(_ request: CapturedRequest) async {
@@ -1291,12 +1324,10 @@ public extension BlueTriangle {
     }
     
     internal static func collectBreadcrumb(_ breadcrumb : BreadcrumbEvent) {
-        if BlueTriangle.shouldBreadcrumbsTracking {
-            self.breadcrumbManager?.collectBreadcrumb(breadcrumb)
-        }
+        self.breadcrumbManager?.collectBreadcrumb(breadcrumb)
     }
     
-    private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) async {
+    private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) {
         BlueTriangle.collectBreadcrumb(NetworkRequestEvent(url: request.url, statusCode: request.statusCode ?? ""))
     }
 }
@@ -1395,7 +1426,7 @@ extension BlueTriangle{
 #if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
         BTTWebViewTracker.logger = logger
-        UIViewController.setUp()
+        UIViewController.setUpVcSwizzling()
 #endif
     }
 }
@@ -1406,8 +1437,21 @@ extension BlueTriangle{
         breadcrumbManager = BreadcrumbManager(collector: BreadcrumbCollector(logger: logger))
     }
     
-    static func configureAppInstallTracker(){
-        appInstallTracker = AppInstallTracker(logger: logger)
+    static func configureAppInstallUpdateTracker(){
+        let appInstallReporter = AppInstallReporter(using: {self.session()},
+                                                    uploader: uploader,
+                                                    logger: logger)
+                                                    
+        appInstallUpdateTracker = AppInstallUpdateTracker(appInstallReporter, logger)
+    }
+    
+    static func configureAppForceRestartTracker(){
+
+        let forceKillReporter = AppForceRestartReporter(using: {self.session()},
+                                                    uploader: uploader,
+                                                    logger: logger)
+                                                    
+        appForceRestartTracker = AppForceRestartTracker(forceKillReporter, logger)
     }
 }
 
@@ -1523,6 +1567,11 @@ extension BlueTriangle {
     internal static func updateScreenTracking(_ enabled : Bool) {
         configuration.enableScreenTracking = enabled
         screenTracker?.setLifecycleTracker(enabled)
+        if enabled {
+            startScreenTracking()
+        } else {
+            stopScreenTracking()
+        }
     }
     
     internal static func updateCaptureRequests() {
@@ -1605,6 +1654,10 @@ extension BlueTriangle {
     
     internal static func updateGroupingTapDetection(_ enabled : Bool) {
         configuration.enableGroupingTapDetection = enabled
+        breadcrumbManager?.updateBreadcrumbFeatures()
+        if enabled {
+            UIApplication.setUpActionSwizzling()
+        }
     }
     
     internal static func updateCheckoutTracking(_ enabled: Bool) {
@@ -1639,6 +1692,28 @@ extension BlueTriangle {
         configuration.checkoutTimeValue = timeValue
     }
     
+    internal static func updateAppInstall(_ enable: Bool) {
+        configuration.enableAppInstall = enable
+        if enable {
+            startAppInstallUpdateTracker()
+        } else {
+            stopAppInstallUpdateTracker()
+        }
+    }
+    
+    internal static func updateForceRestart(_ enable: Bool) {
+        configuration.enableForceRestart = enable
+        if enable {
+            startAppForceRestartTracker()
+        } else {
+            stopAppForceRestartTracker()
+        }
+    }
+    
+    internal static func updateForceRestartDuration(_ duration: Double) {
+        configuration.forceRestartDuration = duration
+    }
+    
     internal static func updateIgnoreBreadcrumbs(_ breadcrumbs : Set<String>?) {
         if let breadcrumbs = breadcrumbs{
             configuration.ignoreBreadcrumbs = breadcrumbs
@@ -1649,9 +1724,25 @@ extension BlueTriangle {
     internal static func updateEnableBreadcrumbs(_ enabled: Bool) {
         configuration.enableBreadcrumbs = enabled
         breadcrumbManager?.updateBreadcrumbFeatures()
+        if enabled {
+            startBreadcrumbs()
+        } else {
+            stopBreadcrumbs()
+        }
+    }
+    
+    internal static func saveBreadcrumbsToDisk() {
+        breadcrumbManager?.saveBreadcrumbsToDisk()
     }
     
     internal static func updateConfigKey(_ configKey: String) {
         configuration.configKey = configKey
     }
 }
+
+extension BlueTriangle {
+    internal static func reportAppInstall() {
+        appInstallUpdateTracker?.reportAppInstall()
+    }
+}
+
