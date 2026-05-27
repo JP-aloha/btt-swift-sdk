@@ -55,6 +55,8 @@ class BTTStoredConfigSyncer {
             syncWebViewStitching(from: config, defaultConfig: defaultConfig)
             syncGroupingTapDetection(from: config, defaultConfig: defaultConfig)
             syncAutoCheckout(from: config, defaultConfig: defaultConfig)
+            syncAppInstall(from: config, defaultConfig: defaultConfig)
+            syncForceRestart(from: config, defaultConfig: defaultConfig)
             syncBreadcrumbs(from: config, defaultConfig: defaultConfig)
             syncConfigKey(from: config, defaultConfig: defaultConfig)
         } catch {
@@ -132,6 +134,21 @@ class BTTStoredConfigSyncer {
     private func syncMemoryWarning(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
         if let enableMemoryWarning = config.enableMemoryWarning ?? defaultConfig.enableMemoryWarning {
             BlueTriangle.updateMemoryWarning(enableMemoryWarning)
+        }
+    }
+    
+    private func syncAppInstall(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if BlueTriangle.initialized, let enableAppInstall = config.enableAppInstall ?? defaultConfig.enableAppInstall {
+            BlueTriangle.updateAppInstall(enableAppInstall)
+        }
+    }
+    
+    private func syncForceRestart(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let forceRestartDuration = config.forceRestartDuration ?? defaultConfig.forceRestartDuration {
+            BlueTriangle.updateForceRestartDuration(forceRestartDuration)
+        }
+        if BlueTriangle.initialized, let enableForceRestart = config.enableForceRestart ?? defaultConfig.enableForceRestart {
+            BlueTriangle.updateForceRestart(enableForceRestart)
         }
     }
     
@@ -217,10 +234,15 @@ class BTTStoredConfigSyncer {
     func updateAndApplySDKState(){
         do{
             if let config = try configRepo.get(){
+                
                 let isEnable = config.enableAllTracking ?? true
                 if BlueTriangle.initialized && isEnable != BlueTriangle.enableAllTracking{
                     BlueTriangle.enableAllTracking = isEnable
                     BlueTriangle.applyAllTrackerState()
+                }
+                
+                if BlueTriangle.initialized {
+                    BlueTriangle.reportAppInstall()
                 }
             }
         }

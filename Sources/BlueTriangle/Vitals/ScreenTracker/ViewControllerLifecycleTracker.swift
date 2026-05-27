@@ -12,68 +12,7 @@ import Foundation
 import UIKit
 import SwiftUI
 
-fileprivate func swizzleMethod(_ cls: AnyClass, original: Selector, swizzled: Selector) -> (Method, Method)? {
-    guard
-        let originalMethod = class_getInstanceMethod(cls, original),
-        let swizzledMethod = class_getInstanceMethod(cls, swizzled)
-    else {
-        BlueTriangle.screenTracker?.logger?.error("Swizzling failed: \(cls) \(original) ↔︎ \(swizzled)")
-        return nil
-    }
-
-    method_exchangeImplementations(originalMethod, swizzledMethod)
-    return (originalMethod, swizzledMethod)
-}
-
-extension UIViewController{
-    
-    private static var isSwizzled = false
-    private static var swizzledPairs: [(Method, Method)] = []
-    private static var lock = NSLock()
-    
-    static func setUp() {
-        lock.sync {
-            guard !isSwizzled else { return }
-            
-            if let didLoadPair = swizzleMethod(UIViewController.self, original: #selector(viewDidLoad), swizzled: #selector(viewDidLoad_Tracker)) {
-                swizzledPairs.append(didLoadPair)
-            }
-            if let willAppearPair = swizzleMethod(UIViewController.self, original: #selector(viewWillAppear(_:)), swizzled: #selector(viewWillAppear_Tracker(_:))) {
-                swizzledPairs.append(willAppearPair)
-            }
-            if let didAppearPair = swizzleMethod(UIViewController.self, original: #selector(viewDidAppear(_:)), swizzled: #selector(viewDidAppear_Tracker(_:))) {
-                swizzledPairs.append(didAppearPair)
-            }
-            if let didDisappearPair = swizzleMethod(UIViewController.self, original: #selector(viewDidDisappear(_:)), swizzled: #selector(viewDidDisappear_Tracker(_:))) {
-                swizzledPairs.append(didDisappearPair)
-            }
-            
-            if let sendEventPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendEvent(_:)), swizzled: #selector(UIApplication.swizzled_sendEvent(_:))) {
-                swizzledPairs.append(sendEventPair)
-            }
-            
-            if let sendActionPair = swizzleMethod(UIApplication.self, original: #selector(UIApplication.sendAction(_:to:from:for:)), swizzled: #selector(UIApplication.swizzled_sendAction(_:to:from:for:))) {
-                swizzledPairs.append(sendActionPair)
-            }
-            
-            isSwizzled = true
-            BlueTriangle.screenTracker?.logger?.debug("View Screen Tracker: setup completed.")
-        }
-    }
-    
-    static func removeSetUp() {
-        lock.sync {
-            guard isSwizzled else { return }
-            
-            for (original, swizzled) in swizzledPairs {
-                method_exchangeImplementations(swizzled, original)
-            }
-            
-            swizzledPairs.removeAll()
-            isSwizzled = false
-            BlueTriangle.screenTracker?.logger?.debug("View Screen Tracker: setup removed.")
-        }
-    }
+extension UIViewController {
     
     /// Checks if the given object belongs to an Apple framework class.
     /// - Parameter object: The object to be checked.
@@ -154,8 +93,10 @@ extension UIViewController{
     
     @objc dynamic func viewDidLoad_Tracker() {
         if shouldTrackScreen(){
-            BlueTriangle.screenTracker?.loadStarted(String(describing: self), "\(type(of: self))",  pageTitle())
-            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidLoad, className: "\(type(of: self))"))
+            if let tracking = BlueTriangle.screenTracker {
+                tracking.loadStarted(String(describing: self), "\(type(of: self))",  pageTitle())
+                BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidLoad, className: "\(type(of: self))"))
+            }
         }
 
         viewDidLoad_Tracker()
@@ -163,8 +104,10 @@ extension UIViewController{
     
     @objc dynamic func viewWillAppear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
-            BlueTriangle.screenTracker?.loadFinish(String(describing: self),"\(type(of: self))", pageTitle())
-            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewWillAppear, className: "\(type(of: self))"))
+            if let tracking = BlueTriangle.screenTracker {
+                tracking.loadFinish(String(describing: self),"\(type(of: self))", pageTitle())
+                BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewWillAppear, className: "\(type(of: self))"))
+            }
         }
 
         viewWillAppear_Tracker(animated)
@@ -172,16 +115,20 @@ extension UIViewController{
     
     @objc dynamic func viewDidAppear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
-            BlueTriangle.screenTracker?.viewStart(String(describing: self), "\(type(of: self))", pageTitle())
-            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: "\(type(of: self))"))
+            if let tracking = BlueTriangle.screenTracker {
+                tracking.viewStart(String(describing: self), "\(type(of: self))", pageTitle())
+                BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: "\(type(of: self))"))
+            }
         }
         viewDidAppear_Tracker(animated)
     }
     
     @objc dynamic func viewDidDisappear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
-            BlueTriangle.screenTracker?.viewingEnd(String(describing: self), "\(type(of: self))", pageTitle())
-            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidDisappear, className: "\(type(of: self))"))
+            if let tracking = BlueTriangle.screenTracker {
+                tracking.viewingEnd(String(describing: self), "\(type(of: self))", pageTitle())
+                BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidDisappear, className: "\(type(of: self))"))
+            }
         }
 
         viewDidDisappear_Tracker(animated)

@@ -74,6 +74,7 @@ class SessionManager : SessionManagerProtocol{
     public func start(with expiry : Millisecond){
         self.expirationDurationInMS = expiry
         self.resisterObserver()
+        self.updateRemoteConfig()
     }
     
     public func stop(){
@@ -208,6 +209,9 @@ extension SessionManager {
                 session.checkoutTimeValue = BlueTriangle.configuration.checkoutTimeValue
                 session.ignoreBreadcrumbs = BlueTriangle.configuration.ignoreBreadcrumbs
                 session.enableBreadcrumbs = BlueTriangle.configuration.enableBreadcrumbs
+                session.enableAppInstall = BlueTriangle.configuration.enableAppInstall
+                session.enableForceRestart = BlueTriangle.configuration.enableForceRestart
+                session.forceRestartDuration = BlueTriangle.configuration.forceRestartDuration
                 session.configKey = BlueTriangle.configuration.configKey
                 sessionStore.saveSession(session)
             } else {
@@ -232,6 +236,9 @@ extension SessionManager {
                 BlueTriangle.updateCheckoutTimeValue(session.checkoutTimeValue)
                 BlueTriangle.updateIgnoreBreadcrumbs(session.ignoreBreadcrumbs)
                 BlueTriangle.updateEnableBreadcrumbs(session.enableBreadcrumbs)
+                BlueTriangle.updateAppInstall(session.enableAppInstall)
+                BlueTriangle.updateForceRestart(session.enableForceRestart)
+                BlueTriangle.updateForceRestartDuration(session.forceRestartDuration)
                 BlueTriangle.updateConfigKey(session.configKey)
                 sessionStore.saveSession(session)
             }

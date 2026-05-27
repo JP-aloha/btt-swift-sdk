@@ -33,6 +33,9 @@ class BTTRemoteConfig: Codable, Equatable {
     var checkoutTimeValue : Int?
     var enableBreadcrumbs: Bool?
     var ignoreBreadcrumbs: [String]?
+    var enableAppInstall: Bool?
+    var enableForceRestart: Bool?
+    var forceRestartDuration: Double?
     
     init(networkSampleRateSDK: Double?,
          configKey : String?,
@@ -57,7 +60,10 @@ class BTTRemoteConfig: Codable, Equatable {
          checkoutOrderNumber : String?,
          checkoutTimeValue : Int?,
          ignoreBreadcrumbs : [String]?,
-         enableBreadcrumbs : Bool?) {
+         enableBreadcrumbs : Bool?,
+         enableAppInstall: Bool?,
+         enableForceRestart: Bool?,
+         forceRestartDuration: Double?) {
         self.networkSampleRateSDK = networkSampleRateSDK
         self.configKey = configKey
         self.ignoreScreens = ignoreScreens
@@ -84,6 +90,10 @@ class BTTRemoteConfig: Codable, Equatable {
         self.checkoutTimeValue = checkoutTimeValue
         self.enableBreadcrumbs = enableBreadcrumbs
         self.ignoreBreadcrumbs = ignoreBreadcrumbs
+        
+        self.enableAppInstall = enableAppInstall
+        self.enableForceRestart = enableForceRestart
+        self.forceRestartDuration = forceRestartDuration
     }
     
     static func == (lhs: BTTRemoteConfig, rhs: BTTRemoteConfig) -> Bool {
@@ -111,7 +121,11 @@ class BTTRemoteConfig: Codable, Equatable {
         lhs.checkoutOrderNumber == rhs.checkoutOrderNumber &&
         lhs.checkoutTimeValue == rhs.checkoutTimeValue &&
         lhs.ignoreBreadcrumbs == rhs.ignoreBreadcrumbs &&
-        lhs.enableBreadcrumbs == rhs.enableBreadcrumbs
+        lhs.enableBreadcrumbs == rhs.enableBreadcrumbs &&
+        
+        lhs.enableAppInstall == rhs.enableAppInstall &&
+        lhs.enableForceRestart == rhs.enableForceRestart &&
+        lhs.forceRestartDuration == rhs.forceRestartDuration
     }
     
     internal static var defaultConfig: BTTSavedRemoteConfig {
@@ -139,6 +153,9 @@ class BTTRemoteConfig: Codable, Equatable {
                              checkoutTimeValue: BlueTriangle.configuration.checkoutTimeValue,
                              ignoreBreadcrumbs: Array(BlueTriangle.configuration.ignoreBreadcrumbs),
                              enableBreadcrumbs: BlueTriangle.configuration.enableBreadcrumbs,
+                             enableAppInstall: BlueTriangle.configuration.enableAppInstall,
+                             enableForceRestart: BlueTriangle.configuration.enableForceRestart,
+                             forceRestartDuration: BlueTriangle.configuration.forceRestartDuration,
                              dateSaved: Date().timeIntervalSince1970.milliseconds)
     }
 }
