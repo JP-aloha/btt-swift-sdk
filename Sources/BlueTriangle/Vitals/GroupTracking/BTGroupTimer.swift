@@ -113,6 +113,12 @@ final class BTTimerGroup {
             if screenType == nil { screenType = timer.nativeAppProperties.screenType }
             intervals.append((timer.nativeAppProperties.loadStartTime, timer.nativeAppProperties.loadEndTime))
         }
+        
+        let freq = pages.reduce(into: [String: Int]()) { $0[$1, default: 0] += 1 }
+        var seen = Set<String>()
+        let combinedPages: [String] = pages
+            .filter { seen.insert($0).inserted }
+            .map { freq[$0, default: 1] > 1 ? "\($0) x\(freq[$0, default: 1])" : $0 }
 
         let unionPgTm = max(totalPgTmUnion(intervals), Constants.minPgTm)
         logger.info("Union pgTm of intervals \(intervals): \(unionPgTm), Sum of pgTm : \(pgtm)")
@@ -134,7 +140,7 @@ final class BTTimerGroup {
             groupingCauseInterval: snap.causeInterval,
             netState: snap.networkReport?.netState ?? "",
             netStateSource: snap.networkReport?.netSource ?? "",
-            childViews: hasSampleRate ? pages : []
+            childViews: hasSampleRate ? combinedPages : []
         )
 
         snap.groupTimer.nativeAppProperties = native
@@ -340,9 +346,21 @@ final class BTTimerGroup {
         return total
     }
     
-    private func extractLastPageName(from titles: [(String, String)]) -> String {
+    //Old
+   /* private func extractLastPageName(from titles: [(String, String)]) -> String {
         if let lastWithTitle = titles.last(where: { !$0.1.isEmpty }) { return lastWithTitle.1 }
         return titles.last?.0 ?? ""
+    }*/
+    
+    private func extractLastPageName(from titles: [(String, String)]) -> String {
+        let names = titles.compactMap { !$0.1.isEmpty ? $0.1 : nil }
+        let source = names.isEmpty ? titles.compactMap { !$0.0.isEmpty ? $0.0 : nil } : names
+        guard !source.isEmpty else { return "" }
+
+        let freq = source.reduce(into: [String: Int]()) { $0[$1, default: 0] += 1 }
+        let minCount = freq.values.min()!
+        let uniqueNames = Set(freq.filter { $0.value == minCount }.keys)
+        return source.reversed().first(where: { uniqueNames.contains($0) }) ?? source.last!
     }
 
     private var timeInterval: TimeInterval { Date().timeIntervalSince1970 }
