@@ -69,7 +69,7 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
     }
 }
 
-public struct BTTTrackScreen<Content: View>: View {
+public struct BTTTrack<Content: View>: View {
 
     private let screenName: String
     private let content: Content

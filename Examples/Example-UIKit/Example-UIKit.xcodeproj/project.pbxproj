@@ -534,7 +534,6 @@
 			buildPhases = (
 				514B17B02F8669A800EF3622 /* BTT Pre-Build Injection */,
 				C9015AB42719CA60003BC6C2 /* Sources */,
-				514B17B12F8669CB00EF3622 /* BTT Post-Build Restore */,
 				C9015AB52719CA60003BC6C2 /* Frameworks */,
 				C9015AB62719CA60003BC6C2 /* Resources */,
 			);
@@ -676,25 +675,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# -------- BlueTriangle Injection Script (PRE-BUILD) --------\n\nset -e\n\nARCH=$(uname -m)\nSRC_ROOT=\"$SRCROOT\"\nMODE=\"\"\nSCRIPT_BASE=\"\"\n\necho \"🔍 Resolving BTTInstrumentor...\"\n\n# ---------- Resolve DerivedData ----------\nDERIVED_DATA=$(dirname \"$BUILD_DIR\")/..\n\n# ---------- Locate Artifact Bundle ----------\nBUNDLE=$(find \\\n    \"$DERIVED_DATA/SourcePackages/artifacts\" \\\n    \"$DERIVED_DATA/SourcePackages/checkouts\" \\\n    \"$SRC_ROOT/../../../\" \\\n    -maxdepth 8 \\\n    -name \"BTTInstrumentor.artifactbundle\" \\\n    -type d 2>/dev/null | head -1)\n\nif [ -z \"$BUNDLE\" ]; then\n    echo \"⚠️ BTTInstrumentor.artifactbundle not found\"\n    exit 0\nfi\n\necho \"📦 Bundle found: $BUNDLE\"\n\n# ---------- Resolve Binary from info.json ----------\nBINARY=$(python3 - <<EOF\nimport json, os\nbundle = \"$BUNDLE\"\narch = \"$ARCH\"\n\nwith open(os.path.join(bundle, \"info.json\")) as f:\n    data = json.load(f)\n\nvariants = data[\"artifacts\"][\"BTTInstrumentor\"][\"variants\"]\n\nmatch = None\nfor v in variants:\n    if arch in v[\"supportedTriples\"][0]:\n        match = v[\"path\"]\n        break\n\nif match:\n    print(os.path.join(bundle, match))\nEOF\n)\n\nif [ ! -f \"$BINARY\" ]; then\n    echo \"⚠️ Binary not found: $BINARY\"\n    exit 0\nfi\n\necho \"⚙️ Using binary: $BINARY\"\n\nchmod +x \"$BINARY\"\n\n# ---------- Restore leftover backups (safety) ----------\necho \"🔍 Checking for leftover backups...\"\n\nfind \"$SRC_ROOT\" -name \"*.swift.bttbackup\" \\\n    ! -path \"*/Pods/*\" \\\n    ! -path \"*/.build/*\" \\\n    ! -path \"*/DerivedData/*\" \\\n    | while read BACKUP; do\n        ORIGINAL=\"${BACKUP%.bttbackup}\"\n        cp \"$BACKUP\" \"$ORIGINAL\"\n        rm \"$BACKUP\"\n        echo \"♻️ Restored leftover: $ORIGINAL\"\n    done\n\n# ---------- Injection ----------\necho \"🔧 BTT Injecting (arch: $ARCH)...\"\n\nfind \"$SRC_ROOT\" -name \"*.swift\" \\\n    ! -path \"*/Pods/*\" \\\n    ! -path \"*/.build/*\" \\\n    ! -path \"*/DerivedData/*\" \\\n    ! -path \"*/BTTInstrumentor/*\" \\\n    | while read FILE; do\n        \"$BINARY\" \"$FILE\"\n    done\n\necho \"✅ Injection complete\"\n";
-		};
-		514B17B12F8669CB00EF3622 /* BTT Post-Build Restore */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "BTT Post-Build Restore";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# -------- BlueTriangle Restore Script (POST-BUILD) --------\n\nset -e\n\nARCH=$(uname -m)\nSRC_ROOT=\"$SRCROOT\"\n\necho \"🔄 Restoring files...\"\n\n# ---------- Resolve DerivedData ----------\nDERIVED_DATA=$(dirname \"$BUILD_DIR\")/..\n\n# ---------- Locate Artifact Bundle ----------\nBUNDLE=$(find \\\n    \"$DERIVED_DATA/SourcePackages/artifacts\" \\\n    \"$DERIVED_DATA/SourcePackages/checkouts\" \\\n    \"$SRC_ROOT/../../../\" \\\n    -maxdepth 8 \\\n    -name \"BTTInstrumentor.artifactbundle\" \\\n    -type d 2>/dev/null | head -1)\n\nif [ -z \"$BUNDLE\" ]; then\n    echo \"⚠️ BTTInstrumentor.artifactbundle not found\"\n    exit 0\nfi\n\n# ---------- Resolve Binary ----------\nBINARY=$(python3 - <<EOF\nimport json, os\nbundle = \"$BUNDLE\"\narch = \"$ARCH\"\n\nwith open(os.path.join(bundle, \"info.json\")) as f:\n    data = json.load(f)\n\nvariants = data[\"artifacts\"][\"BTTInstrumentor\"][\"variants\"]\n\nmatch = None\nfor v in variants:\n    if arch in v[\"supportedTriples\"][0]:\n        match = v[\"path\"]\n        break\n\nif match:\n    print(os.path.join(bundle, match))\nEOF\n)\n\nif [ ! -f \"$BINARY\" ]; then\n    echo \"⚠️ Binary not found\"\n    exit 0\nfi\n\nchmod +x \"$BINARY\"\n\n# ---------- Restore ----------\nfind \"$SRC_ROOT\" -name \"*.swift\" \\\n    ! -path \"*/Pods/*\" \\\n    ! -path \"*/.build/*\" \\\n    ! -path \"*/DerivedData/*\" \\\n    ! -path \"*/BTTInstrumentor/*\" \\\n    | while read FILE; do\n        \"$BINARY\" \"$FILE\" --restore\n    done\n\necho \"✅ Restore complete\"\n";
+			shellScript = "# -------- BlueTriangle Injection Script (PRE-BUILD) --------\n\nset -e\n\nARCH=$(uname -m)\nSRC_ROOT=\"$SRCROOT\"\nMODE=\"\"\nSCRIPT_BASE=\"\"\n\necho \"🔍 Resolving BTTInstrumentor...\"\n\n# ---------- Resolve DerivedData ----------\nDERIVED_DATA=$(dirname \"$BUILD_DIR\")/..\n\n# ---------- Locate Artifact Bundle ----------\nBUNDLE=$(find \\\n    \"$DERIVED_DATA/SourcePackages/artifacts\" \\\n    \"$DERIVED_DATA/SourcePackages/checkouts\" \\\n    \"$SRC_ROOT/../../../\" \\\n    -maxdepth 8 \\\n    -name \"BTTInstrumentor.artifactbundle\" \\\n    -type d 2>/dev/null | head -1)\n\nif [ -z \"$BUNDLE\" ]; then\n    echo \"⚠️ BTTInstrumentor.artifactbundle not found\"\n    exit 0\nfi\n\necho \"📦 Bundle found: $BUNDLE\"\n\n# ---------- Resolve Binary from info.json ----------\nBINARY=$(python3 - <<EOF\nimport json, os\nbundle = \"$BUNDLE\"\narch = \"$ARCH\"\n\nwith open(os.path.join(bundle, \"info.json\")) as f:\n    data = json.load(f)\n\nvariants = data[\"artifacts\"][\"BTTInstrumentor\"][\"variants\"]\n\nmatch = None\nfor v in variants:\n    if arch in v[\"supportedTriples\"][0]:\n        match = v[\"path\"]\n        break\n\nif match:\n    print(os.path.join(bundle, match))\nEOF\n)\n\nif [ ! -f \"$BINARY\" ]; then\n    echo \"⚠️ Binary not found: $BINARY\"\n    exit 0\nfi\n\necho \"⚙️ Using binary: $BINARY\"\n\nchmod +x \"$BINARY\"\n\n# ---------- Injection ----------\necho \"🔧 BTT Injecting (arch: $ARCH)...\"\n\nfind \"$SRC_ROOT\" -name \"*.swift\" \\\n    ! -path \"*/Pods/*\" \\\n    ! -path \"*/.build/*\" \\\n    ! -path \"*/DerivedData/*\" \\\n    ! -path \"*/BTTInstrumentor/*\" \\\n    | while read FILE; do\n        \"$BINARY\" \"$FILE\"\n    done\n\necho \"✅ Injection complete\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

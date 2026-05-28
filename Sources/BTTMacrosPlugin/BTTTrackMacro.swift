@@ -12,9 +12,9 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-public struct BTTTrackScreenMacro {}
+public struct BTTTrackMacro {}
 
-extension BTTTrackScreenMacro: MemberMacro {
+extension BTTTrackMacro: MemberMacro {
     
     public static func expansion(
         of node: AttributeSyntax,
@@ -48,7 +48,7 @@ extension BTTTrackScreenMacro: MemberMacro {
         
         guard inheritsView else {
             context.diagnose(
-                Diagnostic(node: node, message: BTTDiagnostic(message: "Struct must conform to View to use BTTTrackScreen"))
+                Diagnostic(node: node, message: BTTDiagnostic(message: "Struct must conform to View to use BTTTrack"))
             )
             throw BTTMacroError.notConformingToView
         }
@@ -64,7 +64,7 @@ extension BTTTrackScreenMacro: MemberMacro {
             })
         else {
             context.diagnose(
-                Diagnostic(node: node, message: BTTDiagnostic(message: "Struct must have a `body` property to use BTTTrackScreen"))
+                Diagnostic(node: node, message: BTTDiagnostic(message: "Struct must have a `body` property to use BTTTrack"))
                                                              )
                            throw BTTMacroError.noBody
         }
@@ -75,7 +75,7 @@ extension BTTTrackScreenMacro: MemberMacro {
                 Diagnostic(
                     node: node,
                     message: BTTDiagnostic(
-                        message: "The `body` property must have an accessor block to use BTTTrackScreen")))
+                        message: "The `body` property must have an accessor block to use BTTTrack")))
             throw BTTMacroError.noBody
         }
         
@@ -112,13 +112,13 @@ extension BTTTrackScreenMacro: MemberMacro {
             }
         }
         
-        typealias Body = BTTTrackScreen<_BTTBodyContainer>
+        typealias Body = BTTTrack<_BTTBodyContainer>
         
         @_implements(View, body)
         @inline(never)
         @ViewBuilder
         var _bttTrackedBody: Self.Body {
-            BTTTrackScreen("\(raw: screenName)") {
+            BTTTrack("\(raw: screenName)") {
                 _BTTBodyContainer(view: self)
             }
         }

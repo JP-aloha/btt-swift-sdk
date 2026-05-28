@@ -7,8 +7,8 @@
 
 #if swift(>=5.9)
 @attached(member, names: arbitrary)
-public macro BTTTrackScreen(_ name: String = "") = #externalMacro(
+public macro BTTTrack(_ name: String = "") = #externalMacro(
     module: "BTTMacrosPlugin",
-    type:   "BTTTrackScreenMacro"
+    type:   "BTTTrackMacro"
 )
 #endif

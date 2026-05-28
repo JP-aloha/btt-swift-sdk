@@ -5,13 +5,6 @@
 //  Created by Ashok Singh on 10/04/26.
 //
 
-//
-//  main.swift
-//  BTTInstrumentor
-//
-//  Created by Ashok Singh on 10/04/26.
-//
-
 #if swift(>=5.9)
 
 import Foundation
@@ -21,21 +14,6 @@ guard CommandLine.arguments.count > 1 else {
 }
 
 let filePath = CommandLine.arguments[1]
-let backupPath = filePath + ".bttbackup"
-
-// MARK: - RESTORE
-
-if CommandLine.arguments.contains("--restore") {
-    guard FileManager.default.fileExists(atPath: backupPath),
-          let backup = try? String(contentsOfFile: backupPath) else {
-        exit(0) // No backup found — already clean
-    }
-    try? backup.write(toFile: filePath, atomically: true, encoding: .utf8)
-    try? FileManager.default.removeItem(atPath: backupPath)
-    print("✅ Restored:", filePath)
-    exit(0)
-}
-
 // MARK: - INJECT
 
 do {
@@ -45,23 +23,13 @@ do {
     guard source.contains("import SwiftUI") else { exit(0) }
 
     // Skip if already injected
-    guard !source.contains("@BTTTrackScreen") else { exit(0) }
+    guard !source.contains("@BTTTrack") else { exit(0) }
 
     // Find all injectable SwiftUI structs
     let matches = findSwiftUIStructs(in: source)
 
     // Nothing to inject — skip silently
     guard !matches.isEmpty else { exit(0) }
-
-    // Backup original before any changes
-    if !FileManager.default.fileExists(atPath: backupPath) {
-        if isValidSwiftFile(filePath) {
-            try source.write(toFile: backupPath, atomically: true, encoding: .utf8)
-        } else {
-            print("⚠️ Skipping (syntax errors):", filePath)
-            exit(0)
-        }
-    }
 
     // Ensure import BlueTriangle is present
     var rewritten = ensureImports(in: source)
@@ -89,7 +57,7 @@ struct ViewStructMatch {
 /// Finds all structs that:
 /// 1. Conform to View
 /// 2. Have a `var body` inside their body
-/// 3. Don't already have @BTTTrackScreen
+/// 3. Don't already have @BTTTrack
 /// 4. Don't have // btt:ignore
 func findSwiftUIStructs(in source: String) -> [ViewStructMatch] {
     var results: [ViewStructMatch] = []
@@ -134,7 +102,7 @@ func findSwiftUIStructs(in source: String) -> [ViewStructMatch] {
 
         // Skip if @BTTTrackScreen already above this struct
         let preceding = source[..<lineStart].split(separator: "\n").suffix(3)
-        guard !preceding.contains(where: { $0.contains("@BTTTrackScreen") }) else { continue }
+        guard !preceding.contains(where: { $0.contains("@BTTTrack") }) else { continue }
 
         results.append(ViewStructMatch(
             structName: structName,
@@ -165,7 +133,7 @@ func injectMacros(into source: String, matches: [ViewStructMatch]) -> String {
         ) else { continue }
 
         let indent = detectIndent(in: result, at: insertPoint)
-        result.insert(contentsOf: "\(indent)@BTTTrackScreen\n", at: insertPoint)
+        result.insert(contentsOf: "\(indent)@BTTTrack\n", at: insertPoint)
     }
 
     return result
