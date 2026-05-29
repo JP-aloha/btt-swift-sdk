@@ -6,12 +6,11 @@
       "version": "1.0.0",
       "variants": [
         {
-          "path": "bin/arm64-apple-macosx/BTTInstrumentor",
-          "supportedTriples": ["arm64-apple-macosx"]
-        },
-        {
-          "path": "bin/x86_64-apple-macosx/BTTInstrumentor",
-          "supportedTriples": ["x86_64-apple-macosx"]
+          "path": "bin/BTTInstrumentor",
+          "supportedTriples": [
+            "arm64-apple-macosx",
+            "x86_64-apple-macosx"
+          ]
         }
       ]
     }
