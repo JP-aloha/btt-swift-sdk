@@ -69,14 +69,19 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     private var totalHangDuration: Double = 0
     private var longestHang: Double = 0
 
+    // Injected so tests can drive a deterministic clock instead of real wall-clock time.
+    private let now: () -> CFTimeInterval
+
     init(
         relativeTolerance: Double = Constants.Responsiveness.relativeTolerance,
         absoluteFloorMs: Millisecond = Constants.Responsiveness.absoluteFloorMs,
-        hangFloorMs: Millisecond = Constants.Responsiveness.hangFloorMs
+        hangFloorMs: Millisecond = Constants.Responsiveness.hangFloorMs,
+        now: @escaping () -> CFTimeInterval = CACurrentMediaTime
     ) {
         self.relativeTolerance = relativeTolerance
         self.absoluteFloorMs = absoluteFloorMs
         self.hangFloorMs = hangFloorMs
+        self.now = now
     }
 
     deinit {
@@ -87,7 +92,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
 
     func start() {
         lastTimestamp = 0
-        trackingStartTime = CACurrentMediaTime()
+        trackingStartTime = now()
         hitchCount = 0
         totalHitchDuration = 0
         longestHitch = 0
@@ -108,7 +113,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     }
 
     func makeReport() -> ResponsivenessReport {
-        let elapsedSeconds = CACurrentMediaTime() - trackingStartTime
+        let elapsedSeconds = now() - trackingStartTime
         let hitchTimeRatio = Millisecond((elapsedSeconds > 0 ? totalHitchDuration / elapsedSeconds : 0).rounded())
         let hangTimeRatio = Millisecond((elapsedSeconds > 0 ? totalHangDuration / elapsedSeconds : 0).rounded())
         let roundedLongestHang = Millisecond(longestHang.rounded())
@@ -128,10 +133,12 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     private func tick(_ link: CADisplayLink) {
         defer { lastTimestamp = link.timestamp }
         guard lastTimestamp != 0 else { return }
+        processFrame(expected: link.targetTimestamp - link.timestamp, actual: link.timestamp - lastTimestamp)
+    }
 
-        let expected = link.targetTimestamp - link.timestamp
-        let actual = link.timestamp - lastTimestamp
-
+    // Accumulates one frame's expected/actual duration into the running hitch/hang totals.
+    // Separated from `tick` (a test seam) since CADisplayLink's own timestamps aren't controllable.
+    func processFrame(expected: CFTimeInterval, actual: CFTimeInterval) {
         guard actual * 1000 < Double(Constants.Responsiveness.maxRecordableGapMs) else { return }
 
         let hangClassification = HangClassifier.classify(actual: actual, floorMs: hangFloorMs)
