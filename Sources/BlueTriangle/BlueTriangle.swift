@@ -270,7 +270,8 @@ final public class BlueTriangle: NSObject {
     private static var timerFactory: (Page, BTTimer.TimerType, Bool) -> BTTimer = {
         configuration.timerConfiguration.makeTimerFactory(
             logger: logger,
-            performanceMonitorFactory: configuration.makePerformanceMonitorFactory())
+            performanceMonitorFactory: configuration.makePerformanceMonitorFactory(),
+            responsivenessTrackerFactory: configuration.makeResponsivenessTrackerFactory())
     }()
 
     private static var internalTimerFactory: () -> InternalTimer = {
@@ -1047,6 +1048,16 @@ public extension BlueTriangle {
     }
 }
 
+// MARK: - Responsiveness stats
+extension BlueTriangle {
+
+    // Internal-only: backs the Animation Hitch example screen's debug HUD via `@testable import`.
+    // Not part of the SDK's public surface — the upload payload uses `ResponsivenessReport` directly.
+    static func currentResponsivenessStats() -> BTResponsivenessStats {
+        BTResponsivenessStats(recentTimer()?.responsivenessReport)
+    }
+}
+
 // MARK: - Custom Metrics
 public extension BlueTriangle{
     
@@ -1643,6 +1654,10 @@ extension BlueTriangle {
         } else {
             self.stopMemoryWarning()
         }
+    }
+
+    internal static func updateResponsiveness(_ enabled : Bool) {
+        configuration.enableResponsiveness = enabled
     }
 
     internal static func updateWebViewStitching(_ enabled : Bool) {

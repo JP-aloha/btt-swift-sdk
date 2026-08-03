@@ -42,6 +42,14 @@ struct NativeAppProperties: Equatable {
     let cellular: Millisecond
     let ethernet: Millisecond
     let other: Millisecond
+    var hitchCount: Int = 0
+    var totalHitchDuration: Millisecond = 0
+    var longestHitch: Millisecond = 0
+    var hitchTimeRatio: Millisecond = 0
+    var hangCount: Int = 0
+    var totalHangDuration: Millisecond = 0
+    var longestHang: Millisecond = 0
+    var hangTimeRatio: Millisecond = 0
     var confidenceRate: Int32?
     var autoCheckout: Bool = false
     var confidenceMsg: String?
@@ -106,7 +114,39 @@ extension NativeAppProperties: Codable{
         if other > 0{
             try con.encode(other, forKey: .other)
         }
-        
+
+        if hitchCount > 0 {
+            try con.encode(hitchCount, forKey: .hitchCount)
+        }
+
+        if totalHitchDuration > 0 {
+            try con.encode(totalHitchDuration, forKey: .totalHitchDuration)
+        }
+
+        if longestHitch > 0 {
+            try con.encode(longestHitch, forKey: .longestHitch)
+        }
+
+        if hitchTimeRatio > 0 {
+            try con.encode(hitchTimeRatio, forKey: .hitchTimeRatio)
+        }
+
+        if hangCount > 0 {
+            try con.encode(hangCount, forKey: .hangCount)
+        }
+
+        if totalHangDuration > 0 {
+            try con.encode(totalHangDuration, forKey: .totalHangDuration)
+        }
+
+        if longestHang > 0 {
+            try con.encode(longestHang, forKey: .longestHang)
+        }
+
+        if hangTimeRatio > 0 {
+            try con.encode(hangTimeRatio, forKey: .hangTimeRatio)
+        }
+
         if let err = err, err.count > 0{
             try con.encode(err, forKey: .err)
         }
@@ -177,6 +217,14 @@ extension NativeAppProperties: Codable{
         self.cellular = try container.decodeIfPresent(Millisecond.self, forKey: .cellular)  ?? 0
         self.ethernet = try container.decodeIfPresent(Millisecond.self, forKey: .ethernet)  ?? 0
         self.other = try container.decodeIfPresent(Millisecond.self, forKey: .other) ?? 0
+        self.hitchCount = try container.decodeIfPresent(Int.self, forKey: .hitchCount) ?? 0
+        self.totalHitchDuration = try container.decodeIfPresent(Millisecond.self, forKey: .totalHitchDuration) ?? 0
+        self.longestHitch = try container.decodeIfPresent(Millisecond.self, forKey: .longestHitch) ?? 0
+        self.hitchTimeRatio = try container.decodeIfPresent(Millisecond.self, forKey: .hitchTimeRatio) ?? 0
+        self.hangCount = try container.decodeIfPresent(Int.self, forKey: .hangCount) ?? 0
+        self.totalHangDuration = try container.decodeIfPresent(Millisecond.self, forKey: .totalHangDuration) ?? 0
+        self.longestHang = try container.decodeIfPresent(Millisecond.self, forKey: .longestHang) ?? 0
+        self.hangTimeRatio = try container.decodeIfPresent(Millisecond.self, forKey: .hangTimeRatio) ?? 0
         self.netState = try container.decodeIfPresent(String.self, forKey: .netState) ?? ""
         self.type = try container.decodeIfPresent(String.self, forKey: .type) ?? NativeAppType.NST.description
         self.deviceModel = try container.decodeIfPresent(String.self, forKey: .deviceModel) ?? Device.model
@@ -209,6 +257,14 @@ extension NativeAppProperties: Codable{
         case ethernet
         case netState
         case other
+        case hitchCount
+        case totalHitchDuration
+        case longestHitch
+        case hitchTimeRatio
+        case hangCount
+        case totalHangDuration
+        case longestHang
+        case hangTimeRatio
         case type
         case err
         case deviceModel

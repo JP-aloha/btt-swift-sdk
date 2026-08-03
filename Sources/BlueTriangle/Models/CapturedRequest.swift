@@ -318,7 +318,7 @@ extension CapturedRequest {
         } else {
             self.domain = response?.url?.host ?? ""
         }
-
+    
         let httpResponse = response as? HTTPURLResponse
         if let statusCode = httpResponse?.statusCode {
             self.statusCode = String(statusCode)

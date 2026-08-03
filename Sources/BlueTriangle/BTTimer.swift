@@ -44,6 +44,7 @@ final public class BTTimer: NSObject, @unchecked Sendable {
     private let timeIntervalProvider: () -> TimeInterval
     private let onStart: (TimerType, Page, TimeInterval, Bool) -> Void
     private let performanceMonitor: PerformanceMonitoring?
+    private let responsivenessTracker: ResponsivenessTracking?
     private var networkAccumulator : BTTimerNetStateAccumulatorProtocol?
     private var nativeAppProp : NativeAppProperties?
     
@@ -118,6 +119,14 @@ final public class BTTimer: NSObject, @unchecked Sendable {
                     cellular: networkReport?.cellular ?? 0,
                     ethernet: networkReport?.ethernet ?? 0,
                     other: networkReport?.other ?? 0,
+                    hitchCount: responsivenessReport?.hitchCount ?? 0,
+                    totalHitchDuration: responsivenessReport?.totalHitchDuration ?? 0,
+                    longestHitch: responsivenessReport?.longestHitch ?? 0,
+                    hitchTimeRatio: responsivenessReport?.hitchTimeRatio ?? 0,
+                    hangCount: responsivenessReport?.hangCount ?? 0,
+                    totalHangDuration: responsivenessReport?.totalHangDuration ?? 0,
+                    longestHang: responsivenessReport?.longestHang ?? 0,
+                    hangTimeRatio: responsivenessReport?.hangTimeRatio ?? 0,
                     netState: networkReport?.netState ?? "",
                     netStateSource: networkReport?.netSource ?? "")
             }
@@ -132,7 +141,11 @@ final public class BTTimer: NSObject, @unchecked Sendable {
     var performanceReport: PerformanceReport? {
         performanceMonitor?.makeReport()
     }
-    
+
+    var responsivenessReport: ResponsivenessReport? {
+        responsivenessTracker?.makeReport()
+    }
+
     var networkReport: NetworkReport? {
         return networkAccumulator?.makeReport()
     }
@@ -145,7 +158,8 @@ final public class BTTimer: NSObject, @unchecked Sendable {
          logger: Logging,
          intervalProvider: @escaping () -> TimeInterval = { Date().timeIntervalSince1970 },
          onStart: @escaping (TimerType, Page, TimeInterval, Bool) -> Void = { _, _, _, _ in },
-         performanceMonitor: PerformanceMonitoring? = nil) {
+         performanceMonitor: PerformanceMonitoring? = nil,
+         responsivenessTracker: ResponsivenessTracking? = nil) {
         self.page = page
         self.isGroupTimer = isGroupTimer
         self.type = type
@@ -153,6 +167,7 @@ final public class BTTimer: NSObject, @unchecked Sendable {
         self.timeIntervalProvider = intervalProvider
         self.onStart = onStart
         self.performanceMonitor = performanceMonitor
+        self.responsivenessTracker = responsivenessTracker
     }
 
     /// Start the timer if not already started.
@@ -204,6 +219,7 @@ final public class BTTimer: NSObject, @unchecked Sendable {
             case (.initial, .start):
                 startTime = timeIntervalProvider()
                 performanceMonitor?.start()
+                responsivenessTracker?.start()
                 state = .started
                 onStart(type, page, startTime, isGroupTimer)
             case (.started, .markInteractive):
@@ -212,6 +228,7 @@ final public class BTTimer: NSObject, @unchecked Sendable {
             case (.started, .end), (.interactive, .end):
                 endTime = timeIntervalProvider()
                 performanceMonitor?.end()
+                responsivenessTracker?.end()
                 state = .ended
             case (.initial, .markInteractive):
                 logger.error("Interactive time cannot be set until timer is started.")
@@ -256,17 +273,19 @@ extension BTTimer {
             logger: Logging,
             isGroupTimer: Bool = false,
             onStart: @escaping (TimerType, Page, TimeInterval, Bool) -> Void = BlueTriangle.timerDidStart(_:page:startTime:isGroupTimer:),
-            performanceMonitorFactory: (() -> PerformanceMonitoring)? = nil
+            performanceMonitorFactory: (() -> PerformanceMonitoring)? = nil,
+            responsivenessTrackerFactory: (() -> ResponsivenessTracking?)? = nil
         ) -> (Page, BTTimer.TimerType, Bool) -> BTTimer {
             { page, timerType, isGroupTimer  in
-                
+
                 BTTimer(page: page,
                         isGroupTimer: isGroupTimer,
                         type: timerType,
                         logger: logger,
                         intervalProvider: timeIntervalProvider,
                         onStart: onStart,
-                        performanceMonitor: performanceMonitorFactory?())
+                        performanceMonitor: performanceMonitorFactory?(),
+                        responsivenessTracker: responsivenessTrackerFactory?())
             }
         }
 

@@ -66,7 +66,14 @@ enum Constants {
     static let sessionTimeoutInMinutes = 30
     static let userSessionTimeoutInDays = 365
     static let maxPayloadAttempts = 3
-    
+
+    enum Responsiveness {
+        static let relativeTolerance: Double = 1.5
+        static let absoluteFloorMs: Millisecond = 3
+        static let hangFloorMs: Millisecond = 750
+        static let maxRecordableGapMs: Millisecond = 5000
+    }
+
     // Endpoints
     static let capturedRequestEndpoint: URL = "https://d.btttag.com/wcdv02.rcv"
     static let errorEndpoint: URL = "https://d.btttag.com/err.rcv"

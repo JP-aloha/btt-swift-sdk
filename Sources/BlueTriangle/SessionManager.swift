@@ -195,6 +195,7 @@ extension SessionManager {
                 session.enableCrashTracking = BlueTriangle.configuration.crashTracking == .nsException
                 session.enableANRTracking = BlueTriangle.configuration.ANRMonitoring
                 session.enableMemoryWarning = BlueTriangle.configuration.enableMemoryWarning
+                session.enableResponsiveness = BlueTriangle.configuration.enableResponsiveness
                 session.enableLaunchTime = BlueTriangle.configuration.enableLaunchTime
                 session.enableWebViewStitching = BlueTriangle.configuration.enableWebViewStitching
                 session.enableNetworkStateTracking = BlueTriangle.configuration.enableTrackingNetworkState
@@ -224,6 +225,7 @@ extension SessionManager {
                 BlueTriangle.updateCrashTracking(session.enableCrashTracking)
                 BlueTriangle.updateAnrMonitoring(session.enableANRTracking)
                 BlueTriangle.updateMemoryWarning(session.enableMemoryWarning)
+                BlueTriangle.updateResponsiveness(session.enableResponsiveness)
                 BlueTriangle.updateWebViewStitching(session.enableWebViewStitching)
                 BlueTriangle.updateGroupingTapDetection(session.enableGroupingTapDetection)
                 BlueTriangle.updateCheckoutTracking(session.checkoutTrackingEnabled)

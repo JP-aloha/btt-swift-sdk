@@ -52,6 +52,7 @@ class BTTStoredConfigSyncer {
             syncCrashTracking(from: config, defaultConfig: defaultConfig)
             syncANRTracking(from: config, defaultConfig: defaultConfig)
             syncMemoryWarning(from: config, defaultConfig: defaultConfig)
+            syncResponsiveness(from: config, defaultConfig: defaultConfig)
             syncWebViewStitching(from: config, defaultConfig: defaultConfig)
             syncGroupingTapDetection(from: config, defaultConfig: defaultConfig)
             syncAutoCheckout(from: config, defaultConfig: defaultConfig)
@@ -136,7 +137,13 @@ class BTTStoredConfigSyncer {
             BlueTriangle.updateMemoryWarning(enableMemoryWarning)
         }
     }
-    
+
+    private func syncResponsiveness(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableResponsiveness = config.enableResponsiveness ?? defaultConfig.enableResponsiveness {
+            BlueTriangle.updateResponsiveness(enableResponsiveness)
+        }
+    }
+
     private func syncAppInstall(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
         if BlueTriangle.initialized, let enableAppInstall = config.enableAppInstall ?? defaultConfig.enableAppInstall {
             BlueTriangle.updateAppInstall(enableAppInstall)

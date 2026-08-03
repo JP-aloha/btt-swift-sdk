@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5145D85830207F0D004F29E3 /* BlueTriangle in Frameworks */ = {isa = PBXBuildFile; productRef = 5145D85730207F0D004F29E3 /* BlueTriangle */; };
 		514B17A72F86528C00EF3622 /* ShipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 514B17A62F86528500EF3622 /* ShipView.swift */; };
 		514B17A92F86529400EF3622 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 514B17A82F86529000EF3622 /* HomeView.swift */; };
 		51522EC32A6042D7002D126D /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51522E902A6042D7002D126D /* HomeViewModel.swift */; };
@@ -66,7 +67,6 @@
 		C9015AD32719CA61003BC6C2 /* Example_UIKitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9015AD22719CA61003BC6C2 /* Example_UIKitTests.swift */; };
 		C9015ADD2719CA61003BC6C2 /* Example_UIKitUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9015ADC2719CA61003BC6C2 /* Example_UIKitUITests.swift */; };
 		C9015ADF2719CA61003BC6C2 /* Example_UIKitUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9015ADE2719CA61003BC6C2 /* Example_UIKitUITestsLaunchTests.swift */; };
-		C9015AEF2719CAFA003BC6C2 /* BlueTriangle in Frameworks */ = {isa = PBXBuildFile; productRef = C9015AEE2719CAFA003BC6C2 /* BlueTriangle */; };
 		C96B79BA28C6EEFD00BD03CD /* ImageLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96B79B928C6EEFD00BD03CD /* ImageLoading.swift */; };
 		C96B79BC28C6F55800BD03CD /* PhotoDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96B79BB28C6F55800BD03CD /* PhotoDetailViewController.swift */; };
 		C9A4146B292422DE001D2C46 /* AppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A4146A292422DE001D2C46 /* AppError.swift */; };
@@ -79,6 +79,8 @@
 		C9D79CB628B19F82002FBB28 /* PhotoCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D79CB528B19F82002FBB28 /* PhotoCollectionViewController.swift */; };
 		C9D79CB828B1A2FA002FBB28 /* SingleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D79CB728B1A2FA002FBB28 /* SingleSection.swift */; };
 		C9D7E92028C425CC00FC1C27 /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D7E91F28C425CC00FC1C27 /* ImageLoader.swift */; };
+		E14209A137CF53AC47A579FB /* HitchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B80C0A30148EDAB6CB031852 /* HitchViewController.swift */; };
+		F137DB2568F7581B2E0E6A95 /* AnimationHitchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39866B12D6C0EBD0798C1BD /* AnimationHitchViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -150,6 +152,8 @@
 		8405FED12A40A9C600CC13B5 /* RunTestViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RunTestViewController.swift; sourceTree = "<group>"; };
 		8405FED22A40A9C600CC13B5 /* TestsHomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestsHomeViewController.swift; sourceTree = "<group>"; };
 		8405FED52A40A9D100CC13B5 /* TestsTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestsTableViewCell.swift; sourceTree = "<group>"; };
+		B39866B12D6C0EBD0798C1BD /* AnimationHitchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimationHitchViewController.swift; sourceTree = "<group>"; };
+		B80C0A30148EDAB6CB031852 /* HitchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HitchViewController.swift; sourceTree = "<group>"; };
 		C9015AB82719CA60003BC6C2 /* Example-UIKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Example-UIKit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9015ABB2719CA60003BC6C2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C9015ABD2719CA60003BC6C2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -182,7 +186,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C9015AEF2719CAFA003BC6C2 /* BlueTriangle in Frameworks */,
+				5145D85830207F0D004F29E3 /* BlueTriangle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,6 +214,7 @@
 				51522E912A6042D7002D126D /* TestPhoneVC */,
 				51522EA82A6042D7002D126D /* TestPadVC */,
 				51522EC22A6042D7002D126D /* HomeViewController.swift */,
+				B80C0A30148EDAB6CB031853 /* Hitch */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -371,6 +376,15 @@
 				8405FECF2A40A9B600CC13B5 /* ANRTests.storyboard */,
 			);
 			path = "New Group";
+			sourceTree = "<group>";
+		};
+		B80C0A30148EDAB6CB031853 /* Hitch */ = {
+			isa = PBXGroup;
+			children = (
+				B80C0A30148EDAB6CB031852 /* HitchViewController.swift */,
+				B39866B12D6C0EBD0798C1BD /* AnimationHitchViewController.swift */,
+			);
+			path = Hitch;
 			sourceTree = "<group>";
 		};
 		C9015AAF2719CA60003BC6C2 = {
@@ -542,7 +556,7 @@
 			);
 			name = "Example-UIKit";
 			packageProductDependencies = (
-				C9015AEE2719CAFA003BC6C2 /* BlueTriangle */,
+				5145D85730207F0D004F29E3 /* BlueTriangle */,
 			);
 			productName = "Example-UIKit";
 			productReference = C9015AB82719CA60003BC6C2 /* Example-UIKit.app */;
@@ -666,6 +680,8 @@
 				C9015AC02719CA60003BC6C2 /* RootViewController.swift in Sources */,
 				51522ECD2A6042D7002D126D /* TestPushViewController.swift in Sources */,
 				51522EC32A6042D7002D126D /* HomeViewModel.swift in Sources */,
+				E14209A137CF53AC47A579FB /* HitchViewController.swift in Sources */,
+				F137DB2568F7581B2E0E6A95 /* AnimationHitchViewController.swift in Sources */,
 				C9D79CB828B1A2FA002FBB28 /* SingleSection.swift in Sources */,
 				C9A4146B292422DE001D2C46 /* AppError.swift in Sources */,
 				51522ED72A6042D7002D126D /* MasterViewController.swift in Sources */,
@@ -891,6 +907,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -1098,7 +1115,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C9015AEE2719CAFA003BC6C2 /* BlueTriangle */ = {
+		5145D85730207F0D004F29E3 /* BlueTriangle */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = BlueTriangle;
 		};

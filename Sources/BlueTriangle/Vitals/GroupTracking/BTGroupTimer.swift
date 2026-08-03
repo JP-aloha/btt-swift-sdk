@@ -146,6 +146,14 @@ final class BTTimerGroup {
             cellular: snap.networkReport?.cellular ?? 0,
             ethernet: snap.networkReport?.ethernet ?? 0,
             other: snap.networkReport?.other ?? 0,
+            hitchCount: snap.hitchCount,
+            totalHitchDuration: snap.totalHitchDuration,
+            longestHitch: snap.longestHitch,
+            hitchTimeRatio: snap.hitchTimeRatio,
+            hangCount: snap.hangCount,
+            totalHangDuration: snap.totalHangDuration,
+            longestHang: snap.longestHang,
+            hangTimeRatio: snap.hangTimeRatio,
             grouped: true,
             groupingCause: snap.groupingCause?.description,
             groupingCauseInterval: snap.causeInterval,
@@ -181,6 +189,14 @@ final class BTTimerGroup {
                 cellular: prop.cellular,
                 ethernet: prop.ethernet,
                 other: prop.other,
+                hitchCount: prop.hitchCount,
+                totalHitchDuration: prop.totalHitchDuration,
+                longestHitch: prop.longestHitch,
+                hitchTimeRatio: prop.hitchTimeRatio,
+                hangCount: prop.hangCount,
+                totalHangDuration: prop.totalHangDuration,
+                longestHang: prop.longestHang,
+                hangTimeRatio: prop.hangTimeRatio,
                 grouped: true,
                 netState: prop.netState,
                 netStateSource: prop.netStateSource
@@ -406,6 +422,14 @@ final class BTTimerGroup {
         let groupTimer: BTTimer
         let networkReport: NetworkReport?
         let maxMainThreadTask: Millisecond
+        let hitchCount: Int
+        let totalHitchDuration: Millisecond
+        let longestHitch: Millisecond
+        let hitchTimeRatio: Millisecond
+        let hangCount: Int
+        let totalHangDuration: Millisecond
+        let longestHang: Millisecond
+        let hangTimeRatio: Millisecond
         let groupingCause: GroupingCause?
         let causeInterval: Millisecond
         let pageName: String
@@ -419,6 +443,14 @@ final class BTTimerGroup {
                 groupTimer: gt,
                 networkReport: gt.networkReport,
                 maxMainThreadTask: gt.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
+                hitchCount: gt.responsivenessReport?.hitchCount ?? 0,
+                totalHitchDuration: gt.responsivenessReport?.totalHitchDuration ?? 0,
+                longestHitch: gt.responsivenessReport?.longestHitch ?? 0,
+                hitchTimeRatio: gt.responsivenessReport?.hitchTimeRatio ?? 0,
+                hangCount: gt.responsivenessReport?.hangCount ?? 0,
+                totalHangDuration: gt.responsivenessReport?.totalHangDuration ?? 0,
+                longestHang: gt.responsivenessReport?.longestHang ?? 0,
+                hangTimeRatio: gt.responsivenessReport?.hangTimeRatio ?? 0,
                 groupingCause: g.groupingCause,
                 causeInterval: g.causeInterval,
                 pageName: gt.getPageName(),

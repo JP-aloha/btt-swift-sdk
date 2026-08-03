@@ -45,7 +45,14 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource{
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let item = model.homeItems()[indexPath.row]
-        
+
+        #if DEBUG
+        if item == "Animation Hitch"{
+            self.navigationController?.pushViewController(AnimationHitchViewController(), animated: true)
+            return
+        }
+        #endif
+
         if item == "Test Present"{
             if let vc = model.getHomeItem(item){
                 self.present(vc, animated: true)
@@ -67,7 +74,11 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource{
                 vc.modalPresentationStyle = .fullScreen
                 self.present(vc, animated: true)
             }
-        }else{
+        }
+        else if item == "Hitch"{
+            self.navigationController?.pushViewController(HitchViewController(), animated: true)
+        }
+        else{
             if let vc = model.getHomeItem(item){
                 self.navigationController?.pushViewController(vc, animated: true)
             }
