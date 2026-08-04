@@ -161,18 +161,19 @@ final class AnimationHitchViewController: UIViewController {
         centerTimeLabel.text = String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
 
         let stats = BlueTriangle.currentResponsivenessStats()
-        let (color, text): (UIColor, String)
-        switch ResponsivenessGrade.grade(hitchTimeRatio: stats.hitchTimeRatio, hangCount: stats.hangCount, longestHang: stats.longestHang) {
-        case .worst:
-            (color, text) = (.systemRed, "WORST")
-        case .bad:
-            (color, text) = (.systemOrange, "BAD")
-        case .good:
-            (color, text) = (.systemGreen, "GOOD")
+        let score = PerformanceScorer.score(hitchTimeRatio: Double(stats.hitchTimeRatio), hangCount: stats.hangCount, longestHang: stats.longestHang)
+        let (color, label): (UIColor, String)
+        switch score {
+        case 71...100:
+            (color, label) = (.systemGreen, "GOOD")
+        case 31...70:
+            (color, label) = (.systemOrange, "BAD")
+        default:
+            (color, label) = (.systemRed, "WORST")
         }
         statusDotView.backgroundColor = color
         statusTextLabel.textColor = color
-        statusTextLabel.text = text
+        statusTextLabel.text = "\(label) (\(score))"
     }
 
     // MARK: - Sections (Hitch / Hang)
@@ -304,17 +305,20 @@ final class AnimationHitchViewController: UIViewController {
 
     private func updateStatsLabels() {
         let stats = BlueTriangle.currentResponsivenessStats()
+        let score = PerformanceScorer.score(hitchTimeRatio: Double(stats.hitchTimeRatio), hangCount: stats.hangCount, longestHang: stats.longestHang)
         hitchStatsLabel.text = """
         Hitch Count: \(stats.hitchCount)
         Total Hitch Duration: \(stats.totalHitchDuration)Ms
         Longest Hitch: \(stats.longestHitch)Ms
         Hitch Time Ratio: \(rateString(stats.hitchTimeRatio))
+        Score: \(score)/100
         """
         hangStatsLabel.text = """
         Hang Count: \(stats.hangCount)
         Total Hang Duration: \(secondsString(fromMs: stats.totalHangDuration))
         Longest Hang: \(secondsString(fromMs: stats.longestHang))
         Hang Time Ratio: \(rateString(stats.hangTimeRatio))
+        Score: \(score)/100
         """
     }
 
@@ -363,27 +367,67 @@ final class AnimationHitchViewController: UIViewController {
     }
 }
 
-// Overall smoothness grade for the current window, derived from hitchTimeRatio, hang count, and
-// the longest single hang — whichever of the three criteria is most severe wins. This is purely
-// a debug-HUD presentation concern, so it lives here rather than in the SDK.
-private enum ResponsivenessGrade {
-    case good
-    case bad
-    case worst
+// Continuous 1-100 responsiveness score (100 = perfect, 1 = worst) derived from hitchTimeRatio,
+// hang count, and the longest single hang — an exact reading of how far into its severity band
+// each metric falls, not just which band it's in. This is purely a debug-HUD presentation
+// concern, so it lives here rather than in the SDK.
+private enum PerformanceScorer {
 
-    private var severity: Int {
-        switch self {
-        case .good: return 0
-        case .bad: return 1
-        case .worst: return 2
+    /// Linearly interpolates `value` between [from, to] into the output
+    /// range [outFrom, outTo]. Clamps if value is outside [from, to].
+    private static func lerp(_ value: Double, from: Double, to: Double, outFrom: Double, outTo: Double) -> Double {
+        guard to != from else { return outFrom }
+        let t = min(1, max(0, (value - from) / (to - from)))
+        return outFrom + t * (outTo - outFrom)
+    }
+
+    /// Continuous score for hitch rate, exact boundaries: <50 / 50-150 / >150
+    private static func hitchScore(_ ratio: Double) -> Double {
+        if ratio <= 50 {
+            return lerp(ratio, from: 0, to: 50, outFrom: 100, outTo: 71)
+        } else if ratio <= 150 {
+            return lerp(ratio, from: 50, to: 150, outFrom: 70, outTo: 31)
+        } else {
+            return lerp(ratio, from: 150, to: 300, outFrom: 30, outTo: 1) // capped at 300
         }
     }
 
-    static func grade(hitchTimeRatio: Millisecond, hangCount: Int, longestHang: Millisecond) -> ResponsivenessGrade {
-        let ratioGrade: ResponsivenessGrade = hitchTimeRatio > 10 ? .worst : (hitchTimeRatio >= 5 ? .bad : .good)
-        let countGrade: ResponsivenessGrade = hangCount >= 2 ? .worst : (hangCount == 1 ? .bad : .good)
-        let longestHangGrade: ResponsivenessGrade = longestHang > 2500 ? .worst : (longestHang > 0 ? .bad : .good)
-        return [ratioGrade, countGrade, longestHangGrade].max { $0.severity < $1.severity } ?? .good
+    /// Continuous score for hang count alone (used only for the >=2 "Worst" case;
+    /// count==1 defers to longestHang, count==0 is a fixed 100 — see combine logic).
+    private static func hangCountScore(_ count: Int) -> Double {
+        guard count >= 2 else { return 100 }
+        return lerp(Double(count), from: 2, to: 5, outFrom: 30, outTo: 1) // capped at 5 hangs
+    }
+
+    /// Continuous score for longest hang, exact boundary: <=2500 Bad, >2500 Worst.
+    /// Only meaningful when hangCount > 0 — returns 100 if there's no hang at all.
+    private static func longestHangScore(hangCount: Int, longestHang: Double) -> Double {
+        guard hangCount > 0 else { return 100 }
+        if longestHang <= 2500 {
+            return lerp(longestHang, from: 0, to: 2500, outFrom: 70, outTo: 31)
+        } else {
+            return lerp(longestHang, from: 2500, to: 5000, outFrom: 30, outTo: 1) // capped at 5000ms
+        }
+    }
+
+    /// Returns an exact 1-100 value — 100 = perfect, 1 = worst — reflecting
+    /// precisely how far into its severity band each metric falls, not just
+    /// which category it's in.
+    static func score(hitchTimeRatio: Double, hangCount: Int, longestHang: Millisecond) -> Int {
+        let hScore = hitchScore(hitchTimeRatio)
+        let countScore = hangCountScore(hangCount)
+        let hangScore = longestHangScore(hangCount: hangCount, longestHang: Double(longestHang))
+
+        // Worst (lowest) score wins.
+        let finalScore = min(hScore, countScore, hangScore)
+
+        return Int(finalScore.rounded()).clamped(to: 1...100)
+    }
+}
+
+private extension Int {
+    func clamped(to range: ClosedRange<Int>) -> Int {
+        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
     }
 }
 #endif
