@@ -73,7 +73,7 @@ final public class BlueTriangleConfiguration: NSObject {
     @objc public var isPerformanceMonitorEnabled: Bool = true
 
     /// Boolean indicating whether Hitch and Hang (responsiveness) tracking is enabled.
-    @objc public var enableResponsiveness: Bool = true
+    @objc public var enableScreenResponsiveness: Bool = true
 
     /// Percentage of sessions for which network calls will be captured. A value of `0.05`
     /// means that 5% of sessions will be tracked.
@@ -236,7 +236,7 @@ extension BlueTriangleConfiguration {
 
     func makeResponsivenessTrackerFactory() -> (() -> ResponsivenessTracking?)? {
         return { [weak self] in
-            guard let self = self, self.isPerformanceMonitorEnabled, self.enableResponsiveness else { return nil }
+            guard let self = self, self.isPerformanceMonitorEnabled, self.enableScreenResponsiveness else { return nil }
             return self.responsivenessTrackerBuilder.builder()
         }
     }

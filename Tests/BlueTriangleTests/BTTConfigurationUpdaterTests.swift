@@ -66,7 +66,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                      enableAppInstall: true,
                                      enableForceRestart: true,
                                      forceRestartDuration: 10,
-                                     enableResponsiveness: true)
+                                     enableScreenResponsiveness: true)
         
         mockFetcher.configToReturn = config
         
@@ -111,7 +111,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                      enableAppInstall: true,
                                      enableForceRestart: true,
                                      forceRestartDuration: 10,
-                                     enableResponsiveness: true)
+                                     enableScreenResponsiveness: true)
         
         mockRepo.save(config)
         
@@ -153,7 +153,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                         enableAppInstall: true,
                                         enableForceRestart: true,
                                         forceRestartDuration: 10,
-                                        enableResponsiveness: true)
+                                        enableScreenResponsiveness: true)
         mockFetcher.configToReturn = apiConfig
         
         
@@ -185,7 +185,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                                enableAppInstall: true,
                                                enableForceRestart: true,
                                                forceRestartDuration: 10,
-                                               enableResponsiveness: true,
+                                               enableScreenResponsiveness: true,
                                                dateSaved: currentTime - Millisecond.hour * 2)
         mockRepo.store[key] = storeConfig
         

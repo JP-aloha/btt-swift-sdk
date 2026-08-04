@@ -59,7 +59,7 @@ final class BTTConfigurationFetcherTests: XCTestCase {
                                              enableAppInstall: true,
                                              enableForceRestart: true,
                                              forceRestartDuration: 10.0,
-                                             enableResponsiveness: true)
+                                             enableScreenResponsiveness: true)
             
             let mockData = try! JSONEncoder().encode(mockConfig)
             

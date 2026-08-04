@@ -85,7 +85,7 @@ class SessionData: Codable {
     var enableForceRestart: Bool
     var forceRestartDuration: Double
 
-    var enableResponsiveness: Bool
+    var enableScreenResponsiveness: Bool
 
 
     var enableBreadcrumbs : Bool
@@ -128,7 +128,7 @@ class SessionData: Codable {
         self.enableForceRestart = BlueTriangle.configuration.enableForceRestart
         self.forceRestartDuration = BlueTriangle.configuration.forceRestartDuration
 
-        self.enableResponsiveness = BlueTriangle.configuration.enableResponsiveness
+        self.enableScreenResponsiveness = BlueTriangle.configuration.enableScreenResponsiveness
     }
     
     private static func generateSessionID()-> Identifier {

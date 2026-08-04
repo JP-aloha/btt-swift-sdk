@@ -36,7 +36,7 @@ class BTTRemoteConfig: Codable, Equatable {
     var enableAppInstall: Bool?
     var enableForceRestart: Bool?
     var forceRestartDuration: Double?
-    var enableResponsiveness: Bool?
+    var enableScreenResponsiveness: Bool?
 
     init(networkSampleRateSDK: Double?,
          configKey : String?,
@@ -65,7 +65,7 @@ class BTTRemoteConfig: Codable, Equatable {
          enableAppInstall: Bool?,
          enableForceRestart: Bool?,
          forceRestartDuration: Double?,
-         enableResponsiveness: Bool?) {
+         enableScreenResponsiveness: Bool?) {
         self.networkSampleRateSDK = networkSampleRateSDK
         self.configKey = configKey
         self.ignoreScreens = ignoreScreens
@@ -96,7 +96,7 @@ class BTTRemoteConfig: Codable, Equatable {
         self.enableAppInstall = enableAppInstall
         self.enableForceRestart = enableForceRestart
         self.forceRestartDuration = forceRestartDuration
-        self.enableResponsiveness = enableResponsiveness
+        self.enableScreenResponsiveness = enableScreenResponsiveness
     }
 
     static func == (lhs: BTTRemoteConfig, rhs: BTTRemoteConfig) -> Bool {
@@ -129,7 +129,7 @@ class BTTRemoteConfig: Codable, Equatable {
         lhs.enableAppInstall == rhs.enableAppInstall &&
         lhs.enableForceRestart == rhs.enableForceRestart &&
         lhs.forceRestartDuration == rhs.forceRestartDuration &&
-        lhs.enableResponsiveness == rhs.enableResponsiveness
+        lhs.enableScreenResponsiveness == rhs.enableScreenResponsiveness
     }
     
     internal static var defaultConfig: BTTSavedRemoteConfig {
@@ -160,7 +160,7 @@ class BTTRemoteConfig: Codable, Equatable {
                              enableAppInstall: BlueTriangle.configuration.enableAppInstall,
                              enableForceRestart: BlueTriangle.configuration.enableForceRestart,
                              forceRestartDuration: BlueTriangle.configuration.forceRestartDuration,
-                             enableResponsiveness: BlueTriangle.configuration.enableResponsiveness,
+                             enableScreenResponsiveness: BlueTriangle.configuration.enableScreenResponsiveness,
                              dateSaved: Date().timeIntervalSince1970.milliseconds)
     }
 }

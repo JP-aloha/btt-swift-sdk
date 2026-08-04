@@ -67,7 +67,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
               enableAppInstall: config.enableAppInstall,
               enableForceRestart: config.enableForceRestart,
               forceRestartDuration: config.forceRestartDuration,
-              enableResponsiveness: config.enableResponsiveness,
+              enableScreenResponsiveness: config.enableScreenResponsiveness,
               dateSaved: Date().timeIntervalSince1970.milliseconds
           )
         
@@ -110,7 +110,7 @@ class BTTConfigurationRepo : ConfigurationRepo{
              enableAppInstall: config.enableAppInstall,
              enableForceRestart: config.enableForceRestart,
              forceRestartDuration: config.forceRestartDuration,
-             enableResponsiveness: config.enableResponsiveness,
+             enableScreenResponsiveness: config.enableScreenResponsiveness,
              dateSaved: Date().timeIntervalSince1970.milliseconds
          )
         

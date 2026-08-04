@@ -38,7 +38,7 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
          enableAppInstall: Bool?,
          enableForceRestart: Bool?,
          forceRestartDuration: Double?,
-         enableResponsiveness: Bool?,
+         enableScreenResponsiveness: Bool?,
          dateSaved: Millisecond) {
         self.dateSaved = dateSaved
         super.init(networkSampleRateSDK: networkSampleRateSDK,
@@ -68,7 +68,7 @@ class BTTSavedRemoteConfig: BTTRemoteConfig {
                    enableAppInstall: enableAppInstall,
                    enableForceRestart: enableForceRestart,
                    forceRestartDuration: forceRestartDuration,
-                   enableResponsiveness: enableResponsiveness
+                   enableScreenResponsiveness: enableScreenResponsiveness
         )
     }
 

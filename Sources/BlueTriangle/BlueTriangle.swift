@@ -1657,7 +1657,7 @@ extension BlueTriangle {
     }
 
     internal static func updateResponsiveness(_ enabled : Bool) {
-        configuration.enableResponsiveness = enabled
+        configuration.enableScreenResponsiveness = enabled
     }
 
     internal static func updateWebViewStitching(_ enabled : Bool) {

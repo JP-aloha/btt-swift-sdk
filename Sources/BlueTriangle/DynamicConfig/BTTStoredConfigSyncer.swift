@@ -139,8 +139,8 @@ class BTTStoredConfigSyncer {
     }
 
     private func syncResponsiveness(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
-        if let enableResponsiveness = config.enableResponsiveness ?? defaultConfig.enableResponsiveness {
-            BlueTriangle.updateResponsiveness(enableResponsiveness)
+        if let enableScreenResponsiveness = config.enableScreenResponsiveness ?? defaultConfig.enableScreenResponsiveness {
+            BlueTriangle.updateResponsiveness(enableScreenResponsiveness)
         }
     }
 

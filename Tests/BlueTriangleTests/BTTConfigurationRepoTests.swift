@@ -51,7 +51,7 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                      enableAppInstall: true,
                                      enableForceRestart: true,
                                      forceRestartDuration: 10.0,
-                                     enableResponsiveness: true)
+                                     enableScreenResponsiveness: true)
         
         configurationRepo.save(config)
         
@@ -89,7 +89,7 @@ final class BTTConfigurationRepoTests: XCTestCase {
                                                enableAppInstall: true,
                                                enableForceRestart: true,
                                                forceRestartDuration: 10.0,
-                                               enableResponsiveness: true,
+                                               enableScreenResponsiveness: true,
                                                dateSaved: Date().timeIntervalSince1970.milliseconds)
 
         configurationRepo.store[key] = savedConfig
