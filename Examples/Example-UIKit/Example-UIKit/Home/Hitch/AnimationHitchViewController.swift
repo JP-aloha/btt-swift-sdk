@@ -161,10 +161,15 @@ final class AnimationHitchViewController: UIViewController {
         centerTimeLabel.text = String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
 
         let stats = BlueTriangle.currentResponsivenessStats()
-        let score = PerformanceScorer.score(hitchTimeRatio: Double(stats.hitchTimeRatio), hangCount: stats.hangCount, longestHang: stats.longestHang)
+        // stats.hitchTimeRatio and stats.hitchFramePercent are already percentages (0-100).
+        let score = ResponsivenessGrade.grade(
+            hitchRatio: stats.hitchTimeRatio,
+            hitchFramePercent: stats.hitchFramePercent,
+            hangCount: stats.hangCount,
+            longestHang: stats.longestHang)
         let (color, label): (UIColor, String)
         switch score {
-        case 71...100:
+        case 0...30:
             (color, label) = (.systemGreen, "GOOD")
         case 31...70:
             (color, label) = (.systemOrange, "BAD")
@@ -305,25 +310,22 @@ final class AnimationHitchViewController: UIViewController {
 
     private func updateStatsLabels() {
         let stats = BlueTriangle.currentResponsivenessStats()
-        let score = PerformanceScorer.score(hitchTimeRatio: Double(stats.hitchTimeRatio), hangCount: stats.hangCount, longestHang: stats.longestHang)
         hitchStatsLabel.text = """
         Hitch Count: \(stats.hitchCount)
         Total Hitch Duration: \(stats.totalHitchDuration)Ms
-        Longest Hitch: \(stats.longestHitch)Ms
-        Hitch Time Ratio: \(rateString(stats.hitchTimeRatio))
-        Score: \(score)/100
+        Hitch Frame %: \(percentString(stats.hitchFramePercent))
+        Hitch Time Ratio: \(percentString(stats.hitchTimeRatio))
         """
         hangStatsLabel.text = """
         Hang Count: \(stats.hangCount)
         Total Hang Duration: \(secondsString(fromMs: stats.totalHangDuration))
         Longest Hang: \(secondsString(fromMs: stats.longestHang))
-        Hang Time Ratio: \(rateString(stats.hangTimeRatio))
-        Score: \(score)/100
+        Hang Time Ratio: \(percentString(stats.hangTimeRatio))
         """
     }
 
-    private func rateString(_ msPerSecond: Millisecond) -> String {
-        "\(msPerSecond)Ms/s"
+    private func percentString(_ percent: Float) -> String {
+        String(format: "%.2f%%", percent)
     }
 
     private func secondsString(fromMs ms: Millisecond) -> String {
@@ -367,61 +369,53 @@ final class AnimationHitchViewController: UIViewController {
     }
 }
 
-// Continuous 1-100 responsiveness score (100 = perfect, 1 = worst) derived from hitchTimeRatio,
-// hang count, and the longest single hang — an exact reading of how far into its severity band
-// each metric falls, not just which band it's in. This is purely a debug-HUD presentation
-// concern, so it lives here rather than in the SDK.
-private enum PerformanceScorer {
+// Continuous 1-100 responsiveness score (0 = best, 100 = worst) derived from hitch ratio, hitch
+private enum ResponsivenessGrade {
 
-    /// Linearly interpolates `value` between [from, to] into the output
-    /// range [outFrom, outTo]. Clamps if value is outside [from, to].
-    private static func lerp(_ value: Double, from: Double, to: Double, outFrom: Double, outTo: Double) -> Double {
-        guard to != from else { return outFrom }
-        let t = min(1, max(0, (value - from) / (to - from)))
-        return outFrom + t * (outTo - outFrom)
-    }
-
-    /// Continuous score for hitch rate, exact boundaries: <50 / 50-150 / >150
-    private static func hitchScore(_ ratio: Double) -> Double {
-        if ratio <= 50 {
-            return lerp(ratio, from: 0, to: 50, outFrom: 100, outTo: 71)
-        } else if ratio <= 150 {
-            return lerp(ratio, from: 50, to: 150, outFrom: 70, outTo: 31)
-        } else {
-            return lerp(ratio, from: 150, to: 300, outFrom: 30, outTo: 1) // capped at 300
+    /// Explicit banded severity/badness curve: 0=best, 100=worst.
+    private static func severity(_ value: Float, good: Float, bad: Float, cap: Float) -> Float {
+        guard value > 0 else { return 0 }
+        if value <= good {
+            return (value / good) * 30
         }
-    }
-
-    /// Continuous score for hang count alone (used only for the >=2 "Worst" case;
-    /// count==1 defers to longestHang, count==0 is a fixed 100 — see combine logic).
-    private static func hangCountScore(_ count: Int) -> Double {
-        guard count >= 2 else { return 100 }
-        return lerp(Double(count), from: 2, to: 5, outFrom: 30, outTo: 1) // capped at 5 hangs
-    }
-
-    /// Continuous score for longest hang, exact boundary: <=2500 Bad, >2500 Worst.
-    /// Only meaningful when hangCount > 0 — returns 100 if there's no hang at all.
-    private static func longestHangScore(hangCount: Int, longestHang: Double) -> Double {
-        guard hangCount > 0 else { return 100 }
-        if longestHang <= 2500 {
-            return lerp(longestHang, from: 0, to: 2500, outFrom: 70, outTo: 31)
-        } else {
-            return lerp(longestHang, from: 2500, to: 5000, outFrom: 30, outTo: 1) // capped at 5000ms
+        if value <= bad {
+            let t = (value - good) / (bad - good)
+            return 30 + t * 40
         }
+        if value <= cap {
+            let t = (value - bad) / (cap - bad)
+            return 70 + t * 30
+        }
+        return 100
     }
 
-    /// Returns an exact 1-100 value — 100 = perfect, 1 = worst — reflecting
-    /// precisely how far into its severity band each metric falls, not just
-    /// which category it's in.
-    static func score(hitchTimeRatio: Double, hangCount: Int, longestHang: Millisecond) -> Int {
-        let hScore = hitchScore(hitchTimeRatio)
-        let countScore = hangCountScore(hangCount)
-        let hangScore = longestHangScore(hangCount: hangCount, longestHang: Double(longestHang))
+    // MARK: - Hitch Score
+    static func hitchScore(hitchRatio: Float, hitchFramePercent: Float) -> Float {
+        let ratioScore = severity(hitchRatio, good: 10, bad: 20, cap: 100)
+        let framePercentScore = severity(hitchFramePercent, good: 10, bad: 20, cap: 100)
+        return max(ratioScore, framePercentScore)   // worse of the two wins
+    }
 
-        // Worst (lowest) score wins.
-        let finalScore = min(hScore, countScore, hangScore)
+    // MARK: - Hang Score
+    static func hangScore(hangCount: Int, longestHang: Millisecond) -> Float {
+        let countScore = severity(Float(hangCount), good: 2, bad: 5, cap: 100)
+        let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 5000)
+        return max(countScore, durationScore)
+    }
 
-        return Int(finalScore.rounded()).clamped(to: 1...100)
+    // MARK: - Final combined score
+
+    /// - Parameter hitchRatio: a PERCENTAGE — see `hitchScore`'s doc for the Ms/s conversion callers must do first.
+    static func grade(
+        hitchRatio: Float,
+        hitchFramePercent: Float,
+        hangCount: Int,
+        longestHang: Millisecond
+    ) -> Int {
+        let hScore = hitchScore(hitchRatio: hitchRatio, hitchFramePercent: hitchFramePercent)
+        let gScore = hangScore(hangCount: hangCount, longestHang: longestHang)
+        let badness = max(hScore, gScore)      // 0=best, 100=worst
+        return Int(badness.rounded()).clamped(to: 0...100)
     }
 }
 

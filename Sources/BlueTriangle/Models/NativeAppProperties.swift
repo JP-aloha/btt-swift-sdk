@@ -44,12 +44,12 @@ struct NativeAppProperties: Equatable {
     let other: Millisecond
     var hitchCount: Int = 0
     var totalHitchDuration: Millisecond = 0
-    var longestHitch: Millisecond = 0
-    var hitchTimeRatio: Millisecond = 0
+    var hitchFramePercent: Float = 0
+    var hitchTimeRatio: Float = 0
     var hangCount: Int = 0
     var totalHangDuration: Millisecond = 0
     var longestHang: Millisecond = 0
-    var hangTimeRatio: Millisecond = 0
+    var hangTimeRatio: Float = 0
     var confidenceRate: Int32?
     var autoCheckout: Bool = false
     var confidenceMsg: String?
@@ -123,8 +123,8 @@ extension NativeAppProperties: Codable{
             try con.encode(totalHitchDuration, forKey: .totalHitchDuration)
         }
 
-        if longestHitch > 0 {
-            try con.encode(longestHitch, forKey: .longestHitch)
+        if hitchFramePercent > 0 {
+            try con.encode(hitchFramePercent, forKey: .hitchFramePercent)
         }
 
         if hitchTimeRatio > 0 {
@@ -219,12 +219,12 @@ extension NativeAppProperties: Codable{
         self.other = try container.decodeIfPresent(Millisecond.self, forKey: .other) ?? 0
         self.hitchCount = try container.decodeIfPresent(Int.self, forKey: .hitchCount) ?? 0
         self.totalHitchDuration = try container.decodeIfPresent(Millisecond.self, forKey: .totalHitchDuration) ?? 0
-        self.longestHitch = try container.decodeIfPresent(Millisecond.self, forKey: .longestHitch) ?? 0
-        self.hitchTimeRatio = try container.decodeIfPresent(Millisecond.self, forKey: .hitchTimeRatio) ?? 0
+        self.hitchFramePercent = try container.decodeIfPresent(Float.self, forKey: .hitchFramePercent) ?? 0
+        self.hitchTimeRatio = try container.decodeIfPresent(Float.self, forKey: .hitchTimeRatio) ?? 0
         self.hangCount = try container.decodeIfPresent(Int.self, forKey: .hangCount) ?? 0
         self.totalHangDuration = try container.decodeIfPresent(Millisecond.self, forKey: .totalHangDuration) ?? 0
         self.longestHang = try container.decodeIfPresent(Millisecond.self, forKey: .longestHang) ?? 0
-        self.hangTimeRatio = try container.decodeIfPresent(Millisecond.self, forKey: .hangTimeRatio) ?? 0
+        self.hangTimeRatio = try container.decodeIfPresent(Float.self, forKey: .hangTimeRatio) ?? 0
         self.netState = try container.decodeIfPresent(String.self, forKey: .netState) ?? ""
         self.type = try container.decodeIfPresent(String.self, forKey: .type) ?? NativeAppType.NST.description
         self.deviceModel = try container.decodeIfPresent(String.self, forKey: .deviceModel) ?? Device.model
@@ -259,7 +259,7 @@ extension NativeAppProperties: Codable{
         case other
         case hitchCount
         case totalHitchDuration
-        case longestHitch
+        case hitchFramePercent
         case hitchTimeRatio
         case hangCount
         case totalHangDuration

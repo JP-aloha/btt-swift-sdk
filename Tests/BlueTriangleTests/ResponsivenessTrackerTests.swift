@@ -25,8 +25,8 @@ final class ResponsivenessTrackerTests: XCTestCase {
 
         XCTAssertEqual(report.hitchCount, 2)
         XCTAssertEqual(report.totalHitchDuration, 150) // 100ms + 50ms excess
-        XCTAssertEqual(report.longestHitch, 110) // longest raw frame duration, not excess
-        XCTAssertEqual(report.hitchTimeRatio, 75) // 150ms excess / 2s elapsed
+        XCTAssertEqual(report.hitchFramePercent, 100) // 2 hitches out of 2 total frames
+        XCTAssertEqual(report.hitchTimeRatio, 7.5) // (150ms excess / 2s elapsed) / 10 = 7.5%
 
         XCTAssertEqual(report.hangCount, 0)
         XCTAssertEqual(report.totalHangDuration, 0)
@@ -50,11 +50,11 @@ final class ResponsivenessTrackerTests: XCTestCase {
         XCTAssertEqual(report.hangCount, 2)
         XCTAssertEqual(report.totalHangDuration, 2000) // 800ms + 1200ms
         XCTAssertEqual(report.longestHang, 1200)
-        XCTAssertEqual(report.hangTimeRatio, 1000) // 2000ms / 2s elapsed
+        XCTAssertEqual(report.hangTimeRatio, 100) // (2000ms / 2s elapsed) / 10 = 100%
 
         XCTAssertEqual(report.hitchCount, 0)
         XCTAssertEqual(report.totalHitchDuration, 0)
-        XCTAssertEqual(report.longestHitch, 0)
+        XCTAssertEqual(report.hitchFramePercent, 0) // 0 hitches out of 2 total frames
         XCTAssertEqual(report.hitchTimeRatio, 0)
     }
 }

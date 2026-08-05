@@ -50,26 +50,16 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     private let relativeTolerance: Double
     private let absoluteFloorMs: Millisecond
     private let hangFloorMs: Millisecond
-
     private var displayLink: CADisplayLink?
     private var lastTimestamp: CFTimeInterval = 0
     private var state: State = .initial
     private var trackingStartTime: CFTimeInterval = 0
-
+    private var totalFrameCount = 0
     private var hitchCount = 0
-    // Sum of excess ms (actual - expected) across all hitch events — NOT raw frame duration.
     private var totalHitchDuration: Double = 0
-    // Raw duration (ms) of the single worst hitch frame — unlike totalHitchDuration, this is
-    // actual duration, not excess.
-    private var longestHitch: Double = 0
-
     private var hangCount = 0
-    // Sum of raw duration (ms) across all hang events — hangs have no "expected" baseline to
-    // subtract, unlike hitches, so this is a plain duration sum, not an excess sum.
     private var totalHangDuration: Double = 0
     private var longestHang: Double = 0
-
-    // Injected so tests can drive a deterministic clock instead of real wall-clock time.
     private let now: () -> CFTimeInterval
 
     init(
@@ -93,9 +83,9 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     func start() {
         lastTimestamp = 0
         trackingStartTime = now()
+        totalFrameCount = 0
         hitchCount = 0
         totalHitchDuration = 0
-        longestHitch = 0
         hangCount = 0
         totalHangDuration = 0
         longestHang = 0
@@ -114,14 +104,15 @@ final class ResponsivenessTracker: ResponsivenessTracking {
 
     func makeReport() -> ResponsivenessReport {
         let elapsedSeconds = now() - trackingStartTime
-        let hitchTimeRatio = Millisecond((elapsedSeconds > 0 ? totalHitchDuration / elapsedSeconds : 0).rounded())
-        let hangTimeRatio = Millisecond((elapsedSeconds > 0 ? totalHangDuration / elapsedSeconds : 0).rounded())
+        let hitchTimeRatio = Float(elapsedSeconds > 0 ? (totalHitchDuration / elapsedSeconds) / 10 : 0)
+        let hangTimeRatio = Float(elapsedSeconds > 0 ? (totalHangDuration / elapsedSeconds) / 10 : 0)
         let roundedLongestHang = Millisecond(longestHang.rounded())
+        let hitchFramePercent = Float(totalFrameCount > 0 ? (Double(hitchCount) / Double(totalFrameCount)) * 100 : 0)
 
         return ResponsivenessReport(
             hitchCount: hitchCount,
             totalHitchDuration: Millisecond(totalHitchDuration.rounded()),
-            longestHitch: Millisecond(longestHitch.rounded()),
+            hitchFramePercent: hitchFramePercent,
             hitchTimeRatio: hitchTimeRatio,
             hangCount: hangCount,
             totalHangDuration: Millisecond(totalHangDuration.rounded()),
@@ -140,6 +131,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     // Separated from `tick` (a test seam) since CADisplayLink's own timestamps aren't controllable.
     func processFrame(expected: CFTimeInterval, actual: CFTimeInterval) {
         guard actual * 1000 < Double(Constants.Responsiveness.maxRecordableGapMs) else { return }
+        totalFrameCount += 1
 
         let hangClassification = HangClassifier.classify(actual: actual, floorMs: hangFloorMs)
         if hangClassification.isHang {
@@ -158,7 +150,6 @@ final class ResponsivenessTracker: ResponsivenessTracking {
         if classification.isHitch {
             hitchCount += 1
             totalHitchDuration += classification.excessMs
-            longestHitch = max(longestHitch, classification.durationMs)
         }
     }
 }

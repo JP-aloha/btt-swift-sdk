@@ -148,7 +148,7 @@ final class BTTimerGroup {
             other: snap.networkReport?.other ?? 0,
             hitchCount: snap.hitchCount,
             totalHitchDuration: snap.totalHitchDuration,
-            longestHitch: snap.longestHitch,
+            hitchFramePercent: snap.hitchFramePercent,
             hitchTimeRatio: snap.hitchTimeRatio,
             hangCount: snap.hangCount,
             totalHangDuration: snap.totalHangDuration,
@@ -191,7 +191,7 @@ final class BTTimerGroup {
                 other: prop.other,
                 hitchCount: prop.hitchCount,
                 totalHitchDuration: prop.totalHitchDuration,
-                longestHitch: prop.longestHitch,
+                hitchFramePercent: prop.hitchFramePercent,
                 hitchTimeRatio: prop.hitchTimeRatio,
                 hangCount: prop.hangCount,
                 totalHangDuration: prop.totalHangDuration,
@@ -424,12 +424,12 @@ final class BTTimerGroup {
         let maxMainThreadTask: Millisecond
         let hitchCount: Int
         let totalHitchDuration: Millisecond
-        let longestHitch: Millisecond
-        let hitchTimeRatio: Millisecond
+        let hitchFramePercent: Float
+        let hitchTimeRatio: Float
         let hangCount: Int
         let totalHangDuration: Millisecond
         let longestHang: Millisecond
-        let hangTimeRatio: Millisecond
+        let hangTimeRatio: Float
         let groupingCause: GroupingCause?
         let causeInterval: Millisecond
         let pageName: String
@@ -445,7 +445,7 @@ final class BTTimerGroup {
                 maxMainThreadTask: gt.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
                 hitchCount: gt.responsivenessReport?.hitchCount ?? 0,
                 totalHitchDuration: gt.responsivenessReport?.totalHitchDuration ?? 0,
-                longestHitch: gt.responsivenessReport?.longestHitch ?? 0,
+                hitchFramePercent: gt.responsivenessReport?.hitchFramePercent ?? 0,
                 hitchTimeRatio: gt.responsivenessReport?.hitchTimeRatio ?? 0,
                 hangCount: gt.responsivenessReport?.hangCount ?? 0,
                 totalHangDuration: gt.responsivenessReport?.totalHangDuration ?? 0,

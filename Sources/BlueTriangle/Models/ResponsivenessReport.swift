@@ -9,19 +9,19 @@ import Foundation
 struct ResponsivenessReport: Codable, Equatable {
     let hitchCount: Int
     let totalHitchDuration: Millisecond
-    let longestHitch: Millisecond
-    let hitchTimeRatio: Millisecond
+    let hitchFramePercent: Float
+    let hitchTimeRatio: Float
     let hangCount: Int
     let totalHangDuration: Millisecond
     let longestHang: Millisecond
-    let hangTimeRatio: Millisecond
+    let hangTimeRatio: Float
 }
 
 extension ResponsivenessReport {
     static let empty: Self = .init(
         hitchCount: 0,
         totalHitchDuration: 0,
-        longestHitch: 0,
+        hitchFramePercent: 0,
         hitchTimeRatio: 0,
         hangCount: 0,
         totalHangDuration: 0,
@@ -35,17 +35,17 @@ extension ResponsivenessReport {
 final class BTResponsivenessStats: NSObject {
     let hitchCount: Int
     let totalHitchDuration: Millisecond
-    let longestHitch: Millisecond
-    let hitchTimeRatio: Millisecond
+    let hitchFramePercent: Float
+    let hitchTimeRatio: Float
     let hangCount: Int
     let totalHangDuration: Millisecond
     let longestHang: Millisecond
-    let hangTimeRatio: Millisecond
+    let hangTimeRatio: Float
 
     init(_ report: ResponsivenessReport?) {
         self.hitchCount = report?.hitchCount ?? 0
         self.totalHitchDuration = report?.totalHitchDuration ?? 0
-        self.longestHitch = report?.longestHitch ?? 0
+        self.hitchFramePercent = report?.hitchFramePercent ?? 0
         self.hitchTimeRatio = report?.hitchTimeRatio ?? 0
         self.hangCount = report?.hangCount ?? 0
         self.totalHangDuration = report?.totalHangDuration ?? 0

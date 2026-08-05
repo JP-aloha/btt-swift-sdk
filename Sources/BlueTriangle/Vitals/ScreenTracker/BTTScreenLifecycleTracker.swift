@@ -364,7 +364,7 @@ class TimerMapActivity {
             other: networkReport?.other ?? 0,
             hitchCount: timer.responsivenessReport?.hitchCount ?? 0,
             totalHitchDuration: timer.responsivenessReport?.totalHitchDuration ?? 0,
-            longestHitch: timer.responsivenessReport?.longestHitch ?? 0,
+            hitchFramePercent: timer.responsivenessReport?.hitchFramePercent ?? 0,
             hitchTimeRatio: timer.responsivenessReport?.hitchTimeRatio ?? 0,
             hangCount: timer.responsivenessReport?.hangCount ?? 0,
             totalHangDuration: timer.responsivenessReport?.totalHangDuration ?? 0,

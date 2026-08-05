@@ -11,75 +11,126 @@ final class ResponsivenessGradeTests: XCTestCase {
 
     // MARK: - Worked examples
 
-    func testHangCountOneWithShortLongestHangIsMildlyBad() {
-        // hangCount==1 defers entirely to longestHang; 900ms is well within the Bad band.
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 8.5, hangCount: 1, longestHang: 900)
-        XCTAssertEqual(score, 56)
+    func testAllMetricsWithinGoodBandsScoresGood() {
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 4, hitchFramePercent: 3, hangCount: 1, longestHang: 500)
+        XCTAssertEqual(score, 15)
     }
 
-    func testHangCountOneWithLongestHangNearTopOfBadBandScoresWorse() {
-        // Same hangCount==1, but longestHang=2400ms sits near the top of the Bad band —
-        // correctly much worse than the 900ms case even though both are technically "Bad".
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 8.5, hangCount: 1, longestHang: 2400)
-        XCTAssertEqual(score, 33)
+    func testHangCountJustAboveGoodCeilingPullsIntoBad() {
+        // hangCount=3 is just past the good=2 ceiling, scoring 43.3 on its own — worse than
+        // hitchScore (12.6) — even though longestHang (500ms) is comfortably Good.
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 4, hitchFramePercent: 3, hangCount: 3, longestHang: 500)
+        XCTAssertEqual(score, 43)
     }
 
-    func testHangCountOneWithLongestHangAboveTwentyFiveHundredCrossesIntoWorst() {
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 8.5, hangCount: 1, longestHang: 3000)
-        XCTAssertEqual(score, 24)
+    func testLongestHangJustOverGoodCeilingPullsIntoBad() {
+        // hangCount alone is Bad (43.3), but longestHang=2000ms alone scores worse (50.0) —
+        // the worse of the two wins.
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 4, hitchFramePercent: 3, hangCount: 3, longestHang: 2000)
+        XCTAssertEqual(score, 50)
     }
 
-    func testTwoShortHangsForceWorstViaCountAlone() {
-        // hangCount==2 forces Worst via countScore even though the hangs themselves are short
-        // (300ms, still within the Bad band on its own).
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 8.5, hangCount: 2, longestHang: 300)
-        XCTAssertEqual(score, 30)
-    }
-
-    // MARK: - Perfect / boundary cases
-
-    func testAllMetricsAtZeroScoresPerfect() {
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 0, hangCount: 0, longestHang: 0)
-        XCTAssertEqual(score, 100)
-    }
-
-    func testHitchTimeRatioAtFiftyBoundaryScoresSeventyOne() {
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 50, hangCount: 0, longestHang: 0)
+    func testManyShortHangsPushesIntoWorstViaCountAlone() {
+        // 7 hangs, all short (<1500ms) — hangCount alone (70.6) crosses into Worst even though
+        // durationScore (10.7) is still Good.
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 4, hitchFramePercent: 3, hangCount: 7, longestHang: 500)
         XCTAssertEqual(score, 71)
     }
 
-    func testHitchTimeRatioAtOneHundredFiftyBoundaryScoresThirtyOne() {
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 150, hangCount: 0, longestHang: 0)
-        XCTAssertEqual(score, 31)
+    func testHangCountWellAboveCeilingForcesWorstRegardlessOfDuration() {
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 4, hitchFramePercent: 3, hangCount: 11, longestHang: 500)
+        XCTAssertEqual(score, 72)
     }
 
-    func testHitchTimeRatioAboveThreeHundredCapIsClampedToOne() {
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 500, hangCount: 0, longestHang: 0)
-        XCTAssertEqual(score, 1)
+    func testSingleLongHangForcesWorstViaDurationAlone() {
+        // Only 3 hangs (Bad on count alone), but one hit 3000ms — duration alone (76.0) wins.
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 4, hitchFramePercent: 3, hangCount: 3, longestHang: 3000)
+        XCTAssertEqual(score, 76)
     }
 
-    func testHangCountAboveFiveCapIsClampedToOne() {
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 0, hangCount: 10, longestHang: 0)
-        XCTAssertEqual(score, 1)
+    // MARK: - Boundaries and caps
+
+    func testAllMetricsAtZeroScoresBestPossible() {
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 0, hitchFramePercent: 0, hangCount: 0, longestHang: 0)
+        XCTAssertEqual(score, 0)
     }
 
-    func testLongestHangAboveFiveThousandCapIsClampedToOne() {
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 0, hangCount: 1, longestHang: 10000)
-        XCTAssertEqual(score, 1)
+    func testHitchRatioAtGoodCeilingScoresThirty() {
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 10, hitchFramePercent: 0, hangCount: 0, longestHang: 0)
+        XCTAssertEqual(score, 30)
     }
 
-    func testSingleHangWithZeroDurationScoresSeventy() {
-        // hangCount>0 but longestHang==0 still costs points relative to no hang at all.
-        let score = ResponsivenessGradeMock.score(hitchTimeRatio: 0, hangCount: 1, longestHang: 0)
+    func testHitchRatioAtBadCeilingScoresSeventy() {
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 20, hitchFramePercent: 0, hangCount: 0, longestHang: 0)
         XCTAssertEqual(score, 70)
     }
 
-    func testLongestHangIsIgnoredWhenHangCountIsZero() {
-        // With hangCount==0, longestHang must have no bearing on the score even if it's huge —
-        // the hangScore guard returns a perfect 100 regardless of longestHang's value.
-        let scoreWithLargeLongestHang = ResponsivenessGradeMock.score(hitchTimeRatio: 100, hangCount: 0, longestHang: 5000)
-        let scoreWithZeroLongestHang = ResponsivenessGradeMock.score(hitchTimeRatio: 100, hangCount: 0, longestHang: 0)
-        XCTAssertEqual(scoreWithLargeLongestHang, 51)
-        XCTAssertEqual(scoreWithZeroLongestHang, 51)
+    func testHitchRatioAboveCapPinsAtOneHundred() {
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 500, hitchFramePercent: 0, hangCount: 0, longestHang: 0)
+        XCTAssertEqual(score, 100)
+    }
+
+    func testHitchFramePercentAloneCanDriveTheScoreWorseThanRatio() {
+        // hitchRatio is Good (0), but hitchFramePercent=25 is Worst on its own — the max() wins.
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 0, hitchFramePercent: 25, hangCount: 0, longestHang: 0)
+        let framePercentAlone = ResponsivenessGradeMock.hitchScore(hitchRatio: 0, hitchFramePercent: 25)
+        XCTAssertEqual(score, Int(framePercentAlone.rounded()))
+        XCTAssertEqual(score, 72)
+    }
+
+    func testHitchRatioExpectsPercentageNotRawMsPerSecondStat() {
+        // stats.hitchTimeRatio (Ms/s) must be converted to a percentage (÷ 10) by the caller
+        // before reaching hitchScore/grade. A real-world 10% hitch rate is hitchTimeRatio == 100
+        // Ms/s — converted, that's exactly the Good/Bad boundary (score 30). Feeding the raw,
+        // unconverted 100 straight in instead would hit this function's own cap (100) and read
+        // as Worst — 10x too harsh — which is the bug this test pins down.
+        let rawHitchTimeRatioMsPerSecond: Millisecond = 100
+        let correctlyConvertedScore = ResponsivenessGradeMock.grade(
+            hitchRatio: Float(rawHitchTimeRatioMsPerSecond) / 10,
+            hitchFramePercent: 0,
+            hangCount: 0,
+            longestHang: 0)
+        XCTAssertEqual(correctlyConvertedScore, 30)
+
+        let incorrectlyUnconvertedScore = ResponsivenessGradeMock.grade(
+            hitchRatio: Float(rawHitchTimeRatioMsPerSecond),
+            hitchFramePercent: 0,
+            hangCount: 0,
+            longestHang: 0)
+        XCTAssertEqual(incorrectlyUnconvertedScore, 100)
+        XCTAssertNotEqual(correctlyConvertedScore, incorrectlyUnconvertedScore)
+    }
+
+    func testHitchRatioAndHitchFramePercentAreOnTheSameScale() {
+        // Once hitchRatio has been converted from raw Ms/s to a percentage (÷10, done by the
+        // caller), it lands on the exact same 0-100 scale as hitchFramePercent — so equivalent
+        // percentages must score identically through hitchScore, at both the Good/Bad boundary
+        // (10%) and comfortably past the Worst cap (105%).
+        let tenPercentViaRatio = ResponsivenessGradeMock.hitchScore(hitchRatio: Float(100 as Millisecond) / 10, hitchFramePercent: 0)
+        let tenPercentViaFramePercent = ResponsivenessGradeMock.hitchScore(hitchRatio: 0, hitchFramePercent: 10)
+        XCTAssertEqual(tenPercentViaRatio, 30)
+        XCTAssertEqual(tenPercentViaFramePercent, 30)
+        XCTAssertEqual(tenPercentViaRatio, tenPercentViaFramePercent)
+
+        let hundredFivePercentViaRatio = ResponsivenessGradeMock.hitchScore(hitchRatio: Float(1050 as Millisecond) / 10, hitchFramePercent: 0)
+        let hundredFivePercentViaFramePercent = ResponsivenessGradeMock.hitchScore(hitchRatio: 0, hitchFramePercent: 105)
+        XCTAssertEqual(hundredFivePercentViaRatio, 100)
+        XCTAssertEqual(hundredFivePercentViaFramePercent, 100)
+        XCTAssertEqual(hundredFivePercentViaRatio, hundredFivePercentViaFramePercent)
+    }
+
+    func testLongestHangAboveCapPinsAtOneHundred() {
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 0, hitchFramePercent: 0, hangCount: 1, longestHang: 10000)
+        XCTAssertEqual(score, 100)
+    }
+
+    func testHangCountAtGoodCeilingScoresThirty() {
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 0, hitchFramePercent: 0, hangCount: 2, longestHang: 0)
+        XCTAssertEqual(score, 30)
+    }
+
+    func testHangCountAtBadCeilingScoresSeventy() {
+        let score = ResponsivenessGradeMock.grade(hitchRatio: 0, hitchFramePercent: 0, hangCount: 5, longestHang: 0)
+        XCTAssertEqual(score, 70)
     }
 }
