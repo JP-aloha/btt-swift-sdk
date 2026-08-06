@@ -1810,7 +1810,7 @@ enum ResponsivenessGradeCalculator {
 
     static func hangScore(hangCount: Int, longestHang: Millisecond) -> Float {
         let countScore = severity(Float(hangCount), good: 2, bad: 5, cap: 100)
-        let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 10000)
+        let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 100000)
         return combine(countScore, durationScore)
     }
 
@@ -1822,7 +1822,7 @@ enum ResponsivenessGradeCalculator {
     ) -> Int {
         let hScore = hitchScore(hitchRatio: hitchRatio, hitchFramePercent: hitchFramePercent)
         let gScore = hangScore(hangCount: hangCount, longestHang: longestHang)
-        let badness = max(hScore, gScore)      // 0=best, 100=worst
+        let badness = combine(hScore, gScore)      // 0=best, 100=worst
         return Int(badness.rounded()).clamped(to: 0...100)
     }
 }
