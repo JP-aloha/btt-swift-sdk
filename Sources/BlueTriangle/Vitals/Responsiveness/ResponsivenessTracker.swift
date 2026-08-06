@@ -97,6 +97,10 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     }
 
     func end() {
+        if lastTimestamp != 0 {
+            processFrame(expected: 0, actual: now() - lastTimestamp)
+            lastTimestamp = 0
+        }
         displayLink?.invalidate()
         displayLink = nil
         state = .ended
@@ -127,6 +131,12 @@ final class ResponsivenessTracker: ResponsivenessTracking {
         defer { lastTimestamp = link.timestamp }
         guard lastTimestamp != 0 else { return }
         processFrame(expected: link.targetTimestamp - link.timestamp, actual: link.timestamp - lastTimestamp)
+    }
+
+    // Test seam: records a tick's timestamp without going through a real CADisplayLink, so tests
+    // can set up the "a tick fired, then the main thread blocked" scenario `end()`'s flush covers.
+    func recordTick(at timestamp: CFTimeInterval) {
+        lastTimestamp = timestamp
     }
 
     // Accumulates one frame's expected/actual duration into the running hitch/hang totals.

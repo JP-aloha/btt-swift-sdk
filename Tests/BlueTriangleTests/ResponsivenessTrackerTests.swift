@@ -60,6 +60,25 @@ final class ResponsivenessTrackerTests: XCTestCase {
         XCTAssertEqual(report.hitchTimePercent, 0)
     }
 
+    func testHangFromBlockRightBeforeEndIsStillCaptured() {
+        var currentTime: CFTimeInterval = 0
+        let tracker = ResponsivenessTracker(now: { currentTime })
+        tracker.start()
+        currentTime = 0.016
+        tracker.recordTick(at: currentTime) // a normal tick fires right before the block
+
+        // Main thread blocked for 8s (e.g. a heavy synchronous task), then the screen is
+        // dismissed immediately on unblocking — ending the timer before CADisplayLink gets
+        // another run-loop turn to fire `tick` and record the gap itself.
+        currentTime = 8.0
+        tracker.end()
+
+        let report = tracker.makeReport()
+        XCTAssertEqual(report.hangCount, 1)
+        XCTAssertEqual(report.longestHang, 7984) // 8.0s - 0.016s since the last recorded tick
+        XCTAssertEqual(report.totalHangDuration, 7984)
+    }
+
     func testVeryLongGapIsStillRecordedAsAHang() {
         var currentTime: CFTimeInterval = 0
         let tracker = ResponsivenessTracker(now: { currentTime })
