@@ -43,7 +43,7 @@ enum ResponsivenessGradeMock {
     // MARK: - Hang Score
     static func hangScore(hangCount: Int, longestHang: Millisecond) -> Float {
         let countScore = severity(Float(hangCount), good: 2, bad: 5, cap: 100)
-        let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 10000)
+        let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 100000)
         return combine(countScore, durationScore)
     }
 
