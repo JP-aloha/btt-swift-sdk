@@ -97,16 +97,21 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     }
 
     func end() {
-        if lastTimestamp != 0 {
-            processFrame(expected: 0, actual: now() - lastTimestamp)
-            lastTimestamp = 0
-        }
+        flushPendingGapIfNeeded()
         displayLink?.invalidate()
         displayLink = nil
         state = .ended
     }
 
+    private func flushPendingGapIfNeeded() {
+        guard lastTimestamp != 0 else { return }
+        let currentTime = now()
+        processFrame(expected: 0, actual: currentTime - lastTimestamp)
+        lastTimestamp = currentTime
+    }
+
     func makeReport() -> ResponsivenessReport {
+        flushPendingGapIfNeeded()
         let elapsedSeconds = now() - trackingStartTime
         let hitchTimePercent = Float(elapsedSeconds > 0 ? (totalHitchDuration / elapsedSeconds) / 10 : 0)
         let hangTimePercent = Float(elapsedSeconds > 0 ? (totalHangDuration / elapsedSeconds) / 10 : 0)

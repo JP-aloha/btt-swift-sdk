@@ -79,6 +79,27 @@ final class ResponsivenessTrackerTests: XCTestCase {
         XCTAssertEqual(report.totalHangDuration, 7984)
     }
 
+    func testHangFromBlockIsCapturedEvenWhenReportIsReadBeforeEnd() {
+        // Group timers snapshot `makeReport()` for submission BEFORE calling `end()` on the
+        // underlying timer — so the flush can't rely on `end()` alone.
+        var currentTime: CFTimeInterval = 0
+        let tracker = ResponsivenessTracker(now: { currentTime })
+        tracker.start()
+        currentTime = 0.016
+        tracker.recordTick(at: currentTime)
+
+        currentTime = 63.0 // e.g. a 63s main-thread block, as seen in a real submission
+        let reportBeforeEnd = tracker.makeReport()
+        XCTAssertEqual(reportBeforeEnd.hangCount, 1)
+        XCTAssertEqual(reportBeforeEnd.longestHang, 62984)
+
+        // A later end() (or another makeReport()) must not double-count the same gap.
+        tracker.end()
+        let reportAfterEnd = tracker.makeReport()
+        XCTAssertEqual(reportAfterEnd.hangCount, 1)
+        XCTAssertEqual(reportAfterEnd.longestHang, 62984)
+    }
+
     func testVeryLongGapIsStillRecordedAsAHang() {
         var currentTime: CFTimeInterval = 0
         let tracker = ResponsivenessTracker(now: { currentTime })
