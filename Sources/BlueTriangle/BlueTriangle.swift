@@ -1040,7 +1040,22 @@ public extension BlueTriangle {
                 return
             }
             uploader.send(request: request)
-            
+
+            let props = timer.nativeAppProperties
+            let grade = ResponsivenessGradeCalculator.grade(
+                hitchRatio: props.hitchTimePercent,
+                hitchFramePercent: props.hitchFramePercent,
+                hangCount: props.hangCount,
+                longestHang: props.longestHang)
+            logger.info("""
+            BlueTriangle :: Responsiveness for \(timer.getPageName()) — \
+            grade: \(grade), \
+            hitchCount: \(props.hitchCount), totalHitchDuration: \(props.totalHitchDuration)Ms, \
+            hitchFramePercent: \(props.hitchFramePercent)%, hitchTimePercent: \(props.hitchTimePercent)%, \
+            hangCount: \(props.hangCount), totalHangDuration: \(props.totalHangDuration)Ms, longestHang: \(props.longestHang)Ms, \
+            hangFramePercent: \(props.hangFramePercent)%, hangTimePercent: \(props.hangTimePercent)%
+            """)
+
             anrWatchDog?.uploadAnrReportForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
             memoryWarningWatchDog?.uploadMemoryWarningReport(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
             nsExeptionReporter?.uploadErrorForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
@@ -1758,6 +1773,63 @@ extension BlueTriangle {
 extension BlueTriangle {
     internal static func reportAppInstall() {
         appInstallUpdateTracker?.reportAppInstall()
+    }
+}
+
+// TODO: temporary — mirrors Example-UIKit's ResponsivenessGrade, only for the submit-time log line. Remove later.
+enum ResponsivenessGradeCalculator {
+
+    private static func severity(_ value: Float, good: Float, bad: Float, cap: Float) -> Float {
+        guard value > 0 else { return 0 }
+        if value <= good {
+            return (value / good) * 30
+        }
+        if value <= bad {
+            let t = (value - good) / (bad - good)
+            return 30 + t * 40
+        }
+        if value <= cap {
+            let t = (value - bad) / (cap - bad)
+            return 70 + t * 30
+        }
+        return 100
+    }
+
+    private static func combine(_ a: Float, _ b: Float) -> Float {
+        let worse = max(a, b)
+        let better = min(a, b)
+        let weight: Float = 1 - (better / 100)
+        return min(worse + weight * better * (worse / 100), 100)
+    }
+
+    static func hitchScore(hitchRatio: Float, hitchFramePercent: Float) -> Float {
+        let ratioScore = severity(hitchRatio, good: 15, bad: 30, cap: 100)
+        let framePercentScore = severity(hitchFramePercent, good: 10, bad: 20, cap: 100)
+        return combine(ratioScore, framePercentScore)
+    }
+
+    static func hangScore(hangCount: Int, longestHang: Millisecond) -> Float {
+        let countScore = severity(Float(hangCount), good: 2, bad: 5, cap: 100)
+        let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 10000)
+        return combine(countScore, durationScore)
+    }
+
+    static func grade(
+        hitchRatio: Float,
+        hitchFramePercent: Float,
+        hangCount: Int,
+        longestHang: Millisecond
+    ) -> Int {
+        let hScore = hitchScore(hitchRatio: hitchRatio, hitchFramePercent: hitchFramePercent)
+        let gScore = hangScore(hangCount: hangCount, longestHang: longestHang)
+        let badness = max(hScore, gScore)      // 0=best, 100=worst
+        return Int(badness.rounded()).clamped(to: 0...100)
+    }
+}
+
+private extension Int {
+    func clamped(to range: ClosedRange<Int>) -> Int {
+        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
     }
 }
 
