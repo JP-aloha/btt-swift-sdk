@@ -104,20 +104,22 @@ final class ResponsivenessTracker: ResponsivenessTracking {
 
     func makeReport() -> ResponsivenessReport {
         let elapsedSeconds = now() - trackingStartTime
-        let hitchTimeRatio = Float(elapsedSeconds > 0 ? (totalHitchDuration / elapsedSeconds) / 10 : 0)
-        let hangTimeRatio = Float(elapsedSeconds > 0 ? (totalHangDuration / elapsedSeconds) / 10 : 0)
+        let hitchTimePercent = Float(elapsedSeconds > 0 ? (totalHitchDuration / elapsedSeconds) / 10 : 0)
+        let hangTimePercent = Float(elapsedSeconds > 0 ? (totalHangDuration / elapsedSeconds) / 10 : 0)
         let roundedLongestHang = Millisecond(longestHang.rounded())
         let hitchFramePercent = Float(totalFrameCount > 0 ? (Double(hitchCount) / Double(totalFrameCount)) * 100 : 0)
+        let hangFramePercent = Float(totalFrameCount > 0 ? (Double(hangCount) / Double(totalFrameCount)) * 100 : 0)
 
         return ResponsivenessReport(
             hitchCount: hitchCount,
             totalHitchDuration: Millisecond(totalHitchDuration.rounded()),
             hitchFramePercent: hitchFramePercent,
-            hitchTimeRatio: hitchTimeRatio,
+            hitchTimePercent: hitchTimePercent,
             hangCount: hangCount,
             totalHangDuration: Millisecond(totalHangDuration.rounded()),
             longestHang: roundedLongestHang,
-            hangTimeRatio: hangTimeRatio)
+            hangFramePercent: hangFramePercent,
+            hangTimePercent: hangTimePercent)
     }
 
     @objc
@@ -130,7 +132,6 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     // Accumulates one frame's expected/actual duration into the running hitch/hang totals.
     // Separated from `tick` (a test seam) since CADisplayLink's own timestamps aren't controllable.
     func processFrame(expected: CFTimeInterval, actual: CFTimeInterval) {
-        guard actual * 1000 < Double(Constants.Responsiveness.maxRecordableGapMs) else { return }
         totalFrameCount += 1
 
         let hangClassification = HangClassifier.classify(actual: actual, floorMs: hangFloorMs)

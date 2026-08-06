@@ -71,7 +71,6 @@ enum Constants {
         static let relativeTolerance: Double = 1.5
         static let absoluteFloorMs: Millisecond = 3
         static let hangFloorMs: Millisecond = 750
-        static let maxRecordableGapMs: Millisecond = 5000
     }
 
     // Endpoints

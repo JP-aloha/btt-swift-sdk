@@ -26,18 +26,25 @@ enum ResponsivenessGradeMock {
         return 100
     }
 
+    private static func combine(_ a: Float, _ b: Float) -> Float {
+        let worse = max(a, b)
+        let better = min(a, b)
+        let weight : Float = 1 - (better/100)
+        return min(worse + weight * better * (worse / 100), 100)
+    }
+
     // MARK: - Hitch Score
     static func hitchScore(hitchRatio: Float, hitchFramePercent: Float) -> Float {
-        let ratioScore = severity(hitchRatio, good: 10, bad: 20, cap: 100)
+        let ratioScore = severity(hitchRatio, good: 15, bad: 30, cap: 100)
         let framePercentScore = severity(hitchFramePercent, good: 10, bad: 20, cap: 100)
-        return max(ratioScore, framePercentScore)   // worse of the two wins
+        return combine(ratioScore, framePercentScore)
     }
 
     // MARK: - Hang Score
     static func hangScore(hangCount: Int, longestHang: Millisecond) -> Float {
         let countScore = severity(Float(hangCount), good: 2, bad: 5, cap: 100)
-        let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 5000)
-        return max(countScore, durationScore)
+        let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 10000)
+        return combine(countScore, durationScore)
     }
 
     // MARK: - Final combined score
@@ -49,7 +56,7 @@ enum ResponsivenessGradeMock {
     ) -> Int {
         let hScore = hitchScore(hitchRatio: hitchRatio, hitchFramePercent: hitchFramePercent)
         let gScore = hangScore(hangCount: hangCount, longestHang: longestHang)
-        let badness = max(hScore, gScore)      // 0=best, 100=worst
+        let badness = combine(hScore, gScore)
         return Int(badness.rounded()).clamped(to: 0...100)
     }
 }

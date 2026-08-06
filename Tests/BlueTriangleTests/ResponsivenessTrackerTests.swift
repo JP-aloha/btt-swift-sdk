@@ -26,12 +26,13 @@ final class ResponsivenessTrackerTests: XCTestCase {
         XCTAssertEqual(report.hitchCount, 2)
         XCTAssertEqual(report.totalHitchDuration, 150) // 100ms + 50ms excess
         XCTAssertEqual(report.hitchFramePercent, 100) // 2 hitches out of 2 total frames
-        XCTAssertEqual(report.hitchTimeRatio, 7.5) // (150ms excess / 2s elapsed) / 10 = 7.5%
+        XCTAssertEqual(report.hitchTimePercent, 7.5) // (150ms excess / 2s elapsed) / 10 = 7.5%
 
         XCTAssertEqual(report.hangCount, 0)
         XCTAssertEqual(report.totalHangDuration, 0)
         XCTAssertEqual(report.longestHang, 0)
-        XCTAssertEqual(report.hangTimeRatio, 0)
+        XCTAssertEqual(report.hangFramePercent, 0)
+        XCTAssertEqual(report.hangTimePercent, 0)
     }
 
     func testHangFramesReportEveryResponsivenessField() {
@@ -50,12 +51,29 @@ final class ResponsivenessTrackerTests: XCTestCase {
         XCTAssertEqual(report.hangCount, 2)
         XCTAssertEqual(report.totalHangDuration, 2000) // 800ms + 1200ms
         XCTAssertEqual(report.longestHang, 1200)
-        XCTAssertEqual(report.hangTimeRatio, 100) // (2000ms / 2s elapsed) / 10 = 100%
+        XCTAssertEqual(report.hangFramePercent, 100) // 2 hangs out of 2 total frames
+        XCTAssertEqual(report.hangTimePercent, 100) // (2000ms / 2s elapsed) / 10 = 100%
 
         XCTAssertEqual(report.hitchCount, 0)
         XCTAssertEqual(report.totalHitchDuration, 0)
         XCTAssertEqual(report.hitchFramePercent, 0) // 0 hitches out of 2 total frames
-        XCTAssertEqual(report.hitchTimeRatio, 0)
+        XCTAssertEqual(report.hitchTimePercent, 0)
+    }
+
+    func testVeryLongGapIsStillRecordedAsAHang() {
+        var currentTime: CFTimeInterval = 0
+        let tracker = ResponsivenessTracker(now: { currentTime })
+        tracker.start()
+
+        // 30s gap (e.g. a long main-thread block) -> no longer discarded, counted as one long hang
+        tracker.processFrame(expected: 0.01, actual: 30.0)
+
+        currentTime = 30.0
+        let report = tracker.makeReport()
+
+        XCTAssertEqual(report.hangCount, 1)
+        XCTAssertEqual(report.totalHangDuration, 30000)
+        XCTAssertEqual(report.longestHang, 30000)
     }
 }
 #endif

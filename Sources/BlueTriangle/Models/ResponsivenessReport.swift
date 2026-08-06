@@ -10,11 +10,12 @@ struct ResponsivenessReport: Codable, Equatable {
     let hitchCount: Int
     let totalHitchDuration: Millisecond
     let hitchFramePercent: Float
-    let hitchTimeRatio: Float
+    let hitchTimePercent: Float
     let hangCount: Int
     let totalHangDuration: Millisecond
     let longestHang: Millisecond
-    let hangTimeRatio: Float
+    let hangFramePercent: Float
+    let hangTimePercent: Float
 }
 
 extension ResponsivenessReport {
@@ -22,11 +23,12 @@ extension ResponsivenessReport {
         hitchCount: 0,
         totalHitchDuration: 0,
         hitchFramePercent: 0,
-        hitchTimeRatio: 0,
+        hitchTimePercent: 0,
         hangCount: 0,
         totalHangDuration: 0,
         longestHang: 0,
-        hangTimeRatio: 0)
+        hangFramePercent: 0,
+        hangTimePercent: 0)
 }
 
 /// Internal-only: read via `BlueTriangle.currentResponsivenessStats()` by the Animation Hitch
@@ -36,20 +38,22 @@ final class BTResponsivenessStats: NSObject {
     let hitchCount: Int
     let totalHitchDuration: Millisecond
     let hitchFramePercent: Float
-    let hitchTimeRatio: Float
+    let hitchTimePercent: Float
     let hangCount: Int
     let totalHangDuration: Millisecond
     let longestHang: Millisecond
-    let hangTimeRatio: Float
+    let hangFramePercent: Float
+    let hangTimePercent: Float
 
     init(_ report: ResponsivenessReport?) {
         self.hitchCount = report?.hitchCount ?? 0
         self.totalHitchDuration = report?.totalHitchDuration ?? 0
         self.hitchFramePercent = report?.hitchFramePercent ?? 0
-        self.hitchTimeRatio = report?.hitchTimeRatio ?? 0
+        self.hitchTimePercent = report?.hitchTimePercent ?? 0
         self.hangCount = report?.hangCount ?? 0
         self.totalHangDuration = report?.totalHangDuration ?? 0
         self.longestHang = report?.longestHang ?? 0
-        self.hangTimeRatio = report?.hangTimeRatio ?? 0
+        self.hangFramePercent = report?.hangFramePercent ?? 0
+        self.hangTimePercent = report?.hangTimePercent ?? 0
     }
 }

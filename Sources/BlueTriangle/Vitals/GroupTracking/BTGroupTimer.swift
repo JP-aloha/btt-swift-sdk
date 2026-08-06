@@ -149,11 +149,12 @@ final class BTTimerGroup {
             hitchCount: snap.hitchCount,
             totalHitchDuration: snap.totalHitchDuration,
             hitchFramePercent: snap.hitchFramePercent,
-            hitchTimeRatio: snap.hitchTimeRatio,
+            hitchTimePercent: snap.hitchTimePercent,
             hangCount: snap.hangCount,
             totalHangDuration: snap.totalHangDuration,
             longestHang: snap.longestHang,
-            hangTimeRatio: snap.hangTimeRatio,
+            hangFramePercent: snap.hangFramePercent,
+            hangTimePercent: snap.hangTimePercent,
             grouped: true,
             groupingCause: snap.groupingCause?.description,
             groupingCauseInterval: snap.causeInterval,
@@ -192,11 +193,12 @@ final class BTTimerGroup {
                 hitchCount: prop.hitchCount,
                 totalHitchDuration: prop.totalHitchDuration,
                 hitchFramePercent: prop.hitchFramePercent,
-                hitchTimeRatio: prop.hitchTimeRatio,
+                hitchTimePercent: prop.hitchTimePercent,
                 hangCount: prop.hangCount,
                 totalHangDuration: prop.totalHangDuration,
                 longestHang: prop.longestHang,
-                hangTimeRatio: prop.hangTimeRatio,
+                hangFramePercent: prop.hangFramePercent,
+                hangTimePercent: prop.hangTimePercent,
                 grouped: true,
                 netState: prop.netState,
                 netStateSource: prop.netStateSource
@@ -425,11 +427,12 @@ final class BTTimerGroup {
         let hitchCount: Int
         let totalHitchDuration: Millisecond
         let hitchFramePercent: Float
-        let hitchTimeRatio: Float
+        let hitchTimePercent: Float
         let hangCount: Int
         let totalHangDuration: Millisecond
         let longestHang: Millisecond
-        let hangTimeRatio: Float
+        let hangFramePercent: Float
+        let hangTimePercent: Float
         let groupingCause: GroupingCause?
         let causeInterval: Millisecond
         let pageName: String
@@ -446,11 +449,12 @@ final class BTTimerGroup {
                 hitchCount: gt.responsivenessReport?.hitchCount ?? 0,
                 totalHitchDuration: gt.responsivenessReport?.totalHitchDuration ?? 0,
                 hitchFramePercent: gt.responsivenessReport?.hitchFramePercent ?? 0,
-                hitchTimeRatio: gt.responsivenessReport?.hitchTimeRatio ?? 0,
+                hitchTimePercent: gt.responsivenessReport?.hitchTimePercent ?? 0,
                 hangCount: gt.responsivenessReport?.hangCount ?? 0,
                 totalHangDuration: gt.responsivenessReport?.totalHangDuration ?? 0,
                 longestHang: gt.responsivenessReport?.longestHang ?? 0,
-                hangTimeRatio: gt.responsivenessReport?.hangTimeRatio ?? 0,
+                hangFramePercent: gt.responsivenessReport?.hangFramePercent ?? 0,
+                hangTimePercent: gt.responsivenessReport?.hangTimePercent ?? 0,
                 groupingCause: g.groupingCause,
                 causeInterval: g.causeInterval,
                 pageName: gt.getPageName(),
