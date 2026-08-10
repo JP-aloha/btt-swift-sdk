@@ -55,9 +55,9 @@ extension HitchHistogramBucket {
     private static let weightsByUpperBoundMs: [Millisecond: Double] = [
         50: 0.25,
         150: 0.75,
-        300: 1.5,
-        450: 2.25,
-        750: 3.75
+        300: 2.00,
+        450: 2.50,
+        750: 3.50
     ]
 
     static func weightedMean(_ buckets: [HitchHistogramBucket]) -> Double {

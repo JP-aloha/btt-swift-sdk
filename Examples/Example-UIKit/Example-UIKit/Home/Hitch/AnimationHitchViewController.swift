@@ -168,7 +168,7 @@ final class AnimationHitchViewController: UIViewController {
         centerTimeLabel.text = String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
 
         let stats = BlueTriangle.currentResponsivenessStats()
-        let score = ResponsivenessGrade.grade(
+        let score = ResponsivenessGradeCalculator.grade(
             hitchWeightedMean: stats.hitchWeightedMean,
             hangCount: stats.hangCount,
             longestHang: stats.longestHang)
@@ -555,66 +555,4 @@ final class AnimationHitchViewController: UIViewController {
     }
 }
 
-private enum ResponsivenessGrade {
-
-    private static func severity(_ value: Float, good: Float, bad: Float, cap: Float) -> Float {
-        guard value > 0 else { return 0 }
-        if value <= good {
-            return (value / good) * 30
-        }
-        if value <= bad {
-            let t = (value - good) / (bad - good)
-            return 30 + t * 40
-        }
-        if value <= cap {
-            let t = (value - bad) / (cap - bad)
-            return 70 + t * 30
-        }
-        return 100
-    }
-
-    private static func combine(_ a: Float, _ b: Float) -> Float {
-        let worse = max(a, b)
-        let better = min(a, b)
-        let weight : Float = 1 - (better/100)
-        return min(worse + weight * better * (worse / 100), 100)
-    }
-
-    // MARK: - Hitch Score
-
-    /// Scored directly from the hitch-duration histogram's weighted mean (longer-hitch buckets
-    /// weigh more) — capped at 90 so hitch alone can never read as a full 100; only combine()
-    /// escalating both hitch AND hang together (both genuinely bad) can reach 100.
-    static func hitchScore(hitchWeightedMean: Double) -> Float {
-        min(Float(hitchWeightedMean), 90)
-    }
-
-    // MARK: - Hang Score
-
-    /// Capped at 90 for the same reason as hitchScore — hang alone shouldn't be able to read as a
-    /// full 100 on its own.
-    static func hangScore(hangCount: Int64, longestHang: Millisecond) -> Float {
-        let countScore = severity(Float(hangCount), good: 2, bad: 5, cap: 100)
-        let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 100000)
-        return min(max(countScore, durationScore), 90)
-    }
-
-    // MARK: - Final combined score
-    static func grade(
-        hitchWeightedMean: Double,
-        hangCount: Int64,
-        longestHang: Millisecond
-    ) -> Int {
-        let hScore = hitchScore(hitchWeightedMean: hitchWeightedMean)
-        let gScore = hangScore(hangCount: hangCount, longestHang: longestHang)
-        let badness = combine(hScore, gScore)      // 0=best, 100=worst
-        return Int(badness.rounded()).clamped(to: 0...100)
-    }
-}
-
-private extension Int {
-    func clamped(to range: ClosedRange<Int>) -> Int {
-        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
-    }
-}
 #endif
