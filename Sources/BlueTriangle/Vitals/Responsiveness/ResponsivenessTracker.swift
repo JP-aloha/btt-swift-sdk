@@ -53,13 +53,14 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     private var displayLink: CADisplayLink?
     private var lastTimestamp: CFTimeInterval = 0
     private var state: State = .initial
-    private var trackingStartTime: CFTimeInterval = 0
-    private var totalFrameCount = 0
-    private var hitchCount = 0
+    private var totalFrameCount: Int64 = 0
+    private var hitchCount: Int64 = 0
     private var totalHitchDuration: Double = 0
-    private var hangCount = 0
+    private var longestHitch: Double = 0
+    private var hangCount: Int64 = 0
     private var totalHangDuration: Double = 0
     private var longestHang: Double = 0
+    private var hitchHistograms: [HitchHistogramBucket] = HitchHistogramBucket.makeDefaultBuckets()
     private let now: () -> CFTimeInterval
 
     init(
@@ -82,13 +83,14 @@ final class ResponsivenessTracker: ResponsivenessTracking {
 
     func start() {
         lastTimestamp = 0
-        trackingStartTime = now()
         totalFrameCount = 0
         hitchCount = 0
         totalHitchDuration = 0
+        longestHitch = 0
         hangCount = 0
         totalHangDuration = 0
         longestHang = 0
+        hitchHistograms = HitchHistogramBucket.makeDefaultBuckets()
 
         let link = CADisplayLink(target: self, selector: #selector(tick))
         link.add(to: .main, forMode: .common)
@@ -106,29 +108,27 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     private func flushPendingGapIfNeeded() {
         guard lastTimestamp != 0 else { return }
         let currentTime = now()
-        processFrame(expected: 0, actual: currentTime - lastTimestamp)
+        let hangClassification = HangClassifier.classify(actual: currentTime - lastTimestamp, floorMs: hangFloorMs)
+        guard hangClassification.isHang else { return }
+        totalFrameCount += 1
+        hangCount += 1
+        totalHangDuration += hangClassification.durationMs
+        longestHang = max(longestHang, hangClassification.durationMs)
         lastTimestamp = currentTime
     }
 
     func makeReport() -> ResponsivenessReport {
         flushPendingGapIfNeeded()
-        let elapsedSeconds = now() - trackingStartTime
-        let hitchTimePercent = Float(elapsedSeconds > 0 ? (totalHitchDuration / elapsedSeconds) / 10 : 0)
-        let hangTimePercent = Float(elapsedSeconds > 0 ? (totalHangDuration / elapsedSeconds) / 10 : 0)
-        let roundedLongestHang = Millisecond(longestHang.rounded())
-        let hitchFramePercent = Float(totalFrameCount > 0 ? (Double(hitchCount) / Double(totalFrameCount)) * 100 : 0)
-        let hangFramePercent = Float(totalFrameCount > 0 ? (Double(hangCount) / Double(totalFrameCount)) * 100 : 0)
-
         return ResponsivenessReport(
             hitchCount: hitchCount,
             totalHitchDuration: Millisecond(totalHitchDuration.rounded()),
-            hitchFramePercent: hitchFramePercent,
-            hitchTimePercent: hitchTimePercent,
+            longestHitch: Millisecond(longestHitch.rounded()),
             hangCount: hangCount,
             totalHangDuration: Millisecond(totalHangDuration.rounded()),
-            longestHang: roundedLongestHang,
-            hangFramePercent: hangFramePercent,
-            hangTimePercent: hangTimePercent)
+            longestHang: Millisecond(longestHang.rounded()),
+            totalFrameCount: totalFrameCount,
+            hitchHistograms: hitchHistograms,
+            hitchWeightedMean: HitchHistogramBucket.weightedMean(hitchHistograms))
     }
 
     @objc
@@ -138,14 +138,10 @@ final class ResponsivenessTracker: ResponsivenessTracking {
         processFrame(expected: link.targetTimestamp - link.timestamp, actual: link.timestamp - lastTimestamp)
     }
 
-    // Test seam: records a tick's timestamp without going through a real CADisplayLink, so tests
-    // can set up the "a tick fired, then the main thread blocked" scenario `end()`'s flush covers.
     func recordTick(at timestamp: CFTimeInterval) {
         lastTimestamp = timestamp
     }
 
-    // Accumulates one frame's expected/actual duration into the running hitch/hang totals.
-    // Separated from `tick` (a test seam) since CADisplayLink's own timestamps aren't controllable.
     func processFrame(expected: CFTimeInterval, actual: CFTimeInterval) {
         totalFrameCount += 1
 
@@ -166,6 +162,18 @@ final class ResponsivenessTracker: ResponsivenessTracking {
         if classification.isHitch {
             hitchCount += 1
             totalHitchDuration += classification.excessMs
+            longestHitch = max(longestHitch, classification.excessMs)
+            incrementHitchHistogram(forExcessMs: classification.excessMs)
+        }
+    }
+
+    // Buckets are ordered ascending by upperBoundMs, so the first bucket whose upperBoundMs is
+    // at least the excess is the correct one (i.e. a bucket covers (previous upperBoundMs, upperBoundMs]).
+    private func incrementHitchHistogram(forExcessMs excessMs: Double) {
+        let excess = Millisecond(excessMs.rounded())
+        for index in hitchHistograms.indices where excess <= hitchHistograms[index].upperBoundMs {
+            hitchHistograms[index].count += 1
+            return
         }
     }
 }

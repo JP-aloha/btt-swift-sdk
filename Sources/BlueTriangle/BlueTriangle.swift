@@ -1043,17 +1043,19 @@ public extension BlueTriangle {
 
             let props = timer.nativeAppProperties
             let grade = ResponsivenessGradeCalculator.grade(
-                hitchRatio: props.hitchTimePercent,
-                hitchFramePercent: props.hitchFramePercent,
+                hitchWeightedMean: props.hitchWeightedMean,
                 hangCount: props.hangCount,
                 longestHang: props.longestHang)
+            let histogramsDescription = props.hitchHistograms
+                .map { "<=\($0.upperBoundMs)Ms: \($0.count)" }
+                .joined(separator: ", ")
             logger.info("""
             BlueTriangle :: Responsiveness for \(timer.getPageName()) — \
             grade: \(grade), \
-            hitchCount: \(props.hitchCount), totalHitchDuration: \(props.totalHitchDuration)Ms, \
-            hitchFramePercent: \(props.hitchFramePercent)%, hitchTimePercent: \(props.hitchTimePercent)%, \
+            hitchCount: \(props.hitchCount), totalHitchDuration: \(props.totalHitchDuration)Ms, longestHitch: \(props.longestHitch)Ms, \
             hangCount: \(props.hangCount), totalHangDuration: \(props.totalHangDuration)Ms, longestHang: \(props.longestHang)Ms, \
-            hangFramePercent: \(props.hangFramePercent)%, hangTimePercent: \(props.hangTimePercent)%
+            totalFrameCount: \(props.totalFrameCount), \
+            hitchHistograms: [\(histogramsDescription)], hitchWeightedMean: \(props.hitchWeightedMean)
             """)
 
             anrWatchDog?.uploadAnrReportForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
@@ -1069,7 +1071,12 @@ extension BlueTriangle {
     // Internal-only: backs the Animation Hitch example screen's debug HUD via `@testable import`.
     // Not part of the SDK's public surface — the upload payload uses `ResponsivenessReport` directly.
     static func currentResponsivenessStats() -> BTResponsivenessStats {
-        BTResponsivenessStats(recentTimer()?.responsivenessReport)
+        let timer = recentTimer()
+        let fullTime: Millisecond = {
+            guard let startTime = timer?.startTime, startTime > 0 else { return 0 }
+            return Millisecond((Date().timeIntervalSince1970 - startTime) * 1000)
+        }()
+        return BTResponsivenessStats(timer?.responsivenessReport, fullTime: fullTime)
     }
 }
 
@@ -1802,25 +1809,22 @@ enum ResponsivenessGradeCalculator {
         return min(worse + weight * better * (worse / 100), 100)
     }
 
-    static func hitchScore(hitchRatio: Float, hitchFramePercent: Float) -> Float {
-        let ratioScore = severity(hitchRatio, good: 15, bad: 30, cap: 100)
-        let framePercentScore = severity(hitchFramePercent, good: 10, bad: 20, cap: 100)
-        return combine(ratioScore, framePercentScore)
+    static func hitchScore(hitchWeightedMean: Double) -> Float {
+        min(Float(hitchWeightedMean), 90)
     }
 
-    static func hangScore(hangCount: Int, longestHang: Millisecond) -> Float {
+    static func hangScore(hangCount: Int64, longestHang: Millisecond) -> Float {
         let countScore = severity(Float(hangCount), good: 2, bad: 5, cap: 100)
         let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 100000)
-        return combine(countScore, durationScore)
+        return min(max(countScore, durationScore), 90)
     }
 
     static func grade(
-        hitchRatio: Float,
-        hitchFramePercent: Float,
-        hangCount: Int,
+        hitchWeightedMean: Double,
+        hangCount: Int64,
         longestHang: Millisecond
     ) -> Int {
-        let hScore = hitchScore(hitchRatio: hitchRatio, hitchFramePercent: hitchFramePercent)
+        let hScore = hitchScore(hitchWeightedMean: hitchWeightedMean)
         let gScore = hangScore(hangCount: hangCount, longestHang: longestHang)
         let badness = combine(hScore, gScore)      // 0=best, 100=worst
         return Int(badness.rounded()).clamped(to: 0...100)

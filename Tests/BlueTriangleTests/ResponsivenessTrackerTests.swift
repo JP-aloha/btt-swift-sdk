@@ -25,14 +25,12 @@ final class ResponsivenessTrackerTests: XCTestCase {
 
         XCTAssertEqual(report.hitchCount, 2)
         XCTAssertEqual(report.totalHitchDuration, 150) // 100ms + 50ms excess
-        XCTAssertEqual(report.hitchFramePercent, 100) // 2 hitches out of 2 total frames
-        XCTAssertEqual(report.hitchTimePercent, 7.5) // (150ms excess / 2s elapsed) / 10 = 7.5%
+        XCTAssertEqual(report.longestHitch, 100) // the bigger of the two excesses (100ms, 50ms)
+        XCTAssertEqual(report.totalFrameCount, 2)
 
         XCTAssertEqual(report.hangCount, 0)
         XCTAssertEqual(report.totalHangDuration, 0)
         XCTAssertEqual(report.longestHang, 0)
-        XCTAssertEqual(report.hangFramePercent, 0)
-        XCTAssertEqual(report.hangTimePercent, 0)
     }
 
     func testHangFramesReportEveryResponsivenessField() {
@@ -51,13 +49,11 @@ final class ResponsivenessTrackerTests: XCTestCase {
         XCTAssertEqual(report.hangCount, 2)
         XCTAssertEqual(report.totalHangDuration, 2000) // 800ms + 1200ms
         XCTAssertEqual(report.longestHang, 1200)
-        XCTAssertEqual(report.hangFramePercent, 100) // 2 hangs out of 2 total frames
-        XCTAssertEqual(report.hangTimePercent, 100) // (2000ms / 2s elapsed) / 10 = 100%
+        XCTAssertEqual(report.totalFrameCount, 2)
 
         XCTAssertEqual(report.hitchCount, 0)
         XCTAssertEqual(report.totalHitchDuration, 0)
-        XCTAssertEqual(report.hitchFramePercent, 0) // 0 hitches out of 2 total frames
-        XCTAssertEqual(report.hitchTimePercent, 0)
+        XCTAssertEqual(report.longestHitch, 0)
     }
 
     func testHangFromBlockRightBeforeEndIsStillCaptured() {
@@ -98,6 +94,27 @@ final class ResponsivenessTrackerTests: XCTestCase {
         let reportAfterEnd = tracker.makeReport()
         XCTAssertEqual(reportAfterEnd.hangCount, 1)
         XCTAssertEqual(reportAfterEnd.longestHang, 62984)
+    }
+
+    func testRepeatedMakeReportPollingDoesNotInflateHitchCount() {
+        // A debug HUD polling makeReport() on its own ~60Hz Timer isn't phase-locked with the
+        // real CADisplayLink, so the gap since the last real tick is routinely a few ms of
+        // ordinary jitter — flushPendingGapIfNeeded() must not misclassify that as a hitch.
+        var currentTime: CFTimeInterval = 0
+        let tracker = ResponsivenessTracker(now: { currentTime })
+        tracker.start()
+        currentTime = 0.016
+        tracker.recordTick(at: currentTime)
+
+        for _ in 0..<20 {
+            currentTime += 0.005 // 5ms of polling jitter, well under both classifier floors
+            _ = tracker.makeReport()
+        }
+
+        let report = tracker.makeReport()
+        XCTAssertEqual(report.hitchCount, 0)
+        XCTAssertEqual(report.hangCount, 0)
+        XCTAssertEqual(report.totalFrameCount, 0)
     }
 
     func testVeryLongGapIsStillRecordedAsAHang() {

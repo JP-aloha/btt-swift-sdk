@@ -148,13 +148,13 @@ final class BTTimerGroup {
             other: snap.networkReport?.other ?? 0,
             hitchCount: snap.hitchCount,
             totalHitchDuration: snap.totalHitchDuration,
-            hitchFramePercent: snap.hitchFramePercent,
-            hitchTimePercent: snap.hitchTimePercent,
+            longestHitch: snap.longestHitch,
             hangCount: snap.hangCount,
             totalHangDuration: snap.totalHangDuration,
             longestHang: snap.longestHang,
-            hangFramePercent: snap.hangFramePercent,
-            hangTimePercent: snap.hangTimePercent,
+            totalFrameCount: snap.totalFrameCount,
+            hitchHistograms: snap.hitchHistograms,
+            hitchWeightedMean: snap.hitchWeightedMean,
             grouped: true,
             groupingCause: snap.groupingCause?.description,
             groupingCauseInterval: snap.causeInterval,
@@ -192,13 +192,13 @@ final class BTTimerGroup {
                 other: prop.other,
                 hitchCount: prop.hitchCount,
                 totalHitchDuration: prop.totalHitchDuration,
-                hitchFramePercent: prop.hitchFramePercent,
-                hitchTimePercent: prop.hitchTimePercent,
+                longestHitch: prop.longestHitch,
                 hangCount: prop.hangCount,
                 totalHangDuration: prop.totalHangDuration,
                 longestHang: prop.longestHang,
-                hangFramePercent: prop.hangFramePercent,
-                hangTimePercent: prop.hangTimePercent,
+                totalFrameCount: prop.totalFrameCount,
+                hitchHistograms: prop.hitchHistograms,
+                hitchWeightedMean: prop.hitchWeightedMean,
                 grouped: true,
                 netState: prop.netState,
                 netStateSource: prop.netStateSource
@@ -424,15 +424,15 @@ final class BTTimerGroup {
         let groupTimer: BTTimer
         let networkReport: NetworkReport?
         let maxMainThreadTask: Millisecond
-        let hitchCount: Int
+        let hitchCount: Int64
         let totalHitchDuration: Millisecond
-        let hitchFramePercent: Float
-        let hitchTimePercent: Float
-        let hangCount: Int
+        let longestHitch: Millisecond
+        let hangCount: Int64
         let totalHangDuration: Millisecond
         let longestHang: Millisecond
-        let hangFramePercent: Float
-        let hangTimePercent: Float
+        let totalFrameCount: Int64
+        let hitchHistograms: [HitchHistogramBucket]
+        let hitchWeightedMean: Double
         let groupingCause: GroupingCause?
         let causeInterval: Millisecond
         let pageName: String
@@ -448,13 +448,13 @@ final class BTTimerGroup {
                 maxMainThreadTask: gt.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
                 hitchCount: gt.responsivenessReport?.hitchCount ?? 0,
                 totalHitchDuration: gt.responsivenessReport?.totalHitchDuration ?? 0,
-                hitchFramePercent: gt.responsivenessReport?.hitchFramePercent ?? 0,
-                hitchTimePercent: gt.responsivenessReport?.hitchTimePercent ?? 0,
+                longestHitch: gt.responsivenessReport?.longestHitch ?? 0,
                 hangCount: gt.responsivenessReport?.hangCount ?? 0,
                 totalHangDuration: gt.responsivenessReport?.totalHangDuration ?? 0,
                 longestHang: gt.responsivenessReport?.longestHang ?? 0,
-                hangFramePercent: gt.responsivenessReport?.hangFramePercent ?? 0,
-                hangTimePercent: gt.responsivenessReport?.hangTimePercent ?? 0,
+                totalFrameCount: gt.responsivenessReport?.totalFrameCount ?? 0,
+                hitchHistograms: gt.responsivenessReport?.hitchHistograms ?? HitchHistogramBucket.makeDefaultBuckets(),
+                hitchWeightedMean: gt.responsivenessReport?.hitchWeightedMean ?? 0,
                 groupingCause: g.groupingCause,
                 causeInterval: g.causeInterval,
                 pageName: gt.getPageName(),

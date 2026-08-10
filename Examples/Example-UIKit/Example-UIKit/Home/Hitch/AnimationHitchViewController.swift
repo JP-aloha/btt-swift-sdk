@@ -168,10 +168,8 @@ final class AnimationHitchViewController: UIViewController {
         centerTimeLabel.text = String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
 
         let stats = BlueTriangle.currentResponsivenessStats()
-        // stats.hitchTimePercent and stats.hitchFramePercent are already percentages (0-100).
         let score = ResponsivenessGrade.grade(
-            hitchRatio: stats.hitchTimePercent,
-            hitchFramePercent: stats.hitchFramePercent,
+            hitchWeightedMean: stats.hitchWeightedMean,
             hangCount: stats.hangCount,
             longestHang: stats.longestHang)
         let (color, label) = statusColorAndLabel(forScore: score)
@@ -184,7 +182,7 @@ final class AnimationHitchViewController: UIViewController {
         switch score {
         case 0...30:
             return (.systemGreen, "GOOD")
-        case 31...70:
+        case 31..<70:
             return (.systemOrange, "BAD")
         default:
             return (.systemRed, "WORST")
@@ -482,20 +480,14 @@ final class AnimationHitchViewController: UIViewController {
         hitchStatsLabel.text = """
         Hitch Count: \(stats.hitchCount)
         Total Hitch Duration: \(stats.totalHitchDuration)Ms
-        Hitch Frame %: \(percentString(stats.hitchFramePercent))
-        Hitch Time %: \(percentString(stats.hitchTimePercent))
+        Longest Hitch: \(stats.longestHitch)Ms
         """
         hangStatsLabel.text = """
         Hang Count: \(stats.hangCount)
         Total Hang Duration: \(secondsString(fromMs: stats.totalHangDuration))
         Longest Hang: \(secondsString(fromMs: stats.longestHang))
-        Hang Frame %: \(percentString(stats.hangFramePercent))
-        Hang Time %: \(percentString(stats.hangTimePercent))
+        Total Frame Count: \(stats.totalFrameCount)
         """
-    }
-
-    private func percentString(_ percent: Float) -> String {
-        String(format: "%.2f%%", percent)
     }
 
     private func secondsString(fromMs ms: Millisecond) -> String {
@@ -589,29 +581,31 @@ private enum ResponsivenessGrade {
     }
 
     // MARK: - Hitch Score
-    static func hitchScore(hitchRatio: Float, hitchFramePercent: Float) -> Float {
-        let ratioScore = severity(hitchRatio, good: 15, bad: 30, cap: 100)
-        let framePercentScore = severity(hitchFramePercent, good: 10, bad: 20, cap: 100)
-        return combine(ratioScore, framePercentScore)
+
+    /// Scored directly from the hitch-duration histogram's weighted mean (longer-hitch buckets
+    /// weigh more) — capped at 90 so hitch alone can never read as a full 100; only combine()
+    /// escalating both hitch AND hang together (both genuinely bad) can reach 100.
+    static func hitchScore(hitchWeightedMean: Double) -> Float {
+        min(Float(hitchWeightedMean), 90)
     }
 
     // MARK: - Hang Score
-    static func hangScore(hangCount: Int, longestHang: Millisecond) -> Float {
+
+    /// Capped at 90 for the same reason as hitchScore — hang alone shouldn't be able to read as a
+    /// full 100 on its own.
+    static func hangScore(hangCount: Int64, longestHang: Millisecond) -> Float {
         let countScore = severity(Float(hangCount), good: 2, bad: 5, cap: 100)
         let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 100000)
-        return combine(countScore, durationScore)
+        return min(max(countScore, durationScore), 90)
     }
 
     // MARK: - Final combined score
-
-    /// - Parameter hitchRatio: a PERCENTAGE — see `hitchScore`'s doc for the Ms/s conversion callers must do first.
     static func grade(
-        hitchRatio: Float,
-        hitchFramePercent: Float,
-        hangCount: Int,
+        hitchWeightedMean: Double,
+        hangCount: Int64,
         longestHang: Millisecond
     ) -> Int {
-        let hScore = hitchScore(hitchRatio: hitchRatio, hitchFramePercent: hitchFramePercent)
+        let hScore = hitchScore(hitchWeightedMean: hitchWeightedMean)
         let gScore = hangScore(hangCount: hangCount, longestHang: longestHang)
         let badness = combine(hScore, gScore)      // 0=best, 100=worst
         return Int(badness.rounded()).clamped(to: 0...100)
