@@ -45,10 +45,11 @@ extension HitchHistogramBucket {
         return weightedSum
     }
 
-    /// Compact wire format for the payload, e.g. "[{50,25}, {150,3}, {300,2}, {450,0}, {750,3}]" —
-    /// used instead of the natural array-of-objects JSON to keep the payload small.
+    /// Compact wire format for the payload, e.g. "[{50,25}, {150,3}, {300,2}, {750,3}]" —
+    /// used instead of the natural array-of-objects JSON to keep the payload small. Buckets with
+    /// a zero count are omitted entirely.
     static func encodeCompact(_ buckets: [HitchHistogramBucket]) -> String {
-        "[" + buckets.map { "{\($0.upperBoundMs),\($0.count)}" }.joined(separator: ", ") + "]"
+        "[" + buckets.filter { $0.count > 0 }.map { "{\($0.upperBoundMs),\($0.count)}" }.joined(separator: ", ") + "]"
     }
 
     static func decodeCompact(_ string: String) -> [HitchHistogramBucket] {
