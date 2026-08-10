@@ -112,24 +112,15 @@ final class BTTimerGroup {
         }
 
         var pgtm: Millisecond = 0
-        var pages = [String]()
         var screenType: ScreenType?
         var intervals = [(Millisecond, Millisecond)]()
-        let hasSampleRate =  BlueTriangle.sessionData()?.shouldNetworkCapture ?? false
 
         for timer in snap.timers {
             let maxLoadTime = max(timer.nativeAppProperties.loadTime, Constants.minPgTm)
             pgtm += maxLoadTime
-            pages.append(timer.getPageName())
             if screenType == nil { screenType = timer.nativeAppProperties.screenType }
             intervals.append((timer.nativeAppProperties.loadStartTime, timer.nativeAppProperties.loadEndTime))
         }
-        
-        let freq = pages.reduce(into: [String: Int]()) { $0[$1, default: 0] += 1 }
-        var seen = Set<String>()
-        let combinedPages: [String] = pages
-            .filter { seen.insert($0).inserted }
-            .map { freq[$0, default: 1] > 1 ? "\($0) x\(freq[$0, default: 1])" : $0 }
 
         let unionPgTm = max(totalPgTmUnion(intervals), Constants.minPgTm)
         logger.info("Union pgTm of intervals \(intervals): \(unionPgTm), Sum of pgTm : \(pgtm)")
@@ -159,8 +150,7 @@ final class BTTimerGroup {
             groupingCause: snap.groupingCause?.description,
             groupingCauseInterval: snap.causeInterval,
             netState: snap.networkReport?.netState ?? "",
-            netStateSource: snap.networkReport?.netSource ?? "",
-            childViews: hasSampleRate ? combinedPages : []
+            netStateSource: snap.networkReport?.netSource ?? ""
         )
 
         snap.groupTimer.nativeAppProperties = native
@@ -326,14 +316,13 @@ final class BTTimerGroup {
             await BlueTriangle.startGroupTimerRequest(page: Page(pageName: pageName, pageType: pageType, trafficSegment: trafficSegment), startTime: groupStart)
             for t in uniqueTimers {
                 let count = freq[t.getPageName(), default: 1]
-                let pageNameWithCount = count > 1 ? "\(t.getPageName()) x\(count)" : t.getPageName()
-                await self.submitSingleRequest(groupTimer: self.groupTimer, timer: t, page: pageNameWithCount,  group: pageName)
+                await self.submitSingleRequest(groupTimer: self.groupTimer, timer: t, page: t.getPageName(), group: pageName, screenCount: count)
             }
             await BlueTriangle.uploadGroupedViewCollectedRequests()
         }
     }
 
-    private func submitSingleRequest(groupTimer: BTTimer, timer: BTTimer, page :String, group: String) async {
+    private func submitSingleRequest(groupTimer: BTTimer, timer: BTTimer, page: String, group: String, screenCount: Int) async {
         let prop = timer.nativeAppProperties
         let loadStartTime = prop.loadStartTime > 0 ? prop.loadStartTime : timer.startTime.milliseconds
         let loadEndTime = prop.loadEndTime > 0 ? prop.loadEndTime : (loadStartTime + Constants.minPgTm)
@@ -359,7 +348,8 @@ final class BTTimerGroup {
             other: prop.other,
             grouped: true,
             netState: prop.netState,
-            netStateSource: prop.netStateSource
+            netStateSource: prop.netStateSource,
+            screenCount: Int32(screenCount)
         )
 
         await BlueTriangle.captureGroupRequest(

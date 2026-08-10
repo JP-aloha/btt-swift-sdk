@@ -68,7 +68,7 @@ struct NativeAppProperties: Equatable {
     var netState: String = BlueTriangle.networkStateMonitor?.state.value?.description.lowercased() ?? ""
     var deviceModel : String = Device.model
     var netStateSource : String = BlueTriangle.networkStateMonitor?.networkSource.value?.description ?? ""
-    var childViews:[String] = [String]()
+    var screenCount: Int32 = 1
 }
 
 extension NativeAppProperties: Codable{
@@ -161,10 +161,10 @@ extension NativeAppProperties: Codable{
             try con.encode(netStateSource, forKey: .netStateSource)
         }
         
-        if childViews.count > 0{
-            try con.encode(childViews, forKey: .childViews)
+        if screenCount > 1{
+            try con.encode(screenCount, forKey: .screenCount)
         }
-        
+
         if let confidenceRate = confidenceRate {
             try con.encode(confidenceRate, forKey: .confidenceRate)
         }
@@ -238,7 +238,7 @@ extension NativeAppProperties: Codable{
         self.appVersion = try container.decodeIfPresent(String.self, forKey: .appVersion) ?? Device.appVersion
         self.sdkVersion = try container.decodeIfPresent(String.self, forKey: .sdkVersion) ?? Device.sdkVersion
         self.netStateSource = try container.decodeIfPresent(String.self, forKey: .netStateSource) ?? ""
-        self.childViews = try container.decodeIfPresent([String].self, forKey: .childViews) ?? []
+        self.screenCount = try container.decodeIfPresent(Int32.self, forKey: .screenCount) ?? 1
         self.confidenceRate = try container.decodeIfPresent(Int32.self, forKey: .confidenceRate) ?? 0
         self.confidenceMsg = try container.decodeIfPresent(String.self, forKey: .confidenceMsg) ?? ""
         self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause) ?? ""
@@ -277,7 +277,7 @@ extension NativeAppProperties: Codable{
         case err
         case deviceModel
         case netStateSource
-        case childViews
+        case screenCount
         case appVersion
         case grouped
         case sdkVersion
