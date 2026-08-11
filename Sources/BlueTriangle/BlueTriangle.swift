@@ -1043,7 +1043,7 @@ public extension BlueTriangle {
 
             let props = timer.nativeAppProperties
             let grade = ResponsivenessGradeCalculator.grade(
-                hitchWeightedMean: props.hitchWeightedMean,
+                hitchesSeverity: props.hitchesSeverity,
                 hangCount: props.hangCount,
                 longestHang: props.longestHang)
             let histogramsDescription = props.hitchHistograms
@@ -1055,7 +1055,7 @@ public extension BlueTriangle {
             hitchCount: \(props.hitchCount), totalHitchDuration: \(props.totalHitchDuration)Ms, longestHitch: \(props.longestHitch)Ms, \
             hangCount: \(props.hangCount), totalHangDuration: \(props.totalHangDuration)Ms, longestHang: \(props.longestHang)Ms, \
             totalFrameCount: \(props.totalFrameCount), \
-            hitchHistograms: [\(histogramsDescription)], hitchWeightedMean: \(props.hitchWeightedMean)
+            hitchHistograms: [\(histogramsDescription)], hitchesSeverity: \(props.hitchesSeverity)
             """)
 
             anrWatchDog?.uploadAnrReportForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
@@ -1294,10 +1294,10 @@ public extension BlueTriangle {
         }
     }
     
-    static func captureRequest(timer: InternalTimer, response: URLResponse?) {
+    static func captureRequest(timer: InternalTimer, response: URLResponse?, method: String? = nil) {
         Task {
-            await getNetworkRequestCapture()?.collect(timer: timer, response: response)
-            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
+            await getNetworkRequestCapture()?.collect(timer: timer, response: response, method: method)
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response, method: method))
         }
     }
 
@@ -1312,10 +1312,10 @@ public extension BlueTriangle {
     /// - Parameters:
     ///   - timer: The request timer.
     ///   - tuple: The asynchronously-delivered tuple containing the request contents as a Data instance and a URLResponse.
-    static func captureRequest(timer: InternalTimer, tuple: (Data, URLResponse)) {
+    static func captureRequest(timer: InternalTimer, tuple: (Data, URLResponse), method: String? = nil) {
         Task {
-            await getNetworkRequestCapture()?.collect(timer: timer, response: tuple.1)
-            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1))
+            await getNetworkRequestCapture()?.collect(timer: timer, response: tuple.1, method: method)
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1, method: method))
         }
     }
     
@@ -1361,7 +1361,7 @@ public extension BlueTriangle {
     }
     
     private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) {
-        BlueTriangle.collectBreadcrumb(NetworkRequestEvent(url: request.url, statusCode: request.statusCode ?? ""))
+        BlueTriangle.collectBreadcrumb(NetworkRequestEvent(url: request.url, method: request.nativeAppProperty.httpMethod ?? "", statusCode: request.statusCode ?? ""))
     }
 }
 
@@ -1787,50 +1787,48 @@ extension BlueTriangle {
 /// (0=best, 100=worst). Used for the submit-time log line here, by the Animation Hitch example
 /// screen's debug HUD (via `@testable import`), and by `ResponsivenessGradeTests`.
 enum ResponsivenessGradeCalculator {
-    private static func severity(_ value: Float, good: Float, bad: Float, cap: Float) -> Float {
-        guard value > 0 else { return 0 }
-        if value <= good {
-            return (value / good) * 30
-        }
-        if value <= bad {
-            let t = (value - good) / (bad - good)
-            return 30 + t * 40
-        }
-        if value <= cap {
-            let t = (value - bad) / (cap - bad)
-            return 70 + t * 30
-        }
-        return 100
-    }
+   private static func severity(_ value: Float, good: Float, bad: Float, cap: Float) -> Float {
+       let s1 = 30 * (value / good).clamped(to: 0...1)
+       let s2 = 40 * ((value - good) / (bad - good)).clamped(to: 0...1)
+       let s3 = 30 * ((value - bad) / (cap - bad)).clamped(to: 0...1)
+       return s1 + s2 + s3
+   }
 
-    private static func combine(_ a: Float, _ b: Float) -> Float {
-        let worse = max(a, b)
-        let better = min(a, b)
-        let weight: Float = 1 - (better / 100)
-        return min(worse + weight * better * (worse / 100), 100)
-    }
+   private static func combine(_ a: Float, _ b: Float) -> Float {
+       let worse = max(a, b)
+       let better = min(a, b)
+       let weight: Float = 1 - (better / 100)
+       return (worse + weight * better * (worse / 100)).clamped(to: 0...100)
+   }
 
-    // MARK: - Hitch Score
-    static func hitchScore(hitchWeightedMean: Double) -> Float {
-        min(Float(hitchWeightedMean), 90)
-    }
+   // MARK: - Hitch Score
+   static func hitchScore(hitchesSeverity: Double) -> Float {
+       severity(Float(hitchesSeverity), good: 30, bad: 70, cap: 1000)
+   }
 
-    // MARK: - Hang Score
-    static func hangScore(hangCount: Int64, longestHang: Millisecond) -> Float {
-        let countScore = severity(Float(hangCount), good: 2, bad: 5, cap: 100)
-        let durationScore = severity(Float(longestHang), good: 1500, bad: 2500, cap: 100000)
-        return min(max(countScore, durationScore), 90)
-    }
+   // MARK: - Hang Score
+   static func hangScore(hangCount: Int64, longestHang: Millisecond) -> Float {
+       max(
+           severity(Float(hangCount), good: 2, bad: 5, cap: 100),
+           severity(Float(longestHang), good: 1500, bad: 2500, cap: 100000)
+       ).clamped(to: 0...100)
+   }
 
-    static func grade(
-        hitchWeightedMean: Double,
-        hangCount: Int64,
-        longestHang: Millisecond
-    ) -> Int {
-        let hScore = hitchScore(hitchWeightedMean: hitchWeightedMean)
-        let gScore = hangScore(hangCount: hangCount, longestHang: longestHang)
-        let badness = combine(hScore, gScore)
-        return Int(min(badness, 100))
-    }
+   // MARK: - Final combined score
+   static func grade(
+       hitchesSeverity: Double,
+       hangCount: Int64,
+       longestHang: Millisecond
+   ) -> Int {
+       let hScore = hitchScore(hitchesSeverity: hitchesSeverity)
+       let gScore = hangScore(hangCount: hangCount, longestHang: longestHang)
+       let badness = combine(hScore, gScore)
+       return Int(badness.clamped(to: 0...100))
+   }
 }
 
+private extension Float {
+    func clamped(to range: ClosedRange<Float>) -> Float {
+        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
+    }
+}

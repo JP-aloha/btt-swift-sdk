@@ -370,7 +370,7 @@ class TimerMapActivity {
             longestHang: timer.responsivenessReport?.longestHang ?? 0,
             totalFrameCount: timer.responsivenessReport?.totalFrameCount ?? 0,
             hitchHistograms: timer.responsivenessReport?.hitchHistograms ?? HitchHistogramBucket.makeDefaultBuckets(),
-            hitchWeightedMean: timer.responsivenessReport?.hitchWeightedMean ?? 0,
+            hitchesSeverity: timer.responsivenessReport?.hitchesSeverity ?? 0,
             confidenceRate: self.confidenceRate,
             confidenceMsg: self.confidenceMsg,
             netState: networkReport?.netState ?? "",

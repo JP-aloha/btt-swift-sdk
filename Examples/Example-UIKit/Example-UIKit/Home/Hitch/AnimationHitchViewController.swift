@@ -169,7 +169,7 @@ final class AnimationHitchViewController: UIViewController {
 
         let stats = BlueTriangle.currentResponsivenessStats()
         let score = ResponsivenessGradeCalculator.grade(
-            hitchWeightedMean: stats.hitchWeightedMean,
+            hitchesSeverity: stats.hitchesSeverity,
             hangCount: stats.hangCount,
             longestHang: stats.longestHang)
         let (color, label) = statusColorAndLabel(forScore: score)

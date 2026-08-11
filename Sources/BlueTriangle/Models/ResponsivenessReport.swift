@@ -15,7 +15,7 @@ struct ResponsivenessReport: Codable, Equatable {
     let longestHang: Millisecond
     let totalFrameCount: Int64
     let hitchHistograms: [HitchHistogramBucket]
-    let hitchWeightedMean: Double
+    let hitchesSeverity: Double
 }
 
 extension ResponsivenessReport {
@@ -28,7 +28,7 @@ extension ResponsivenessReport {
         longestHang: 0,
         totalFrameCount: 0,
         hitchHistograms: HitchHistogramBucket.makeDefaultBuckets(),
-        hitchWeightedMean: 0)
+        hitchesSeverity: 0)
 }
 
 /// One bucket of a hitch-duration histogram — counts how many hitches had an excess duration
@@ -100,7 +100,7 @@ final class BTResponsivenessStats: NSObject {
     let totalFrameCount: Int64
     let fullTime: Millisecond
     let hitchHistograms: [HitchHistogramBucket]
-    let hitchWeightedMean: Double
+    let hitchesSeverity: Double
 
     init(_ report: ResponsivenessReport?, fullTime: Millisecond = 0) {
         self.hitchCount = report?.hitchCount ?? 0
@@ -112,6 +112,6 @@ final class BTResponsivenessStats: NSObject {
         self.totalFrameCount = report?.totalFrameCount ?? 0
         self.fullTime = fullTime
         self.hitchHistograms = report?.hitchHistograms ?? HitchHistogramBucket.makeDefaultBuckets()
-        self.hitchWeightedMean = report?.hitchWeightedMean ?? 0
+        self.hitchesSeverity = report?.hitchesSeverity ?? 0
     }
 }

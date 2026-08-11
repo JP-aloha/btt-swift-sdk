@@ -50,7 +50,7 @@ struct NativeAppProperties: Equatable {
     var longestHang: Millisecond = 0
     var totalFrameCount: Int64 = 0
     var hitchHistograms: [HitchHistogramBucket] = HitchHistogramBucket.makeDefaultBuckets()
-    var hitchWeightedMean: Double = 0
+    var hitchesSeverity: Double = 0
     var confidenceRate: Int32?
     var autoCheckout: Bool = false
     var confidenceMsg: String?
@@ -68,7 +68,8 @@ struct NativeAppProperties: Equatable {
     var netState: String = BlueTriangle.networkStateMonitor?.state.value?.description.lowercased() ?? ""
     var deviceModel : String = Device.model
     var netStateSource : String = BlueTriangle.networkStateMonitor?.networkSource.value?.description ?? ""
-    var screenCount: Int32 = 1
+    var screenCount: Int32?
+    var httpMethod: String?
 }
 
 extension NativeAppProperties: Codable{
@@ -146,7 +147,7 @@ extension NativeAppProperties: Codable{
 
         if hitchCount > 0 {
             try con.encode(HitchHistogramBucket.encodeCompact(hitchHistograms), forKey: .hitchHistograms)
-            try con.encode(hitchWeightedMean, forKey: .hitchWeightedMean)
+            try con.encode(hitchesSeverity, forKey: .hitchesSeverity)
         }
 
         if let err = err, err.count > 0{
@@ -161,8 +162,12 @@ extension NativeAppProperties: Codable{
             try con.encode(netStateSource, forKey: .netStateSource)
         }
         
-        if screenCount > 1{
+        if let screenCount = screenCount {
             try con.encode(screenCount, forKey: .screenCount)
+        }
+
+        if let httpMethod = httpMethod, !httpMethod.isEmpty {
+            try con.encode(httpMethod.uppercased(), forKey: .httpMethod)
         }
 
         if let confidenceRate = confidenceRate {
@@ -231,14 +236,15 @@ extension NativeAppProperties: Codable{
         } else {
             self.hitchHistograms = HitchHistogramBucket.makeDefaultBuckets()
         }
-        self.hitchWeightedMean = try container.decodeIfPresent(Double.self, forKey: .hitchWeightedMean) ?? 0
+        self.hitchesSeverity = try container.decodeIfPresent(Double.self, forKey: .hitchesSeverity) ?? 0
         self.netState = try container.decodeIfPresent(String.self, forKey: .netState) ?? ""
         self.type = try container.decodeIfPresent(String.self, forKey: .type) ?? NativeAppType.NST.description
         self.deviceModel = try container.decodeIfPresent(String.self, forKey: .deviceModel) ?? Device.model
         self.appVersion = try container.decodeIfPresent(String.self, forKey: .appVersion) ?? Device.appVersion
         self.sdkVersion = try container.decodeIfPresent(String.self, forKey: .sdkVersion) ?? Device.sdkVersion
         self.netStateSource = try container.decodeIfPresent(String.self, forKey: .netStateSource) ?? ""
-        self.screenCount = try container.decodeIfPresent(Int32.self, forKey: .screenCount) ?? 1
+        self.screenCount = try container.decodeIfPresent(Int32.self, forKey: .screenCount)
+        self.httpMethod = try container.decodeIfPresent(String.self, forKey: .httpMethod)
         self.confidenceRate = try container.decodeIfPresent(Int32.self, forKey: .confidenceRate) ?? 0
         self.confidenceMsg = try container.decodeIfPresent(String.self, forKey: .confidenceMsg) ?? ""
         self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause) ?? ""
@@ -272,12 +278,13 @@ extension NativeAppProperties: Codable{
         case longestHang
         case totalFrameCount
         case hitchHistograms
-        case hitchWeightedMean
+        case hitchesSeverity
         case type
         case err
         case deviceModel
         case netStateSource
         case screenCount
+        case httpMethod
         case appVersion
         case grouped
         case sdkVersion

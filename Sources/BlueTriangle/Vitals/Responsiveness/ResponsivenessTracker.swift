@@ -128,7 +128,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
             longestHang: Millisecond(longestHang.rounded()),
             totalFrameCount: totalFrameCount,
             hitchHistograms: hitchHistograms,
-            hitchWeightedMean: HitchHistogramBucket.weightedMean(hitchHistograms))
+            hitchesSeverity: HitchHistogramBucket.weightedMean(hitchHistograms))
     }
 
     @objc

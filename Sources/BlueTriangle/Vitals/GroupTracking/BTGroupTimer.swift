@@ -145,7 +145,7 @@ final class BTTimerGroup {
             longestHang: snap.longestHang,
             totalFrameCount: snap.totalFrameCount,
             hitchHistograms: snap.hitchHistograms,
-            hitchWeightedMean: snap.hitchWeightedMean,
+            hitchesSeverity: snap.hitchesSeverity,
             grouped: true,
             groupingCause: snap.groupingCause?.description,
             groupingCauseInterval: snap.causeInterval,
@@ -188,7 +188,7 @@ final class BTTimerGroup {
                 longestHang: prop.longestHang,
                 totalFrameCount: prop.totalFrameCount,
                 hitchHistograms: prop.hitchHistograms,
-                hitchWeightedMean: prop.hitchWeightedMean,
+                hitchesSeverity: prop.hitchesSeverity,
                 grouped: true,
                 netState: prop.netState,
                 netStateSource: prop.netStateSource
@@ -281,22 +281,6 @@ final class BTTimerGroup {
             )
         }
     }
-
-   /* private func submitChildsWcdRequests() {
-        let pageName = groupTimer.getPageName()
-        let pageType = groupTimer.page.pageType
-        let trafficSegment = groupTimer.page.trafficSegment
-        let groupStart = groupTimer.startTime.milliseconds
-        let timersSnap = lock.sync { Array(self.timers) }
-
-        Task {
-            await BlueTriangle.startGroupTimerRequest(page: Page(pageName: pageName, pageType: pageType, trafficSegment: trafficSegment), startTime: groupStart)
-            for t in timersSnap {
-                await self.submitSingleRequest(groupTimer: self.groupTimer, timer: t, group: pageName)
-            }
-            await BlueTriangle.uploadGroupedViewCollectedRequests()
-        }
-    }*/
     
     private func submitChildsWcdRequests() {
         let pageName = groupTimer.getPageName()
@@ -422,7 +406,7 @@ final class BTTimerGroup {
         let longestHang: Millisecond
         let totalFrameCount: Int64
         let hitchHistograms: [HitchHistogramBucket]
-        let hitchWeightedMean: Double
+        let hitchesSeverity: Double
         let groupingCause: GroupingCause?
         let causeInterval: Millisecond
         let pageName: String
@@ -444,7 +428,7 @@ final class BTTimerGroup {
                 longestHang: gt.responsivenessReport?.longestHang ?? 0,
                 totalFrameCount: gt.responsivenessReport?.totalFrameCount ?? 0,
                 hitchHistograms: gt.responsivenessReport?.hitchHistograms ?? HitchHistogramBucket.makeDefaultBuckets(),
-                hitchWeightedMean: gt.responsivenessReport?.hitchWeightedMean ?? 0,
+                hitchesSeverity: gt.responsivenessReport?.hitchesSeverity ?? 0,
                 groupingCause: g.groupingCause,
                 causeInterval: g.causeInterval,
                 pageName: gt.getPageName(),
