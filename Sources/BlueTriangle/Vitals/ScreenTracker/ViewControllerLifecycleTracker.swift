@@ -94,6 +94,7 @@ extension UIViewController {
     @objc dynamic func viewDidLoad_Tracker() {
         if shouldTrackScreen(){
             if let tracking = BlueTriangle.screenTracker {
+                tracking.setUpScreenType(.UIKit)
                 tracking.loadStarted(String(describing: self), "\(type(of: self))",  pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidLoad, className: "\(type(of: self))"))
             }
@@ -101,10 +102,11 @@ extension UIViewController {
 
         viewDidLoad_Tracker()
     }
-    
+
     @objc dynamic func viewWillAppear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
             if let tracking = BlueTriangle.screenTracker {
+                tracking.setUpScreenType(.UIKit)
                 tracking.loadFinish(String(describing: self),"\(type(of: self))", pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewWillAppear, className: "\(type(of: self))"))
             }
@@ -112,20 +114,22 @@ extension UIViewController {
 
         viewWillAppear_Tracker(animated)
     }
-    
+
     @objc dynamic func viewDidAppear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
             if let tracking = BlueTriangle.screenTracker {
+                tracking.setUpScreenType(.UIKit)
                 tracking.viewStart(String(describing: self), "\(type(of: self))", pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidAppear, className: "\(type(of: self))"))
             }
         }
         viewDidAppear_Tracker(animated)
     }
-    
+
     @objc dynamic func viewDidDisappear_Tracker(_ animated: Bool) {
         if shouldTrackScreen(){
             if let tracking = BlueTriangle.screenTracker {
+                tracking.setUpScreenType(.UIKit)
                 tracking.viewingEnd(String(describing: self), "\(type(of: self))", pageTitle())
                 BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.viewDidDisappear, className: "\(type(of: self))"))
             }
