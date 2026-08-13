@@ -86,9 +86,10 @@ final class CrashReportManager: CrashReportManaging {
         
         do {
             if let timer = BlueTriangle.recentTimer() {
+                let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
                 Task {
                     let message =  String(describing: error)
-                    await errorMetricStore.addError(id: timer.uuid, message: message, line: line)
+                    await errorMetricStore.addError(id: timer.uuid, message: message, line: line, breadcrumbs: breadcrumbs)
                 }
             } else {
                 var nativeApp = NativeAppProperties.nstEmpty
@@ -111,7 +112,7 @@ final class CrashReportManager: CrashReportManaging {
                 }
                 
                 var nativeApp = NativeAppProperties.nstEmpty
-                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
+                nativeApp.breadcrumbs = errorMetric.breadcrumbs ?? BlueTriangle.breadcrumbManager?.breadcrumbs()
                 let event = BTTEvents.iOSCrash
                 let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: errorMetric.message])
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error , line: errorMetric.line, time: errorMetric.time.milliseconds, eCnt: errorMetric.eCount)

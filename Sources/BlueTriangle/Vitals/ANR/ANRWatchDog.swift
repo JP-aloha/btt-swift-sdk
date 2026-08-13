@@ -111,8 +111,9 @@ Potential ANR Detected
 An task blocking main thread since \(self.errorTriggerInterval) seconds
 """
         if let timer = BlueTriangle.recentTimer() {
+            let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             Task {
-                await errorMetricStore.addAnrError(id: timer.uuid, message: message)
+                await errorMetricStore.addAnrError(id: timer.uuid, message: message, breadcrumbs: breadcrumbs)
             }
         } else {
             let event = BTTEvents.memoryWarning
@@ -152,7 +153,7 @@ An task blocking main thread since \(self.errorTriggerInterval) seconds
                 }
                 let event = BTTEvents.anrWarning
                 var nativeApp = NativeAppProperties.nstEmpty
-                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
+                nativeApp.breadcrumbs = errorMetric.breadcrumbs ?? BlueTriangle.breadcrumbManager?.breadcrumbs()
                 let report = CrashReport(sessionID: BlueTriangle.sessionID, ANRmessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: errorMetric.time)
                 let reportRequest = try self.makeCrashReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
