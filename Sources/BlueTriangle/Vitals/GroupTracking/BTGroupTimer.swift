@@ -30,6 +30,7 @@ final class BTTimerGroup {
     private var hasSubmitted = false
     private var hasForcedGroup = false
     private var groupName: String?
+    private var groupSource: GroupSource = .auto
     private let lock = NSLock()
     private let onGroupCompleted: (BTTimerGroup) -> Void
     private var groupingCause: GroupingCause?
@@ -148,6 +149,7 @@ final class BTTimerGroup {
             hitchesSeverity: snap.hitchesSeverity,
             grouped: true,
             groupingCause: snap.groupingCause?.description,
+            groupSource: snap.groupSource,
             groupingCauseInterval: snap.causeInterval,
             netState: snap.networkReport?.netState ?? "",
             netStateSource: snap.networkReport?.netSource ?? ""
@@ -267,11 +269,18 @@ final class BTTimerGroup {
                 (timer.getPageName(), timer.getPageTitle())
             }
             let newName: String
-            if !hasForcedGroup {
-                newName = groupName ?? extractLastPageName(from: pairs)
-                groupTimer.setPageName(newName)
-            } else {
+            if hasForcedGroup {
                 newName = groupTimer.getPageName()
+                groupSource = .custom
+            } else if let customName = groupName {
+                newName = customName
+                groupTimer.setPageName(newName)
+                groupSource = .custom
+            } else {
+                let extracted = extractLastPageName(from: pairs)
+                newName = extracted.name
+                groupTimer.setPageName(newName)
+                groupSource = extracted.fromTitle ? .title : .auto
             }
             let traficSegment = BlueTriangle.trafficSegmentName == Constants.defaultTraficSegment ? Constants.SCREEN_TRACKING_TRAFFIC_SEGMENT : BlueTriangle.trafficSegmentName
             groupTimer.setTrafficSegment(traficSegment)
@@ -379,15 +388,16 @@ final class BTTimerGroup {
         return titles.last?.0 ?? ""
     }*/
     
-    private func extractLastPageName(from titles: [(String, String)]) -> String {
+    private func extractLastPageName(from titles: [(String, String)]) -> (name: String, fromTitle: Bool) {
         let names = titles.compactMap { !$0.1.isEmpty ? $0.1 : nil }
         let source = names.isEmpty ? titles.compactMap { !$0.0.isEmpty ? $0.0 : nil } : names
-        guard !source.isEmpty else { return "" }
+        guard !source.isEmpty else { return ("", false) }
 
         let freq = source.reduce(into: [String: Int]()) { $0[$1, default: 0] += 1 }
         let minCount = freq.values.min()!
         let uniqueNames = Set(freq.filter { $0.value == minCount }.keys)
-        return source.reversed().first(where: { uniqueNames.contains($0) }) ?? source.last!
+        let name = source.reversed().first(where: { uniqueNames.contains($0) }) ?? source.last!
+        return (name, !names.isEmpty)
     }
 
     private var timeInterval: TimeInterval { Date().timeIntervalSince1970 }
@@ -411,6 +421,7 @@ final class BTTimerGroup {
         let causeInterval: Millisecond
         let pageName: String
         let fullTime: Millisecond
+        let groupSource: GroupSource
 
         static func make(from g: BTTimerGroup) -> SubmissionSnapshot {
             let timersArr = Array(g.timers)
@@ -432,7 +443,8 @@ final class BTTimerGroup {
                 groupingCause: g.groupingCause,
                 causeInterval: g.causeInterval,
                 pageName: gt.getPageName(),
-                fullTime: g.timeInterval.milliseconds - gt.startTime.milliseconds
+                fullTime: g.timeInterval.milliseconds - gt.startTime.milliseconds,
+                groupSource: g.groupSource
             )
         }
     }

@@ -15,6 +15,12 @@ public enum ScreenType : String, Encodable, Decodable {
     case ReactNative
 }
 
+enum GroupSource: String, Encodable, Decodable {
+    case title
+    case custom
+    case auto
+}
+
 enum NativeAppType : CustomStringConvertible, Encodable, Decodable{
     case Regular
     case NST
@@ -59,6 +65,7 @@ struct NativeAppProperties: Equatable {
     var eventId: String?
     var installTime: Millisecond = 0
     var groupingCause: String?
+    var groupSource: GroupSource?
     var breadcrumbs: String?
     var configKey: String?
     var groupingCauseInterval: Millisecond?
@@ -185,7 +192,11 @@ extension NativeAppProperties: Codable{
         if let cause = groupingCause {
             try con.encode(cause, forKey: .groupingCause)
         }
-        
+
+        if let groupSource = groupSource {
+            try con.encode(groupSource, forKey: .groupSource)
+        }
+
         if let eventId = eventId, !eventId.isEmpty {
             try con.encode(eventId, forKey: .eventID)
         }
@@ -248,6 +259,7 @@ extension NativeAppProperties: Codable{
         self.confidenceRate = try container.decodeIfPresent(Int32.self, forKey: .confidenceRate) ?? 0
         self.confidenceMsg = try container.decodeIfPresent(String.self, forKey: .confidenceMsg) ?? ""
         self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause) ?? ""
+        self.groupSource = try container.decodeIfPresent(GroupSource.self, forKey: .groupSource)
         self.groupingCauseInterval = try container.decodeIfPresent(Millisecond.self, forKey: .groupingCauseInterval) ?? 0
         self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID) ?? ""
         self.autoCheckout = try container.decodeIfPresent(Bool.self, forKey: .autoCheckout) ?? false
@@ -291,6 +303,7 @@ extension NativeAppProperties: Codable{
         case confidenceRate
         case confidenceMsg
         case groupingCause
+        case groupSource
         case groupingCauseInterval
         case eventID
         case autoCheckout
