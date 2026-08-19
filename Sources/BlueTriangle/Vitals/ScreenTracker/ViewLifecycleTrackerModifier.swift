@@ -35,7 +35,6 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
                     if let id = self.id{
                         if let tracking = BlueTriangle.screenTracker {
                             tracking.viewingEnd(id, name)
-                            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.onDisappear, className: name))
                         }
                     }
                 }
@@ -61,7 +60,6 @@ internal struct ViewLifecycleTrackerModifier: ViewModifier {
                     if let id = self.id{
                         if let tracking = BlueTriangle.screenTracker {
                             tracking.viewingEnd(id, name)
-                            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.onDisappear, className: name))
                         }
                     }
                 }
