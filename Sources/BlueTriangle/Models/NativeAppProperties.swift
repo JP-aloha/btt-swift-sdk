@@ -65,7 +65,7 @@ struct NativeAppProperties: Equatable {
     var eventId: String?
     var installTime: Millisecond = 0
     var groupingCause: String?
-    var groupSource: GroupSource?
+    var groupNameSource: GroupSource?
     var breadcrumbs: String?
     var configKey: String?
     var groupingCauseInterval: Millisecond?
@@ -193,8 +193,8 @@ extension NativeAppProperties: Codable{
             try con.encode(cause, forKey: .groupingCause)
         }
 
-        if let groupSource = groupSource {
-            try con.encode(groupSource, forKey: .groupSource)
+        if let groupNameSource = groupNameSource {
+            try con.encode(groupNameSource, forKey: .groupNameSource)
         }
 
         if let eventId = eventId, !eventId.isEmpty {
@@ -259,7 +259,7 @@ extension NativeAppProperties: Codable{
         self.confidenceRate = try container.decodeIfPresent(Int32.self, forKey: .confidenceRate) ?? 0
         self.confidenceMsg = try container.decodeIfPresent(String.self, forKey: .confidenceMsg) ?? ""
         self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause) ?? ""
-        self.groupSource = try container.decodeIfPresent(GroupSource.self, forKey: .groupSource)
+        self.groupNameSource = try container.decodeIfPresent(GroupSource.self, forKey: .groupNameSource)
         self.groupingCauseInterval = try container.decodeIfPresent(Millisecond.self, forKey: .groupingCauseInterval) ?? 0
         self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID) ?? ""
         self.autoCheckout = try container.decodeIfPresent(Bool.self, forKey: .autoCheckout) ?? false
@@ -303,7 +303,7 @@ extension NativeAppProperties: Codable{
         case confidenceRate
         case confidenceMsg
         case groupingCause
-        case groupSource
+        case groupNameSource
         case groupingCauseInterval
         case eventID
         case autoCheckout

@@ -45,8 +45,8 @@ enum ResponsivenessGradeCalculator {
    ) -> Int {
        let hScore = hitchScore(hitchesSeverity: hitchesSeverity)
        let gScore = hangScore(hangCount: hangCount, longestHang: longestHang)
-       let badness = combine(hScore, gScore)
-       return Int(badness.clamped(to: 0...100))
+       let badness = combine(hScore, gScore).clamped(to: 0...100)
+       return badness > 0 ? max(1, Int(badness)) : 0
    }
 }
 

@@ -30,7 +30,7 @@ final class BTTimerGroup {
     private var hasSubmitted = false
     private var hasForcedGroup = false
     private var groupName: String?
-    private var groupSource: GroupSource = .auto
+    private var groupNameSource: GroupSource = .auto
     private let lock = NSLock()
     private let onGroupCompleted: (BTTimerGroup) -> Void
     private var groupingCause: GroupingCause?
@@ -149,7 +149,7 @@ final class BTTimerGroup {
             hitchesSeverity: snap.hitchesSeverity,
             grouped: true,
             groupingCause: snap.groupingCause?.description,
-            groupSource: snap.groupSource,
+            groupNameSource: snap.groupNameSource,
             groupingCauseInterval: snap.causeInterval,
             netState: snap.networkReport?.netState ?? "",
             netStateSource: snap.networkReport?.netSource ?? ""
@@ -271,16 +271,16 @@ final class BTTimerGroup {
             let newName: String
             if hasForcedGroup {
                 newName = groupTimer.getPageName()
-                groupSource = .custom
+                groupNameSource = .custom
             } else if let customName = groupName {
                 newName = customName
                 groupTimer.setPageName(newName)
-                groupSource = .custom
+                groupNameSource = .custom
             } else {
                 let extracted = extractLastPageName(from: pairs)
                 newName = extracted.name
                 groupTimer.setPageName(newName)
-                groupSource = extracted.fromTitle ? .title : .auto
+                groupNameSource = extracted.fromTitle ? .title : .auto
             }
             let traficSegment = BlueTriangle.trafficSegmentName == Constants.defaultTraficSegment ? Constants.SCREEN_TRACKING_TRAFFIC_SEGMENT : BlueTriangle.trafficSegmentName
             groupTimer.setTrafficSegment(traficSegment)
@@ -421,7 +421,7 @@ final class BTTimerGroup {
         let causeInterval: Millisecond
         let pageName: String
         let fullTime: Millisecond
-        let groupSource: GroupSource
+        let groupNameSource: GroupSource
 
         static func make(from g: BTTimerGroup) -> SubmissionSnapshot {
             let timersArr = Array(g.timers)
@@ -444,7 +444,7 @@ final class BTTimerGroup {
                 causeInterval: g.causeInterval,
                 pageName: gt.getPageName(),
                 fullTime: g.timeInterval.milliseconds - gt.startTime.milliseconds,
-                groupSource: g.groupSource
+                groupNameSource: g.groupNameSource
             )
         }
     }

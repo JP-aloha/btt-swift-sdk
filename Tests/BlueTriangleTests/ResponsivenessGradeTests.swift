@@ -31,7 +31,6 @@ final class ResponsivenessGradeTests: XCTestCase {
     }
 
     func testHitchAloneWithoutHangProducesUnescalatedScore() {
-        // better == 0 in combine(), so the outer grade equals hitchScore untouched.
         let score = ResponsivenessGradeCalculator.grade(hitchesSeverity: 40, hangCount: 0, longestHang: 0)
         XCTAssertEqual(score, 40)
     }
@@ -39,6 +38,11 @@ final class ResponsivenessGradeTests: XCTestCase {
     func testHitchAloneCanReachFullOneHundred() {
         let score = ResponsivenessGradeCalculator.grade(hitchesSeverity: 1000, hangCount: 0, longestHang: 0)
         XCTAssertEqual(score, 100)
+    }
+
+    func testTinyNonZeroBadnessDoesNotTruncateToZero() {
+        let score = ResponsivenessGradeCalculator.grade(hitchesSeverity: 0.5, hangCount: 0, longestHang: 0)
+        XCTAssertEqual(score, 1)
     }
 
     // MARK: - Hang: driven by whichever axis (count or duration) is worse
