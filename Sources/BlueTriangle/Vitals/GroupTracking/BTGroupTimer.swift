@@ -30,7 +30,7 @@ final class BTTimerGroup {
     private var hasSubmitted = false
     private var hasForcedGroup = false
     private var groupName: String?
-    private var groupNameSource: GroupSource = .auto
+    private var groupNameSource: GroupSource = .LastChildName
     private let lock = NSLock()
     private let onGroupCompleted: (BTTimerGroup) -> Void
     private var groupingCause: GroupingCause?
@@ -138,15 +138,8 @@ final class BTTimerGroup {
             cellular: snap.networkReport?.cellular ?? 0,
             ethernet: snap.networkReport?.ethernet ?? 0,
             other: snap.networkReport?.other ?? 0,
-            hitchCount: snap.hitchCount,
-            totalHitchDuration: snap.totalHitchDuration,
-            longestHitch: snap.longestHitch,
-            hangCount: snap.hangCount,
-            totalHangDuration: snap.totalHangDuration,
-            longestHang: snap.longestHang,
-            totalFrameCount: snap.totalFrameCount,
-            hitchHistograms: snap.hitchHistograms,
-            hitchesSeverity: snap.hitchesSeverity,
+            responsivenessMeta: snap.responsivenessReport?.metaJSON,
+            responsivenessGrade: snap.responsivenessReport?.grade,
             grouped: true,
             groupingCause: snap.groupingCause?.description,
             groupNameSource: snap.groupNameSource,
@@ -182,15 +175,8 @@ final class BTTimerGroup {
                 cellular: prop.cellular,
                 ethernet: prop.ethernet,
                 other: prop.other,
-                hitchCount: prop.hitchCount,
-                totalHitchDuration: prop.totalHitchDuration,
-                longestHitch: prop.longestHitch,
-                hangCount: prop.hangCount,
-                totalHangDuration: prop.totalHangDuration,
-                longestHang: prop.longestHang,
-                totalFrameCount: prop.totalFrameCount,
-                hitchHistograms: prop.hitchHistograms,
-                hitchesSeverity: prop.hitchesSeverity,
+                responsivenessMeta: prop.responsivenessMeta,
+                responsivenessGrade: prop.responsivenessGrade,
                 grouped: true,
                 netState: prop.netState,
                 netStateSource: prop.netStateSource
@@ -271,16 +257,16 @@ final class BTTimerGroup {
             let newName: String
             if hasForcedGroup {
                 newName = groupTimer.getPageName()
-                groupNameSource = .custom
+                groupNameSource = .Manual
             } else if let customName = groupName {
                 newName = customName
                 groupTimer.setPageName(newName)
-                groupNameSource = .custom
+                groupNameSource = .Manual
             } else {
                 let extracted = extractLastPageName(from: pairs)
                 newName = extracted.name
                 groupTimer.setPageName(newName)
-                groupNameSource = extracted.fromTitle ? .title : .auto
+                groupNameSource = extracted.fromTitle ? .NavigationTitle : .LastChildName
             }
             let traficSegment = BlueTriangle.trafficSegmentName == Constants.defaultTraficSegment ? Constants.SCREEN_TRACKING_TRAFFIC_SEGMENT : BlueTriangle.trafficSegmentName
             groupTimer.setTrafficSegment(traficSegment)
@@ -408,15 +394,7 @@ final class BTTimerGroup {
         let groupTimer: BTTimer
         let networkReport: NetworkReport?
         let maxMainThreadTask: Millisecond
-        let hitchCount: Int64
-        let totalHitchDuration: Millisecond
-        let longestHitch: Millisecond
-        let hangCount: Int64
-        let totalHangDuration: Millisecond
-        let longestHang: Millisecond
-        let totalFrameCount: Int64
-        let hitchHistograms: [HitchHistogramBucket]
-        let hitchesSeverity: Double
+        let responsivenessReport: ResponsivenessReport?
         let groupingCause: GroupingCause?
         let causeInterval: Millisecond
         let pageName: String
@@ -431,15 +409,7 @@ final class BTTimerGroup {
                 groupTimer: gt,
                 networkReport: gt.networkReport,
                 maxMainThreadTask: gt.performanceReport?.maxMainThreadTask.milliseconds ?? 0,
-                hitchCount: gt.responsivenessReport?.hitchCount ?? 0,
-                totalHitchDuration: gt.responsivenessReport?.totalHitchDuration ?? 0,
-                longestHitch: gt.responsivenessReport?.longestHitch ?? 0,
-                hangCount: gt.responsivenessReport?.hangCount ?? 0,
-                totalHangDuration: gt.responsivenessReport?.totalHangDuration ?? 0,
-                longestHang: gt.responsivenessReport?.longestHang ?? 0,
-                totalFrameCount: gt.responsivenessReport?.totalFrameCount ?? 0,
-                hitchHistograms: gt.responsivenessReport?.hitchHistograms ?? HitchHistogramBucket.makeDefaultBuckets(),
-                hitchesSeverity: gt.responsivenessReport?.hitchesSeverity ?? 0,
+                responsivenessReport: gt.responsivenessReport,
                 groupingCause: g.groupingCause,
                 causeInterval: g.causeInterval,
                 pageName: gt.getPageName(),

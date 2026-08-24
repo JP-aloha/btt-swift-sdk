@@ -29,6 +29,72 @@ extension ResponsivenessReport {
         totalFrameCount: 0,
         hitchHistograms: HitchHistogramBucket.makeDefaultBuckets(),
         hitchesSeverity: 0)
+
+    /// The single 0-100 badness score for this report, via `ResponsivenessGradeCalculator`.
+    var grade: Int {
+        ResponsivenessGradeCalculator.grade(hitchesSeverity: hitchesSeverity, hangCount: hangCount, longestHang: longestHang)
+    }
+
+    /// JSON-encoded snapshot of every raw responsiveness field, sent as `NativeAppProperties.responsivenessMeta`.
+    /// Only non-zero fields are included, mirroring `NativeAppProperties`'s own conditional encoding.
+    var metaJSON: String? {
+        struct Meta: Encodable {
+            let hitchCount: Int64
+            let totalHitchDuration: Millisecond
+            let longestHitch: Millisecond
+            let hangCount: Int64
+            let totalHangDuration: Millisecond
+            let longestHang: Millisecond
+            let totalFrameCount: Int64
+            let hitchHistograms: String
+            let hitchesSeverity: Double
+
+            enum CodingKeys: String, CodingKey {
+                case hitchCount, totalHitchDuration, longestHitch, hangCount, totalHangDuration, longestHang, totalFrameCount, hitchHistograms, hitchesSeverity
+            }
+
+            func encode(to encoder: Encoder) throws {
+                var con = encoder.container(keyedBy: CodingKeys.self)
+                if hitchCount > 0 {
+                    try con.encode(hitchCount, forKey: .hitchCount)
+                }
+                if totalHitchDuration > 0 {
+                    try con.encode(totalHitchDuration, forKey: .totalHitchDuration)
+                }
+                if longestHitch > 0 {
+                    try con.encode(longestHitch, forKey: .longestHitch)
+                }
+                if hangCount > 0 {
+                    try con.encode(hangCount, forKey: .hangCount)
+                }
+                if totalHangDuration > 0 {
+                    try con.encode(totalHangDuration, forKey: .totalHangDuration)
+                }
+                if longestHang > 0 {
+                    try con.encode(longestHang, forKey: .longestHang)
+                }
+                if totalFrameCount > 0 {
+                    try con.encode(totalFrameCount, forKey: .totalFrameCount)
+                }
+                if hitchCount > 0 {
+                    try con.encode(hitchHistograms, forKey: .hitchHistograms)
+                    try con.encode(hitchesSeverity, forKey: .hitchesSeverity)
+                }
+            }
+        }
+        let meta = Meta(
+            hitchCount: hitchCount,
+            totalHitchDuration: totalHitchDuration,
+            longestHitch: longestHitch,
+            hangCount: hangCount,
+            totalHangDuration: totalHangDuration,
+            longestHang: longestHang,
+            totalFrameCount: totalFrameCount,
+            hitchHistograms: HitchHistogramBucket.encodeCompact(hitchHistograms),
+            hitchesSeverity: hitchesSeverity)
+        guard let data = try? JSONEncoder().encode(meta) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
 }
 
 /// One bucket of a hitch-duration histogram — counts how many hitches had an excess duration

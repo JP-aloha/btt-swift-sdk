@@ -119,15 +119,8 @@ final public class BTTimer: NSObject, @unchecked Sendable {
                     cellular: networkReport?.cellular ?? 0,
                     ethernet: networkReport?.ethernet ?? 0,
                     other: networkReport?.other ?? 0,
-                    hitchCount: responsivenessReport?.hitchCount ?? 0,
-                    totalHitchDuration: responsivenessReport?.totalHitchDuration ?? 0,
-                    longestHitch: responsivenessReport?.longestHitch ?? 0,
-                    hangCount: responsivenessReport?.hangCount ?? 0,
-                    totalHangDuration: responsivenessReport?.totalHangDuration ?? 0,
-                    longestHang: responsivenessReport?.longestHang ?? 0,
-                    totalFrameCount: responsivenessReport?.totalFrameCount ?? 0,
-                    hitchHistograms: responsivenessReport?.hitchHistograms ?? HitchHistogramBucket.makeDefaultBuckets(),
-                    hitchesSeverity: responsivenessReport?.hitchesSeverity ?? 0,
+                    responsivenessMeta: responsivenessReport?.metaJSON,
+                    responsivenessGrade: responsivenessReport?.grade,
                     netState: networkReport?.netState ?? "",
                     netStateSource: networkReport?.netSource ?? "")
             }

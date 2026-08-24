@@ -1042,20 +1042,10 @@ public extension BlueTriangle {
             uploader.send(request: request)
 
             let props = timer.nativeAppProperties
-            let grade = ResponsivenessGradeCalculator.grade(
-                hitchesSeverity: props.hitchesSeverity,
-                hangCount: props.hangCount,
-                longestHang: props.longestHang)
-            let histogramsDescription = props.hitchHistograms
-                .map { "<=\($0.upperBoundMs)Ms: \($0.count)" }
-                .joined(separator: ", ")
             logger.info("""
             BlueTriangle :: Responsiveness for \(timer.getPageName()) — \
-            grade: \(grade), \
-            hitchCount: \(props.hitchCount), totalHitchDuration: \(props.totalHitchDuration)Ms, longestHitch: \(props.longestHitch)Ms, \
-            hangCount: \(props.hangCount), totalHangDuration: \(props.totalHangDuration)Ms, longestHang: \(props.longestHang)Ms, \
-            totalFrameCount: \(props.totalFrameCount), \
-            hitchHistograms: [\(histogramsDescription)], hitchesSeverity: \(props.hitchesSeverity)
+            grade: \(props.responsivenessGrade ?? 0), \
+            meta: \(props.responsivenessMeta ?? "{}")
             """)
 
             anrWatchDog?.uploadAnrReportForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
