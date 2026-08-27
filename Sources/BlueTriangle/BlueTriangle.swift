@@ -133,6 +133,18 @@ final public class BlueTriangle: NSObject {
             trackingLock.sync { _anrWatchDog = newValue }
         }
     }
+
+#if os(iOS)
+    private static var _metricKitWatchDog : MetricKitWatchDog?
+    internal static var metricKitWatchDog : MetricKitWatchDog?{
+        get {
+            trackingLock.sync { _metricKitWatchDog }
+        }
+        set{
+            trackingLock.sync { _metricKitWatchDog = newValue }
+        }
+    }
+#endif
     
     private static var _sessionManager : SessionManagerProtocol?
     private static var sessionManager : SessionManagerProtocol?{
@@ -179,15 +191,10 @@ final public class BlueTriangle: NSObject {
     private static let enableAllTrackingLock = NSLock()
     private static let appInitializeLock = NSLock()
     private static var activeTimers = [BTTimer]()
-#if os(iOS)
-    private static let matricKitWatchDog = MetricKitWatchDog()
-#endif
+
     internal static func addActiveTimer(_ timer : BTTimer){
         timerLock.sync {
             activeTimers.append(timer)
-#if os(iOS)
-         //   matricKitWatchDog.saveCurrentTimerData(timer)
-#endif
         }
     }
     
@@ -610,7 +617,7 @@ extension BlueTriangle {
         if _session == nil{
             _session = configuration.makeSession()
         }
-        
+
         logger.info("BlueTriangle :: Session has started.")
     }
     
@@ -701,10 +708,31 @@ extension BlueTriangle {
     private static func stopMemoryWarning(){
         memoryWarningWatchDog?.stop()
         memoryWarningWatchDog = nil
-        
+
         logger.info("BlueTriangle :: Memory warning tracking was stopped due to SDK disable.")
     }
-    
+
+    // Starts MetricKit diagnostic reporting if not already configured
+    private static func startMetricKit(){
+#if os(iOS)
+        if metricKitWatchDog == nil{
+            configureMetricKit(with: configuration.crashTracking == .nsException)
+        }
+
+        logger.info("BlueTriangle :: MetricKit reporting has started.")
+#endif
+    }
+
+    // Stops MetricKit diagnostic reporting
+    private static func stopMetricKit(){
+#if os(iOS)
+        metricKitWatchDog?.stop()
+        metricKitWatchDog = nil
+
+        logger.info("BlueTriangle :: MetricKit reporting was stopped due to SDK disable.")
+#endif
+    }
+
     // Starts ANR tracking if not already configured
     private static func startANR(){
         if anrWatchDog == nil{
@@ -910,6 +938,10 @@ extension BlueTriangle {
         if BlueTriangle.configuration.enableLaunchTime {
             self.startLaunchTime()
         }
+
+        if BlueTriangle.configuration.crashTracking == .nsException {
+            self.startMetricKit()
+        }
     }
     
     /// Stops all trackers to disable the functionality of the SDK.
@@ -938,6 +970,7 @@ extension BlueTriangle {
         self.stopAppForceRestartTracker()
         self.stopNetworkStatus()
         self.stopLaunchTime()
+        self.stopMetricKit()
         self.clearAllCache()
     }
 
@@ -1043,6 +1076,11 @@ public extension BlueTriangle {
             anrWatchDog?.uploadAnrReportForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
             memoryWarningWatchDog?.uploadMemoryWarningReport(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
             nsExeptionReporter?.uploadErrorForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
+#if os(iOS)
+            if #available(iOS 14.0, *) {
+                metricKitWatchDog?.uploadPendingDiagnosticReports(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
+            }
+#endif
         }
     }
 }
@@ -1345,6 +1383,27 @@ public extension BlueTriangle {
     ) {
         nsExeptionReporter?.uploadError(error, file: file, function: function, line: line)
     }
+
+    /// Reports an error the host app has already caught, for external reporting from its own error/crash
+    /// handling.
+    ///
+    /// - Parameter isFatal: `false` (the default `logError` behavior) uploads immediately. `true` saves
+    ///   the current session/page/breadcrumb context and reports it on the app's *next* launch instead -
+    ///   matching how a real crash is handled, since the process may not survive long enough for a
+    ///   network request started now to complete.
+    static func logError<E: Error>(
+        _ error: E,
+        isFatal: Bool = false,
+        file: StaticString = #fileID,
+        function: StaticString = #function,
+        line: UInt = #line
+    ) {
+        if isFatal {
+            nsExeptionReporter?.logFatalError(error, file: file, function: function, line: line)
+        } else {
+            nsExeptionReporter?.uploadError(error, file: file, function: function, line: line)
+        }
+    }
 }
 
 // MARK: - Crash Reporting
@@ -1369,17 +1428,11 @@ extension BlueTriangle {
     
     static func configureSignalCrash(with crashConfiguration: CrashReportConfiguration, debugLog : Bool) {
         SignalHandler.enableCrashTracking(withApp_version: Version.number, debug_log: debugLog, bttSessionID: "\(sessionID)")
-        signalCrashReporter = BTSignalCrashReporter(directory: SignalHandler.reportsFolderPath(), logger: logger,
-                                                    uploader: uploader,
-                                                    session: {session()})
+        signalCrashReporter = BTSignalCrashReporter(directory: SignalHandler.reportsFolderPath(), logger: logger)
         signalCrashReporter?.configureSignalCrashHandling(configuration: crashConfiguration)
     }
 
-    /// Saves an exception to upload to the Blue Triangle portal on next launch.
-    ///
-    /// Use this method to store exceptions caught by other exception handlers.
-    ///
-    /// - Parameter exception: The exception to upload.
+
     public static func storeException(exception: NSException) {
         if let session = session() {
             let pageName = BlueTriangle.recentTimer()?.getPageName()
@@ -1388,7 +1441,7 @@ extension BlueTriangle {
             var nativeApp = NativeAppProperties.nstEmpty
             nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             let crashReport = CrashReport(sessionID: sessionID, exception: exception, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp)
-            CrashReportPersistence.save(crashReport)
+            PendingCrashRecordStore.save(crashReport, key: .pendingFatalErrorRecord)
         }
     }
 }
@@ -1494,6 +1547,23 @@ extension BlueTriangle{
                     logger: logger)),
                 logger: BlueTriangle.logger)
             self.memoryWarningWatchDog?.start()
+#endif
+        }
+    }
+}
+
+//MARK: - MetricKit
+extension BlueTriangle{
+    static func configureMetricKit(with enabled: Bool){
+        if enabled{
+#if os(iOS)
+            metricKitWatchDog = MetricKitWatchDog(
+                session: {session()},
+                uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
+                    file: .requests,
+                    logger: logger)),
+                logger: BlueTriangle.logger)
+            self.metricKitWatchDog?.start()
 #endif
         }
     }
@@ -1734,7 +1804,7 @@ extension BlueTriangle {
     internal static func saveBreadcrumbsToDisk() {
         breadcrumbManager?.saveBreadcrumbsToDisk()
     }
-    
+
     internal static func updateConfigKey(_ configKey: String) {
         configuration.configKey = configKey
     }

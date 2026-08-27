@@ -16,6 +16,18 @@
 #include <dlfcn.h>
 #include <pthread.h>
 #include <mach/mach.h>
+#include <TargetConditionals.h>
+
+// MXMetricManager is API_UNAVAILABLE(tvos, watchos) - the tvOS SDK still ships the ObjC headers
+// (__has_include succeeds), so the platform excludes below are required in addition to it, not
+// redundant with it. watchOS has no MetricKit framework at all.
+#if __has_include(<MetricKit/MetricKit.h>) && !TARGET_OS_TV && !TARGET_OS_WATCH
+#define BTT_HAS_METRICKIT 1
+#import <MetricKit/MetricKit.h>
+#import <os/signpost.h>
+#else
+#define BTT_HAS_METRICKIT 0
+#endif
 
 void register_btt_tracker(void);
 void reset_sig_handlers(void);
@@ -173,10 +185,23 @@ void btt_signal_handler(int signo, siginfo_t *sinfo, void *context)
     }
     
     time_t crash_time = time(NULL);
+
+#if BTT_HAS_METRICKIT
+    if (@available(iOS 13.0, macOS 12.0, *)) {
+        NSString *signpostCategory = [NSString stringWithFormat:@"%ld - %s + %s",
+                                       (long)crash_time,
+                                       __btt_session_id ? __btt_session_id : "unknown",
+                                       __current_page_name ? __current_page_name : "unknown"];
+        os_log_t crashSignpostLog = [MXMetricManager makeLogHandleWithCategory:signpostCategory];
+        MXSignpostIntervalBegin(crashSignpostLog, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
+        MXSignpostIntervalEnd(crashSignpostLog, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
+    }
+#endif
+
     char* crash_report = make_report(name, sinfo, crash_time);
     char* file_name = calloc(51, sizeof(char));
     snprintf(file_name, 50, "%ld.bttcrash", crash_time);
-    
+
     [SignalHandler writeCrashReport:crash_report toReportFolderPath:__report_folder_path withfileName:file_name];
     
     [SignalHandler debug_log:[NSString stringWithFormat:@"Written btt crash %s\n%s", file_name, crash_report]];

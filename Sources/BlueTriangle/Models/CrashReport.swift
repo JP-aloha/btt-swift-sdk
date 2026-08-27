@@ -165,4 +165,33 @@ enum BT_ErrorType : String{
     case ANRWarning
     case MemoryWarning
     case ForceRestart
+    case ExcessCPUUsage
+    case HeavyDiskWrite
+    case SlowLaunch
+}
+
+//MetricKit diagnostics
+extension CrashReport {
+    init(
+        errorType: BT_ErrorType,
+        sessionID: Identifier,
+        message: String,
+        eCount: Int = 1,
+        pageName: String?,
+        segment: String?,
+        pageType: String?,
+        nativeApp: NativeAppProperties = .nstEmpty,
+        intervalProvider: TimeInterval = Date().timeIntervalSince1970
+    ) {
+        self.sessionID = sessionID
+        self.pageName = pageName
+        self.segment = segment
+        self.pageType = pageType
+        self.report = ErrorReport(eCnt: eCount,
+                                  nativeApp: nativeApp,
+                                  eTp: errorType.rawValue, message: message.bttReportMessage,
+                                  line: 1,
+                                  column: 1,
+                                  time: intervalProvider.milliseconds)
+    }
 }

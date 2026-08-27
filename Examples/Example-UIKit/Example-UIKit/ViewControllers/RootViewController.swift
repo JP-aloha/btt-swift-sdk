@@ -151,12 +151,16 @@ class RootViewController: UIViewController {
         navigationController?.pushViewController(viewController, animated: true)
     }
 
-    private func trackError() {
-        let error = AppError(reason: "There was an error fooing", underlyingError: nil)
-        BlueTriangle.logError(error)
+    func trackError() {
+        var crash : Int?
+        let error = NSError(domain: "com.example.ui", code: 1, userInfo: [NSLocalizedDescriptionKey: "Fatal error reported"])
+       // BlueTriangle.logError(error, isFatal: true)
+        print("CRASHED: \(crash!)")
+        /*let error = AppError(reason: "There was an error fooing", underlyingError: nil)
+        BlueTriangle.logError(error)*/
     }
 
-    private func causeNSException() {
+    func causeNSException() {
         let array = NSArray()
         let crash = array.object(at: 99)
         print("CRASHED: \(crash)")

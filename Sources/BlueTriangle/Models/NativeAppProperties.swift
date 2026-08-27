@@ -60,6 +60,10 @@ struct NativeAppProperties: Equatable {
     var deviceModel : String = Device.model
     var netStateSource : String = BlueTriangle.networkStateMonitor?.networkSource.value?.description ?? ""
     var childViews:[String] = [String]()
+    /// Set only for MetricKit crash diagnostics - see MetricKitWatchDog+DiagnosticProcessing.reportCrash().
+    var eMetadata: String?
+    /// Set only for MetricKit crash diagnostics - see MetricKitWatchDog+DiagnosticProcessing.reportCrash().
+    var eIdentifier: String?
 }
 
 extension NativeAppProperties: Codable{
@@ -158,7 +162,15 @@ extension NativeAppProperties: Codable{
         if let configKey  = configKey {
             try con.encode(configKey, forKey: .configKey)
         }
-        
+
+        if let eMetadata = eMetadata, !eMetadata.isEmpty {
+            try con.encode(eMetadata, forKey: .eMetadata)
+        }
+
+        if let eIdentifier = eIdentifier, !eIdentifier.isEmpty {
+            try con.encode(eIdentifier, forKey: .eIdentifier)
+        }
+
         try con.encode(deviceModel, forKey: .deviceModel)
         try con.encode(appVersion, forKey: .appVersion)
         try con.encode(sdkVersion, forKey: .sdkVersion)
@@ -184,15 +196,17 @@ extension NativeAppProperties: Codable{
         self.sdkVersion = try container.decodeIfPresent(String.self, forKey: .sdkVersion) ?? Device.sdkVersion
         self.netStateSource = try container.decodeIfPresent(String.self, forKey: .netStateSource) ?? ""
         self.childViews = try container.decodeIfPresent([String].self, forKey: .childViews) ?? []
-        self.confidenceRate = try container.decodeIfPresent(Int32.self, forKey: .confidenceRate) ?? 0
-        self.confidenceMsg = try container.decodeIfPresent(String.self, forKey: .confidenceMsg) ?? ""
-        self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause) ?? ""
-        self.groupingCauseInterval = try container.decodeIfPresent(Millisecond.self, forKey: .groupingCauseInterval) ?? 0
-        self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID) ?? ""
+        self.confidenceRate = try container.decodeIfPresent(Int32.self, forKey: .confidenceRate).flatMap { $0 > 0 ? $0 : nil }
+        self.confidenceMsg = try container.decodeIfPresent(String.self, forKey: .confidenceMsg).flatMap { $0.isEmpty ? nil : $0 }
+        self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause).flatMap { $0.isEmpty ? nil : $0 }
+        self.groupingCauseInterval = try container.decodeIfPresent(Millisecond.self, forKey: .groupingCauseInterval).flatMap { $0 > 0 ? $0 : nil }
+        self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID).flatMap { $0.isEmpty ? nil : $0 }
         self.autoCheckout = try container.decodeIfPresent(Bool.self, forKey: .autoCheckout) ?? false
-        self.breadcrumbs = try container.decodeIfPresent(String.self, forKey: .breadcrumbs) ?? ""
+        self.breadcrumbs = try container.decodeIfPresent(String.self, forKey: .breadcrumbs).flatMap { $0.isEmpty ? nil : $0 }
         self.installTime = try container.decodeIfPresent(Millisecond.self, forKey: .installTime)  ?? 0
-        self.configKey = try container.decodeIfPresent(String.self, forKey: .configKey) ?? ""
+        self.configKey = try container.decodeIfPresent(String.self, forKey: .configKey).flatMap { $0.isEmpty ? nil : $0 }
+        self.eMetadata = try container.decodeIfPresent(String.self, forKey: .eMetadata)
+        self.eIdentifier = try container.decodeIfPresent(String.self, forKey: .eIdentifier)
     }
     
     enum CodingKeys: String, CodingKey {
@@ -226,6 +240,8 @@ extension NativeAppProperties: Codable{
         case breadcrumbs
         case installTime
         case configKey
+        case eMetadata
+        case eIdentifier
     }
 }
 

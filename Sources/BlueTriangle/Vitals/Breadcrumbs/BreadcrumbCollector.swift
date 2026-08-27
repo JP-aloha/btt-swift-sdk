@@ -51,7 +51,7 @@ final class BreadcrumbCollector {
     func clear() {
         queue.sync { collected.removeAll() }
     }
-    
+
     func saveBreadcrumbsToDisk() {
         queue.sync { diskStore.save(collected.map(\.data)) }
     }
@@ -76,9 +76,13 @@ final class BreadcrumbCollector {
     }
 
     private func generateBreadcrumbsString(_ escaped: Bool = false) -> String {
+        jsonString(from: collected.map(\.data), escaped: escaped) ?? ""
+    }
+
+    private func jsonString(from items: [Data], escaped: Bool = false) -> String? {
         var resultArray: [[String: Any]] = []
-        for item in collected {
-            guard let obj = try? JSONSerialization.jsonObject(with: item.data),
+        for item in items {
+            guard let obj = try? JSONSerialization.jsonObject(with: item),
                   var dict = obj as? [String: Any]
             else { continue }
             if let nested = dict.removeValue(forKey: "data") as? [String: Any] {
@@ -90,7 +94,7 @@ final class BreadcrumbCollector {
               JSONSerialization.isValidJSONObject(resultArray),
               let data = try? JSONSerialization.data(withJSONObject: resultArray),
               let json = String(data: data, encoding: .utf8)
-        else { return "" }
+        else { return nil }
 
         return escaped ? json
             .replacingOccurrences(of: "\\", with: "\\\\")

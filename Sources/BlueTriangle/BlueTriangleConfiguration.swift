@@ -155,7 +155,7 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// Boolean indicating whether launch time is enabled.
     @objc public var enableLaunchTime: Bool = true
-    
+
 
     var timerConfiguration: BTTimer.Configuration = .live
 

@@ -46,8 +46,9 @@ class MemoryWarningWatchDog {
         let message = formatedMemoryWarningMessage()
 
         if let timer = BlueTriangle.recentTimer() {
+            let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             Task {
-                await self.errorMetricStore.addMemoryWarning(id: timer.uuid, message: message)
+                await self.errorMetricStore.addMemoryWarning(id: timer.uuid, message: message, breadcrumbs: breadcrumbs)
             }
         } else {
             let event = BTTEvents.memoryWarning
@@ -120,7 +121,7 @@ extension MemoryWarningWatchDog {
                 }
                 let event = BTTEvents.memoryWarning
                 var nativeApp = NativeAppProperties.nstEmpty
-                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
+                nativeApp.breadcrumbs = errorMetric.breadcrumbs
                 let report = CrashReport(sessionID: BlueTriangle.sessionID, memoryWarningMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: errorMetric.time)
                 let reportRequest = try self.makeCrashReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)

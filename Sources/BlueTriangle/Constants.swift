@@ -88,6 +88,9 @@ enum Constants {
     static let excludedValue = "20"
     static let startupDelay: TimeInterval = 10
     static let minPgTm : Millisecond = 15
+    
+    static let crashSignpostName: StaticString = "MatricKitCrash"
+    static let externalFatalErrorSignpostName: StaticString = "ExteralFatalError"
 
     // Custom Metrics
     static let metricsCharacterLimit = 1024

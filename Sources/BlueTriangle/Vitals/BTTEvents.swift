@@ -41,6 +41,21 @@ internal struct BTTEvents {
         id: BTTEventId.forceRestart.rawValue,
         defaultPageName: BTTEventDefaultPageName.forceRestart.rawValue
     )
+
+    static let cpuException = BTTEvent(
+        id: BTTEventId.cpuException.rawValue,
+        defaultPageName: BTTEventDefaultPageName.cpuException.rawValue
+    )
+
+    static let diskWriteException = BTTEvent(
+        id: BTTEventId.diskWriteException.rawValue,
+        defaultPageName: BTTEventDefaultPageName.diskWriteException.rawValue
+    )
+
+    static let slowAppLaunch = BTTEvent(
+        id: BTTEventId.appLaunch.rawValue,
+        defaultPageName: BTTEventDefaultPageName.slowAppLaunch.rawValue
+    )
 }
 
 internal struct BTTEvent {
@@ -49,13 +64,16 @@ internal struct BTTEvent {
 }
 
 internal enum BTTEventDefaultPageName : String {
-    case coldLaunchPage = "ColdLaunchTime"
-    case hotLaunchPage  = "HotLaunchTime"
-    case anrWarning     = "ANRWarning"
-    case memoryWarning  = "MemoryWarning"
-    case iOSCrash       = "iOS Crash"
-    case appInstall     = "AppInstall"
-    case forceRestart   = "ForceRestart"
+    case coldLaunchPage      = "ColdLaunchTime"
+    case hotLaunchPage       = "HotLaunchTime"
+    case anrWarning          = "ANRWarning"
+    case memoryWarning       = "MemoryWarning"
+    case iOSCrash            = "iOS Crash"
+    case appInstall          = "AppInstall"
+    case forceRestart        = "ForceRestart"
+    case cpuException        = "ExcessCPUUsage"
+    case diskWriteException  = "HeavyDiskWrite"
+    case slowAppLaunch       = "SlowLaunch"
 }
 
 internal enum BTTEventId: String {
@@ -66,4 +84,7 @@ internal enum BTTEventId: String {
     case iOSCrash      = "6"
     case appInstall    = "8"
     case forceRestart  = "9"
+    case cpuException       = "10"
+    case diskWriteException = "11"
+    case appLaunch          = "12"
 }

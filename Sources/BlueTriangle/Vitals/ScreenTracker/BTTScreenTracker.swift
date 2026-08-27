@@ -30,6 +30,8 @@ public final class BTTScreenTracker {
             tracker?.setUpScreenType(.UIKit)
         } else if type == ScreenType.SwiftUI {
             tracker?.setUpScreenType(.SwiftUI)
+        } else if type == ScreenType.ReactNative {
+            tracker?.setUpScreenType(.ReactNative)
         } else {
             tracker?.setUpScreenType(.Manual)
         }

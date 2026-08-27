@@ -21,6 +21,9 @@ final class CrashReportManager: CrashReportManaging {
 
     private let intervalProvider: () -> TimeInterval
 
+    /// Delays uploading a fatal error saved by `logFatalError()` until `session()` has a session to
+    /// attach it to - mirrors the delay the old crash-report upload used, before that upload was
+    /// replaced with MetricKit-correlation-only storage for real NSException/signal crashes.
     private var startupTask: Task<Void, Error>?
 
     init(
@@ -35,43 +38,70 @@ final class CrashReportManager: CrashReportManaging {
         self.uploader = uploader
         self.session = session
         self.intervalProvider = intervalProvider
-        self.startupTask = Task.delayed(byTimeInterval: Constants.startupDelay, priority: .utility) { [weak self] in
-            guard let session = self?.session() else {
-                return
-            }
 
-            self?.uploadCrashReport(session: session)
-            self?.startupTask = nil
+        if let crashReport = crashReportPersistence.read() {
+            PendingCrashRecordStore.save(PendingCrashRecord(sessionID: crashReport.sessionID,
+                                                             pageName: crashReport.pageName,
+                                                             trafficSegment: crashReport.segment,
+                                                             pageType: crashReport.pageType,
+                                                             breadcrumbs: crashReport.report.nativeApp.breadcrumbs,
+                                                             crashTime: nil),
+                                         key: .pendingCrashRecord)
+            crashReportPersistence.clear()
+        }
+
+        if let fatalReport = PendingCrashRecordStore.load(CrashReport.self, key: .pendingFatalErrorRecord) {
+            self.startupTask = Task.delayed(byTimeInterval: Constants.startupDelay, priority: .utility) { [weak self] in
+                defer { self?.startupTask = nil }
+                self?.uploadFatalReport(fatalReport)
+            }
         }
     }
-    
+
     func stop(){
-        //Clear saved crash
         self.startupTask?.cancel()
         self.startupTask = nil
         CrashReportPersistence.disableExaptionHandler()
         crashReportPersistence.clear()
     }
 
-    func uploadCrashReport(session: Session) {
-        guard let crashReport = crashReportPersistence.read() else {
-            return
-        }
-
-        // Update session to use values from when the app crashed
+    private func uploadFatalReport(_ fatalReport: CrashReport) {
+        // No session yet - leave the record in place for the next launch to retry rather than losing
+        // it here.
+        guard let session = session() else { return }
         var sessionCopy = session
-        sessionCopy.sessionID = crashReport.sessionID
-        
-        print("BreadCuumbs : Saved - \(crashReport.report.nativeApp.breadcrumbs ?? "")")
-
+        sessionCopy.sessionID = fatalReport.sessionID
         do {
-            let event = BTTEvents.iOSCrash
-            try upload(session: sessionCopy, report: crashReport.report, pageName: crashReport.pageName, segment: crashReport.segment ?? session.trafficSegmentName, pageType: crashReport.pageType ?? session.pageType, event: event)
-
-            crashReportPersistence.clear()
+            try upload(session: sessionCopy,
+                      report: fatalReport.report,
+                      pageName: fatalReport.pageName,
+                      segment: fatalReport.segment ?? session.trafficSegmentName,
+                      pageType: fatalReport.pageType ?? session.pageType,
+                      event: BTTEvents.iOSCrash)
+            PendingCrashRecordStore.remove(key: .pendingFatalErrorRecord)
         } catch {
             logger.error(error.localizedDescription)
         }
+    }
+
+    func logFatalError<E: Error>(
+        _ error: E,
+        file: StaticString,
+        function: StaticString,
+        line: UInt
+    ) {
+        let timer = BlueTriangle.recentTimer()
+        let fatalErrorSignpost = SignpostLogger(category: "\(BlueTriangle.sessionID) + \(timer?.getPageName() ?? "Unknown")")
+        fatalErrorSignpost.begin(name: Constants.externalFatalErrorSignpostName)
+        fatalErrorSignpost.end(name: Constants.externalFatalErrorSignpostName)
+        let crashReport = CrashReport(sessionID: BlueTriangle.sessionID,
+                                      message: String(describing: error),
+                                      pageName: timer?.getPageName(),
+                                      segment: timer?.getTrafficSegment(),
+                                      pageType: timer?.page.pageType,
+                                      nativeApp: CrashReportPersistence.nativeAppProperties(),
+                                      intervalProvider: intervalProvider())
+        PendingCrashRecordStore.save(crashReport, key: .pendingFatalErrorRecord)
     }
 
     func uploadError<E: Error>(
@@ -86,9 +116,10 @@ final class CrashReportManager: CrashReportManaging {
         
         do {
             if let timer = BlueTriangle.recentTimer() {
+                let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
                 Task {
                     let message =  String(describing: error)
-                    await errorMetricStore.addError(id: timer.uuid, message: message, line: line)
+                    await errorMetricStore.addError(id: timer.uuid, message: message, line: line, breadcrumbs: breadcrumbs)
                 }
             } else {
                 var nativeApp = NativeAppProperties.nstEmpty
@@ -111,7 +142,7 @@ final class CrashReportManager: CrashReportManaging {
                 }
                 
                 var nativeApp = NativeAppProperties.nstEmpty
-                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
+                nativeApp.breadcrumbs = errorMetric.breadcrumbs
                 let event = BTTEvents.iOSCrash
                 let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: errorMetric.message])
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error , line: errorMetric.line, time: errorMetric.time.milliseconds, eCnt: errorMetric.eCount)
