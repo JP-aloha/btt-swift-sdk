@@ -27,6 +27,56 @@ extension MetricKitWatchDog {
         }
     }
 
+    func uploadReportOnly(session: Session, report: CrashReport, pageName: String, segment: String, pageType: String, event: BTTEvent) {
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            guard let strongSelf = self else { return }
+            do {
+                let reportRequest = try strongSelf.makeCrashReportRequest(session: session, report: report.report, pageName: pageName, segment: segment, pageType: pageType, event: event)
+                strongSelf.uploader.send(request: reportRequest)
+            } catch {
+                self?.logger.error(error.localizedDescription)
+            }
+        }
+    }
+
+    /// Builds a `CrashReport` for `kind` and uploads it via `uploadReports` - shared by the crash path
+    /// (`reportCrash()`) and the legacy no-current-page diagnostic path (`reportOrDefer()`).
+    /// `pageName`/`trafficSegment`/`pageType` fall back to the current session's when not supplied.
+    func uploadCrashReport(
+        kind: MetricKitDiagnosticKind,
+        sessionID: Identifier,
+        message: String,
+        pageName: String?,
+        trafficSegment: String?,
+        pageType: String?,
+        breadcrumbs: String?,
+        eMetadata: String? = nil,
+        eIdentifier: String? = nil,
+        session: Session,
+        timeStampBegin: Date
+    ) {
+        var nativeApp = NativeAppProperties.nstEmpty
+        nativeApp.breadcrumbs = breadcrumbs
+        nativeApp.eMetadata = eMetadata
+        nativeApp.eIdentifier = eIdentifier
+        let event = kind.event
+        let resolvedPageName = pageName ?? event.defaultPageName
+        let resolvedTrafficSegment = trafficSegment ?? session.trafficSegmentName
+        let resolvedPageType = pageType ?? session.pageType
+        let crashReport = CrashReport(errorType: kind.errorType,
+                                      sessionID: sessionID,
+                                      message: message,
+                                      pageName: resolvedPageName,
+                                      segment: resolvedTrafficSegment,
+                                      pageType: resolvedPageType,
+                                      nativeApp: nativeApp,
+                                      intervalProvider: timeStampBegin.timeIntervalSince1970)
+        var sessionCopy = session
+        sessionCopy.sessionID = sessionID
+
+        uploadReports(session: sessionCopy, report: crashReport, segment: resolvedTrafficSegment, pageType: resolvedPageType, event: event)
+    }
+
     func makeTimerRequest(session: Session, report: ErrorReport, pageName: String?, segment: String, pageType: String, event: BTTEvent) throws -> Request {
         let trafficSegment = !segment.isEmpty ? segment : session.trafficSegmentName
         let pageTypeValue = !pageType.isEmpty ? pageType : session.pageType

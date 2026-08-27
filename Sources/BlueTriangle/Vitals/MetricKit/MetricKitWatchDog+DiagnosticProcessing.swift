@@ -132,19 +132,21 @@ extension MetricKitWatchDog {
         let eMetadata = eMetadataString(diagnostic, title: crashLocation, extraPairs: extraPairs)
 
         if let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic)) {
-            uploadCrashNow(message: message, eMetadata: eMetadata, eIdentifier: crashLocation,
-                          sessionID: pendingCrash.sessionID, pageName: pendingCrash.pageName,
-                          trafficSegment: pendingCrash.trafficSegment, pageType: pendingCrash.pageType,
-                          breadcrumbs: pendingCrash.breadcrumbs, session: session, timeStampBegin: timeStampBegin)
+            uploadCrashReport(kind: .crash, sessionID: pendingCrash.sessionID, message: message,
+                              pageName: pendingCrash.pageName, trafficSegment: pendingCrash.trafficSegment,
+                              pageType: pendingCrash.pageType, breadcrumbs: pendingCrash.breadcrumbs,
+                              eMetadata: eMetadata, eIdentifier: crashLocation,
+                              session: session, timeStampBegin: timeStampBegin)
         } else if let timer = BlueTriangle.recentTimer() {
             Task {
                 await errorMetricStore.addCrash(id: timer.uuid, message: message, eMetadata: eMetadata, eIdentifier: crashLocation, breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
             }
         } else {
-            uploadCrashNow(message: message, eMetadata: eMetadata, eIdentifier: crashLocation,
-                          sessionID: BlueTriangle.sessionID, pageName: nil,
-                          trafficSegment: nil, pageType: nil,
-                          breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs(), session: session, timeStampBegin: timeStampBegin)
+            uploadCrashReport(kind: .crash, sessionID: BlueTriangle.sessionID, message: message,
+                              pageName: nil, trafficSegment: nil, pageType: nil,
+                              breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs(),
+                              eMetadata: eMetadata, eIdentifier: crashLocation,
+                              session: session, timeStampBegin: timeStampBegin)
         }
     }
 
@@ -154,29 +156,6 @@ extension MetricKitWatchDog {
         let errno = diagnostic.exceptionCode?.intValue ?? 0
         let sigCode = diagnostic.exceptionType?.intValue ?? 0
         return "App crashed \(signalLabel) signo : \(signo) errno : \(errno) signal code : \(sigCode) reported from matric kit"
-    }
-
-    private func uploadCrashNow(message: String, eMetadata: String, eIdentifier: String?, sessionID: Identifier, pageName: String?, trafficSegment: String?, pageType: String?, breadcrumbs: String?, session: Session, timeStampBegin: Date) {
-        var nativeApp = NativeAppProperties.nstEmpty
-        nativeApp.breadcrumbs = breadcrumbs
-        nativeApp.eMetadata = eMetadata
-        nativeApp.eIdentifier = eIdentifier
-        let event = MetricKitDiagnosticKind.crash.event
-        let resolvedPageName = pageName ?? event.defaultPageName
-        let resolvedTrafficSegment = trafficSegment ?? session.trafficSegmentName
-        let resolvedPageType = pageType ?? session.pageType
-        let crashReport = CrashReport(errorType: MetricKitDiagnosticKind.crash.errorType,
-                                      sessionID: sessionID,
-                                      message: message,
-                                      pageName: resolvedPageName,
-                                      segment: resolvedTrafficSegment,
-                                      pageType: resolvedPageType,
-                                      nativeApp: nativeApp,
-                                      intervalProvider: timeStampBegin.timeIntervalSince1970)
-        var sessionCopy = session
-        sessionCopy.sessionID = sessionID
-
-        uploadReports(session: sessionCopy, report: crashReport, segment: resolvedTrafficSegment, pageType: resolvedPageType, event: event)
     }
 }
 
@@ -197,7 +176,11 @@ extension MetricKitWatchDog {
         let eMetadata = eMetadataString(diagnostic, title: location, extraPairs: extraMetadataPairs)
 
         guard isLive, let timer = BlueTriangle.recentTimer() else {
-            upload(kind: kind, message: message, session: session, timeStampBegin: timeStampBegin, timeStampEnd: timeStampEnd, eMetadata: eMetadata, eIdentifier: location)
+            uploadCrashReport(kind: kind, sessionID: BlueTriangle.sessionID, message: message,
+                              pageName: nil, trafficSegment: nil, pageType: nil,
+                              breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs(),
+                              eMetadata: eMetadata, eIdentifier: location,
+                              session: session, timeStampBegin: timeStampBegin)
             return
         }
         deferForPageSubmit(kind: kind,
@@ -281,18 +264,6 @@ extension MetricKitWatchDog {
                                       intervalProvider: metric.time)
         uploadReportOnly(session: session, report: crashReport, pageName: pageName, segment: segment, pageType: pageType, event: kind.event)
     }
-
-    private func uploadReportOnly(session: Session, report: CrashReport, pageName: String, segment: String, pageType: String, event: BTTEvent) {
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            guard let strongSelf = self else { return }
-            do {
-                let reportRequest = try strongSelf.makeCrashReportRequest(session: session, report: report.report, pageName: pageName, segment: segment, pageType: pageType, event: event)
-                strongSelf.uploader.send(request: reportRequest)
-            } catch {
-                self?.logger.error(error.localizedDescription)
-            }
-        }
-    }
 }
 
 // MARK: - Shared crash-style message assembly
@@ -333,33 +304,6 @@ private extension MetricKitWatchDog {
             pairs.append("lowPowerModeEnabled: \(diagnostic.metaData.lowPowerModeEnabled)")
         }
         return "[\(pairs.joined(separator: ", "))]"
-    }
-}
-
-// MARK: - Shared report upload
-private extension MetricKitWatchDog {
-    func upload(kind: MetricKitDiagnosticKind, message: String, session: Session, timeStampBegin: Date, timeStampEnd: Date, eMetadata: String? = nil, eIdentifier: String? = nil) {
-        var nativeApp = NativeAppProperties.nstEmpty
-        nativeApp.eMetadata = eMetadata
-        nativeApp.eIdentifier = eIdentifier
-        nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
-        let sessionID = BlueTriangle.sessionID
-        logger.info("MetricKit Watch Dog: reporting \(kind) diagnostic from \(timeStampBegin) - no current page, using current session \(sessionID).")
-
-        let event = kind.event
-        let resolvedPageName = event.defaultPageName
-        let crashReport = CrashReport(errorType: kind.errorType,
-                                      sessionID: sessionID,
-                                      message: message,
-                                      pageName: resolvedPageName,
-                                      segment: session.trafficSegmentName,
-                                      pageType: session.pageType,
-                                      nativeApp: nativeApp,
-                                      intervalProvider: timeStampBegin.timeIntervalSince1970)
-        var sessionCopy = session
-        sessionCopy.sessionID = sessionID
-
-        uploadReports(session: sessionCopy, report: crashReport, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
     }
 }
 #endif
