@@ -1,4 +1,8 @@
-# Blue Triangle 3.15.12, Latest
+# Blue Triangle 3.15.14, Latest
+### Improvements
+- Combined repetitive SwiftUI view entries in breadcrumbs for cases like list and for each. Multiple view appear in a list will be shown as a single entry with a count.
+
+# Blue Triangle 3.15.13,  July 8 2026
 ### New Features and Bug Fixes
 - Added .bttTrack modifier for auto instrumentor tracking
 - Added NavigationStackTracker for NavigationStack path tracking

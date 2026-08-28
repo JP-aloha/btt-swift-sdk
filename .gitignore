@@ -9,3 +9,4 @@ DerivedData/
 default.profraw
 CLAUDE.md
 .claude/
+.swiftpm
