@@ -273,22 +273,6 @@ final class BTTimerGroup {
             )
         }
     }
-
-   /* private func submitChildsWcdRequests() {
-        let pageName = groupTimer.getPageName()
-        let pageType = groupTimer.page.pageType
-        let trafficSegment = groupTimer.page.trafficSegment
-        let groupStart = groupTimer.startTime.milliseconds
-        let timersSnap = lock.sync { Array(self.timers) }
-
-        Task {
-            await BlueTriangle.startGroupTimerRequest(page: Page(pageName: pageName, pageType: pageType, trafficSegment: trafficSegment), startTime: groupStart)
-            for t in timersSnap {
-                await self.submitSingleRequest(groupTimer: self.groupTimer, timer: t, group: pageName)
-            }
-            await BlueTriangle.uploadGroupedViewCollectedRequests()
-        }
-    }*/
     
     private func submitChildsWcdRequests() {
         let pageName = groupTimer.getPageName()
@@ -334,11 +318,11 @@ final class BTTimerGroup {
             loadEndTime: prop.loadEndTime,
             maxMainThreadUsage: prop.maxMainThreadUsage,
             screenType: prop.screenType,
-            offline: prop.offline,
-            wifi: prop.wifi,
-            cellular: prop.cellular,
-            ethernet: prop.ethernet,
-            other: prop.other,
+            offline: 0,
+            wifi: 0,
+            cellular: 0,
+            ethernet: 0,
+            other: 0,
             grouped: true,
             netState: prop.netState,
             netStateSource: prop.netStateSource

@@ -22,12 +22,6 @@ final class MetricKitWatchDog: NSObject {
     }()
 
     private var startupTask: Task<Void, Error>?
-
-    /// When this watchdog actually started observing (subscribed to `MXMetricManager`). `didReceive(_:)`
-    /// can fire with a payload whose collection window began *before* this - e.g. last session's crash,
-    /// delivered promptly once this launch subscribes - which isn't "live" in any meaningful sense even
-    /// though it arrives through the live-delivery callback. `processDiagnostics` uses this to downgrade
-    /// such a payload to non-live instead of trusting the callback blindly.
     private(set) var observingSince: Date?
 
     init(session: @escaping SessionProvider, uploader: Uploading, logger: Logging) {
@@ -42,11 +36,6 @@ final class MetricKitWatchDog: NSObject {
             defer { self?.startupTask = nil }
             guard let strongSelf = self else { return }
             MXMetricManager.shared.add(strongSelf)
-            if #available(iOS 14.0, *) {
-                let pastPayloads = MXMetricManager.shared.pastDiagnosticPayloads
-                strongSelf.logger.debug("MetricKit Watch Dog: \(pastPayloads.count) past diagnostic payload(s) replayed on subscribe.")
-                strongSelf.processDiagnostics(pastPayloads, isLive: false)
-            }
         }
         logger.info("MetricKit Watch Dog started.")
     }
