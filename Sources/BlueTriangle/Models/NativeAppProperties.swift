@@ -54,6 +54,7 @@ struct NativeAppProperties: Equatable {
     var configKey: String?
     var groupingCauseInterval: Millisecond?
     var sdkVersion: String = Device.sdkVersion
+    var sdkId: String = BlueTriangle.sdkId
     var appVersion: String = Device.appVersion
     var type : String = NativeAppType.Regular.description
     var netState: String = BlueTriangle.networkStateMonitor?.state.value?.description.lowercased() ?? ""
@@ -174,6 +175,7 @@ extension NativeAppProperties: Codable{
         try con.encode(deviceModel, forKey: .deviceModel)
         try con.encode(appVersion, forKey: .appVersion)
         try con.encode(sdkVersion, forKey: .sdkVersion)
+        try con.encode(sdkId, forKey: .sdkId)
     }
     
     init(from decoder: Decoder) throws {
@@ -194,6 +196,7 @@ extension NativeAppProperties: Codable{
         self.deviceModel = try container.decodeIfPresent(String.self, forKey: .deviceModel) ?? Device.model
         self.appVersion = try container.decodeIfPresent(String.self, forKey: .appVersion) ?? Device.appVersion
         self.sdkVersion = try container.decodeIfPresent(String.self, forKey: .sdkVersion) ?? Device.sdkVersion
+        self.sdkId = try container.decodeIfPresent(String.self, forKey: .sdkId) ?? BlueTriangle.sdkId
         self.netStateSource = try container.decodeIfPresent(String.self, forKey: .netStateSource) ?? ""
         self.childViews = try container.decodeIfPresent([String].self, forKey: .childViews) ?? []
         self.confidenceRate = try container.decodeIfPresent(Int32.self, forKey: .confidenceRate).flatMap { $0 > 0 ? $0 : nil }
@@ -231,6 +234,7 @@ extension NativeAppProperties: Codable{
         case appVersion
         case grouped
         case sdkVersion
+        case sdkId
         case confidenceRate
         case confidenceMsg
         case groupingCause

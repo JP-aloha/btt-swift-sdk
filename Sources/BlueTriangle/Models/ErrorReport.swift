@@ -9,7 +9,7 @@ import Foundation
 
 struct ErrorReport: Codable {
     let eCnt: Int 
-    let ver: String = Version.number
+    let ver: String = Device.sdkVersion
     var nativeApp : NativeAppProperties = .nstEmpty
     let appName: String = Bundle.main.appName ?? "Unknown"
     let eTp: String

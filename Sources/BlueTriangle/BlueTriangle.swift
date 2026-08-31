@@ -25,6 +25,18 @@ final public class BlueTriangle: NSObject {
     internal static let globleProperty = GlobalProperties()
     internal static let checkoutEvent = CheckoutEventReporter(logger: logger)
     
+    private static var _sdkId: String = Constants.sdkProductIdentifier
+    public static var sdkId: String {
+        get { trackingLock.sync { _sdkId } }
+        set { trackingLock.sync { _sdkId = newValue } }
+    }
+
+    private static var _sdkVersion: String = Version.number
+    public static var sdkVersion: String {
+        get { trackingLock.sync { _sdkVersion } }
+        set { trackingLock.sync { _sdkVersion = newValue } }
+    }
+
     private static var _screenTracker: BTTScreenLifecycleTracker?
     internal static var screenTracker: BTTScreenLifecycleTracker?{
         get {
@@ -1420,14 +1432,14 @@ extension BlueTriangle {
     
     public static func startCrashTracking() {
 #if DEBUG
-        SignalHandler.enableCrashTracking(withApp_version: Version.number, debug_log: true, bttSessionID: "\(sessionID)")
+        SignalHandler.enableCrashTracking(withApp_version: Device.sdkVersion, debug_log: true, bttSessionID: "\(sessionID)")
 #else
-        SignalHandler.enableCrashTracking(withApp_version: Version.number, debug_log: false, bttSessionID: "\(sessionID)")
+        SignalHandler.enableCrashTracking(withApp_version: Device.sdkVersion, debug_log: false, bttSessionID: "\(sessionID)")
 #endif
     }
     
     static func configureSignalCrash(with crashConfiguration: CrashReportConfiguration, debugLog : Bool) {
-        SignalHandler.enableCrashTracking(withApp_version: Version.number, debug_log: debugLog, bttSessionID: "\(sessionID)")
+        SignalHandler.enableCrashTracking(withApp_version: Device.sdkVersion, debug_log: debugLog, bttSessionID: "\(sessionID)")
         signalCrashReporter = BTSignalCrashReporter(directory: SignalHandler.reportsFolderPath(), logger: logger)
         signalCrashReporter?.configureSignalCrashHandling(configuration: crashConfiguration)
     }

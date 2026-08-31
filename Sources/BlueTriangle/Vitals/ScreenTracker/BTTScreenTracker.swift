@@ -58,6 +58,7 @@ public final class BTTScreenTracker {
             hasViewing = true
             updateScreenType()
             tracker?.manageTimer(pageName, id: id, type: .view)
+            reportAppearBreadcrumb()
         }
     }
     
@@ -66,6 +67,19 @@ public final class BTTScreenTracker {
             guard hasViewing else { return }
             tracker?.manageTimer(pageName, id: id, type: .disappear)
             hasViewing = false
+            reportDisappearBreadcrumb()
+        }
+    }
+    
+    private func reportAppearBreadcrumb(){
+        if type == ScreenType.ReactNative {
+            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.onAppear, className: pageName))
+        }
+    }
+    
+    private func reportDisappearBreadcrumb(){
+        if type == ScreenType.ReactNative {
+            BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.onDisappear, className: pageName))
         }
     }
 }

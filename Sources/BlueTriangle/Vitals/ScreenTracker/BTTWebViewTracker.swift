@@ -150,7 +150,7 @@ extension BTTWebViewTracker {
     private func injectVersionOnWebView(_ webView : WKWebView){
         
         //Version
-        let sdkVersion = "iOS-\(Version.number)"
+        let sdkVersion = "iOS-\(Device.sdkVersion)"
         let sessionId = "\(BlueTriangle.sessionID)"
         let expiration = NSString(string:"\(Date.addCurrentTimeInMinut(18000))")
         let BTTVersionValues = String(format: "{\"value\":\"%@\", \"expires\":\"%@\"}", sdkVersion, expiration)

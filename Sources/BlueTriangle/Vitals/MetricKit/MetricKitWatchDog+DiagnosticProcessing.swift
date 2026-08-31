@@ -69,23 +69,23 @@ extension MetricKitWatchDog {
 @available(iOS 14.0, *)
 extension MetricKitWatchDog {
     func cpuExceptionSummary(for diagnostic: MXCPUExceptionDiagnostic) -> String {
-        "App has excess cpu use exception detected reported from matric kit"
+        "Excessive CPU usage detected, indicating that the app is consuming more CPU resources than expected, identified by Matric Kit"
     }
 
     func diskWriteSummary(for diagnostic: MXDiskWriteExceptionDiagnostic) -> String {
-        "App has excess disk write exception detected reported from matric kit"
+        "App encountered an excessive disk write exception, identified through Matric Kit"
     }
 
     private static let hangThresholdMilliseconds = 750
 
     @available(iOS 15.0, *)
     func hangSummary(for diagnostic: MXHangDiagnostic) -> String {
-        "Potential Hang Detected: a task blocking the main thread since \(Self.hangThresholdMilliseconds) millisecond reported from matric kit"
+        "Potential app hang detected due to prolonged blocking of the main thread, identified by Matric Kit"
     }
 
     @available(iOS 16.0, *)
     func appLaunchSummary(for diagnostic: MXAppLaunchDiagnostic) -> String {
-        "Slow App launch detected reported from matric kit"
+        "Slow app launch detected, indicating that the app took longer than expected to launch, detected through Matric Kit"
     }
 
     func crashTitle(for diagnostic: MXCrashDiagnostic) -> String {
@@ -155,7 +155,7 @@ extension MetricKitWatchDog {
         let signalLabel = signalName(signo) ?? "Crash"
         let errno = diagnostic.exceptionCode?.intValue ?? 0
         let sigCode = diagnostic.exceptionType?.intValue ?? 0
-        return "App crashed \(signalLabel) signo : \(signo) errno : \(errno) signal code : \(sigCode) reported from matric kit"
+        return "App crashed with \(signalLabel), signo: \(signo), errno: \(errno), signal code: \(sigCode), identified through Matric Kit"
     }
 }
 
