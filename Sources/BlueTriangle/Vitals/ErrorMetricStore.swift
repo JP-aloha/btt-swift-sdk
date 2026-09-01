@@ -75,45 +75,45 @@ public actor ErrorMetricStore {
         }
     }
 
-    func addCPUException(id: UUID, message: String, eMetadata: String?, eIdentifier: String?, breadcrumbs: String?) {
+    func addCPUException(id: UUID, message: String, stackTrace: String?, eMetadata: String?, eIdentifier: String?, breadcrumbs: String?) {
         if let current = cpuExceptions[id] {
-            cpuExceptions[id] = ErrorMetric(message: current.message, eCount: current.eCount + 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: current.eMetadata, eIdentifier: current.eIdentifier)
+            cpuExceptions[id] = ErrorMetric(message: current.message, eCount: current.eCount + 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: current.eMetadata, eIdentifier: current.eIdentifier, stackTrace: current.stackTrace)
         } else {
-            cpuExceptions[id] = ErrorMetric(message: message, eCount: 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: eMetadata, eIdentifier: eIdentifier)
+            cpuExceptions[id] = ErrorMetric(message: message, eCount: 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: eMetadata, eIdentifier: eIdentifier, stackTrace: stackTrace)
         }
     }
 
-    func addDiskWriteException(id: UUID, message: String, eMetadata: String?, eIdentifier: String?, breadcrumbs: String?) {
+    func addDiskWriteException(id: UUID, message: String, stackTrace: String?, eMetadata: String?, eIdentifier: String?, breadcrumbs: String?) {
         if let current = diskWriteExceptions[id] {
-            diskWriteExceptions[id] = ErrorMetric(message: current.message, eCount: current.eCount + 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: current.eMetadata, eIdentifier: current.eIdentifier)
+            diskWriteExceptions[id] = ErrorMetric(message: current.message, eCount: current.eCount + 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: current.eMetadata, eIdentifier: current.eIdentifier, stackTrace: current.stackTrace)
         } else {
-            diskWriteExceptions[id] = ErrorMetric(message: message, eCount: 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: eMetadata, eIdentifier: eIdentifier)
+            diskWriteExceptions[id] = ErrorMetric(message: message, eCount: 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: eMetadata, eIdentifier: eIdentifier, stackTrace: stackTrace)
         }
     }
 
-    func addHang(id: UUID, message: String, eMetadata: String?, eIdentifier: String?, breadcrumbs: String?) {
+    func addHang(id: UUID, message: String, stackTrace: String?, eMetadata: String?, eIdentifier: String?, breadcrumbs: String?) {
         if let current = hangs[id] {
-            hangs[id] = ErrorMetric(message: current.message, eCount: current.eCount + 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: current.eMetadata, eIdentifier: current.eIdentifier)
+            hangs[id] = ErrorMetric(message: current.message, eCount: current.eCount + 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: current.eMetadata, eIdentifier: current.eIdentifier, stackTrace: current.stackTrace)
         } else {
-            hangs[id] = ErrorMetric(message: message, eCount: 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: eMetadata, eIdentifier: eIdentifier)
+            hangs[id] = ErrorMetric(message: message, eCount: 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: eMetadata, eIdentifier: eIdentifier, stackTrace: stackTrace)
         }
     }
 
-    func addAppLaunch(id: UUID, message: String, eMetadata: String?, eIdentifier: String?, breadcrumbs: String?) {
+    func addAppLaunch(id: UUID, message: String, stackTrace: String?, eMetadata: String?, eIdentifier: String?, breadcrumbs: String?) {
         if let current = appLaunches[id] {
-            appLaunches[id] = ErrorMetric(message: current.message, eCount: current.eCount + 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: current.eMetadata, eIdentifier: current.eIdentifier)
+            appLaunches[id] = ErrorMetric(message: current.message, eCount: current.eCount + 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: current.eMetadata, eIdentifier: current.eIdentifier, stackTrace: current.stackTrace)
         } else {
-            appLaunches[id] = ErrorMetric(message: message, eCount: 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: eMetadata, eIdentifier: eIdentifier)
+            appLaunches[id] = ErrorMetric(message: message, eCount: 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: eMetadata, eIdentifier: eIdentifier, stackTrace: stackTrace)
         }
     }
 
     // Crash diagnostics only land here when there's no PendingCrashRecord match but a page is
     // currently running - see MetricKitWatchDog+DiagnosticProcessing.reportCrash().
-    func addCrash(id: UUID, message: String, eMetadata: String?, eIdentifier: String?, breadcrumbs: String?) {
+    func addCrash(id: UUID, message: String, stackTrace: String?, eMetadata: String?, eIdentifier: String?, breadcrumbs: String?) {
         if let current = crashes[id] {
-            crashes[id] = ErrorMetric(message: current.message, eCount: current.eCount + 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: current.eMetadata, eIdentifier: current.eIdentifier)
+            crashes[id] = ErrorMetric(message: current.message, eCount: current.eCount + 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: current.eMetadata, eIdentifier: current.eIdentifier, stackTrace: current.stackTrace)
         } else {
-            crashes[id] = ErrorMetric(message: message, eCount: 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: eMetadata, eIdentifier: eIdentifier)
+            crashes[id] = ErrorMetric(message: message, eCount: 1, line: 1, breadcrumbs: breadcrumbs, eMetadata: eMetadata, eIdentifier: eIdentifier, stackTrace: stackTrace)
         }
     }
 
@@ -159,4 +159,5 @@ struct ErrorMetric {
     let time = Date().timeIntervalSince1970
     var eMetadata: String?
     var eIdentifier: String?
+    var stackTrace: String?
 }

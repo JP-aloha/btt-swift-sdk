@@ -65,6 +65,9 @@ struct NativeAppProperties: Equatable {
     var eMetadata: String?
     /// Set only for MetricKit crash diagnostics - see MetricKitWatchDog+DiagnosticProcessing.reportCrash().
     var eIdentifier: String?
+    /// Set only for MetricKit diagnostics - the call stack, split off of the message's first two lines.
+    /// See MetricKitWatchDog+DiagnosticProcessing.crashStyleMessage().
+    var stackTrace: String?
 }
 
 extension NativeAppProperties: Codable{
@@ -172,6 +175,10 @@ extension NativeAppProperties: Codable{
             try con.encode(eIdentifier, forKey: .eIdentifier)
         }
 
+        if let stackTrace = stackTrace, !stackTrace.isEmpty {
+            try con.encode(stackTrace, forKey: .stackTrace)
+        }
+
         try con.encode(deviceModel, forKey: .deviceModel)
         try con.encode(appVersion, forKey: .appVersion)
         try con.encode(sdkVersion, forKey: .sdkVersion)
@@ -210,6 +217,7 @@ extension NativeAppProperties: Codable{
         self.configKey = try container.decodeIfPresent(String.self, forKey: .configKey).flatMap { $0.isEmpty ? nil : $0 }
         self.eMetadata = try container.decodeIfPresent(String.self, forKey: .eMetadata)
         self.eIdentifier = try container.decodeIfPresent(String.self, forKey: .eIdentifier)
+        self.stackTrace = try container.decodeIfPresent(String.self, forKey: .stackTrace)
     }
     
     enum CodingKeys: String, CodingKey {
@@ -246,6 +254,7 @@ extension NativeAppProperties: Codable{
         case configKey
         case eMetadata
         case eIdentifier
+        case stackTrace
     }
 }
 

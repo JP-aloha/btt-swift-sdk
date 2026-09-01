@@ -123,7 +123,7 @@ extension MetricKitWatchDog {
             return
         }
 
-        let (message, crashLocation) = crashStyleMessage(summary: crashSummary(for: diagnostic), callStackTree: diagnostic.callStackTree)
+        let (message, stackTrace, crashLocation) = crashStyleMessage(summary: crashSummary(for: diagnostic), callStackTree: diagnostic.callStackTree)
 
         var extraPairs = [String]()
         if let signal = diagnostic.signal?.intValue { extraPairs.append("signal: \(signal)") }
@@ -132,17 +132,17 @@ extension MetricKitWatchDog {
         let eMetadata = eMetadataString(diagnostic, title: crashLocation, extraPairs: extraPairs)
 
         if let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic)) {
-            uploadCrashReport(kind: .crash, sessionID: pendingCrash.sessionID, message: message,
+            uploadCrashReport(kind: .crash, sessionID: pendingCrash.sessionID, message: message, stackTrace: stackTrace,
                               pageName: pendingCrash.pageName, trafficSegment: pendingCrash.trafficSegment,
                               pageType: pendingCrash.pageType, breadcrumbs: pendingCrash.breadcrumbs,
                               eMetadata: eMetadata, eIdentifier: crashLocation,
                               session: session, timeStampBegin: timeStampBegin)
         } else if let timer = BlueTriangle.recentTimer() {
             Task {
-                await errorMetricStore.addCrash(id: timer.uuid, message: message, eMetadata: eMetadata, eIdentifier: crashLocation, breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
+                await errorMetricStore.addCrash(id: timer.uuid, message: message, stackTrace: stackTrace, eMetadata: eMetadata, eIdentifier: crashLocation, breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
             }
         } else {
-            uploadCrashReport(kind: .crash, sessionID: BlueTriangle.sessionID, message: message,
+            uploadCrashReport(kind: .crash, sessionID: BlueTriangle.sessionID, message: message, stackTrace: stackTrace,
                               pageName: nil, trafficSegment: nil, pageType: nil,
                               breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs(),
                               eMetadata: eMetadata, eIdentifier: crashLocation,
@@ -172,11 +172,11 @@ extension MetricKitWatchDog {
         timeStampBegin: Date,
         timeStampEnd: Date
     ) {
-        let (message, location) = crashStyleMessage(summary: summary, callStackTree: diagnostic.callStackTree)
+        let (message, stackTrace, location) = crashStyleMessage(summary: summary, callStackTree: diagnostic.callStackTree)
         let eMetadata = eMetadataString(diagnostic, title: location, extraPairs: extraMetadataPairs)
 
         guard isLive, let timer = BlueTriangle.recentTimer() else {
-            uploadCrashReport(kind: kind, sessionID: BlueTriangle.sessionID, message: message,
+            uploadCrashReport(kind: kind, sessionID: BlueTriangle.sessionID, message: message, stackTrace: stackTrace,
                               pageName: nil, trafficSegment: nil, pageType: nil,
                               breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs(),
                               eMetadata: eMetadata, eIdentifier: location,
@@ -186,6 +186,7 @@ extension MetricKitWatchDog {
         deferForPageSubmit(kind: kind,
                            uuid: timer.uuid,
                            message: message,
+                           stackTrace: stackTrace,
                            eMetadata: eMetadata,
                            eIdentifier: location,
                            breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
@@ -208,17 +209,17 @@ extension MetricKitWatchDog {
 // MARK: - Deferred non-crash diagnostics (saved until the page they occurred on submits)
 @available(iOS 14.0, *)
 extension MetricKitWatchDog {
-    private func deferForPageSubmit(kind: MetricKitDiagnosticKind, uuid: UUID, message: String, eMetadata: String, eIdentifier: String?, breadcrumbs: String?) {
+    private func deferForPageSubmit(kind: MetricKitDiagnosticKind, uuid: UUID, message: String, stackTrace: String?, eMetadata: String, eIdentifier: String?, breadcrumbs: String?) {
         Task {
             switch kind {
             case .cpuException:
-                await errorMetricStore.addCPUException(id: uuid, message: message, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
+                await errorMetricStore.addCPUException(id: uuid, message: message, stackTrace: stackTrace, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
             case .diskWriteException:
-                await errorMetricStore.addDiskWriteException(id: uuid, message: message, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
+                await errorMetricStore.addDiskWriteException(id: uuid, message: message, stackTrace: stackTrace, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
             case .hang:
-                await errorMetricStore.addHang(id: uuid, message: message, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
+                await errorMetricStore.addHang(id: uuid, message: message, stackTrace: stackTrace, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
             case .slowLaunch:
-                await errorMetricStore.addAppLaunch(id: uuid, message: message, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
+                await errorMetricStore.addAppLaunch(id: uuid, message: message, stackTrace: stackTrace, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
             case .crash:
                 break // reportCrash() defers crash diagnostics itself, via errorMetricStore.addCrash().
             }
@@ -253,6 +254,7 @@ extension MetricKitWatchDog {
         nativeApp.breadcrumbs = metric.breadcrumbs
         nativeApp.eMetadata = metric.eMetadata
         nativeApp.eIdentifier = metric.eIdentifier
+        nativeApp.stackTrace = metric.stackTrace
         let crashReport = CrashReport(errorType: kind.errorType,
                                       sessionID: session.sessionID,
                                       message: metric.message,
@@ -269,18 +271,27 @@ extension MetricKitWatchDog {
 // MARK: - Shared crash-style message assembly
 @available(iOS 14.0, *)
 private extension MetricKitWatchDog {
-    func crashStyleMessage(summary: String, callStackTree: MXCallStackTree) -> (message: String, location: String?) {
+    /// `message` is just the summary and (if known) the crash location - at most two lines. The actual
+    /// call stack goes in `stackTrace` instead, flattened to a single line (its own newlines replaced
+    /// with spaces) rather than embedded in `message` alongside everything else.
+    func crashStyleMessage(summary: String, callStackTree: MXCallStackTree) -> (message: String, stackTrace: String?, location: String?) {
         let appBinaryName = Bundle.main.infoDictionary?["CFBundleExecutable"] as? String
         let tree = MXCallStackTreeJSON.decode(from: callStackTree.jsonRepresentation())
         let location = tree?.crashedThreadFrame(preferringBinaryNamed: appBinaryName)?.formattedCrashLocation()
 
-        var lines = [summary]
+        var messageLines = [summary]
         if let location {
-            lines.append(location)
+            messageLines.append(location)
         }
-        lines.append(" ")
-        lines.append(tree?.formattedStackTrace() ?? "Call stack unavailable")
-        return (lines.joined(separator: "\n"), location)
+        let message = messageLines.joined(separator: "\n")
+
+        let stackTraceText = tree?.formattedStackTrace() ?? "Call stack unavailable"
+        let stackTrace = stackTraceText
+            .components(separatedBy: .newlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: Constants.crashReportLineSeparator)
+
+        return (message, stackTrace.isEmpty ? nil : stackTrace, location)
     }
 }
 

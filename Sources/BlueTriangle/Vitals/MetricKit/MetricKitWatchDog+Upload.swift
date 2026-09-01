@@ -46,6 +46,7 @@ extension MetricKitWatchDog {
         kind: MetricKitDiagnosticKind,
         sessionID: Identifier,
         message: String,
+        stackTrace: String? = nil,
         pageName: String?,
         trafficSegment: String?,
         pageType: String?,
@@ -59,6 +60,7 @@ extension MetricKitWatchDog {
         nativeApp.breadcrumbs = breadcrumbs
         nativeApp.eMetadata = eMetadata
         nativeApp.eIdentifier = eIdentifier
+        nativeApp.stackTrace = stackTrace
         let event = kind.event
         let resolvedPageName = pageName ?? event.defaultPageName
         let resolvedTrafficSegment = trafficSegment ?? session.trafficSegmentName
