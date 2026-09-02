@@ -1105,21 +1105,6 @@ public extension BlueTriangle {
     }
 }
 
-// MARK: - Responsiveness stats
-extension BlueTriangle {
-
-    // Internal-only: backs the Animation Hitch example screen's debug HUD via `@testable import`.
-    // Not part of the SDK's public surface — the upload payload uses `ResponsivenessReport` directly.
-    static func currentResponsivenessStats() -> BTResponsivenessStats {
-        let timer = recentTimer()
-        let fullTime: Millisecond = {
-            guard let startTime = timer?.startTime, startTime > 0 else { return 0 }
-            return Millisecond((Date().timeIntervalSince1970 - startTime) * 1000)
-        }()
-        return BTResponsivenessStats(timer?.responsivenessReport, fullTime: fullTime)
-    }
-}
-
 // MARK: - Custom Metrics
 public extension BlueTriangle{
     

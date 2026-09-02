@@ -82,7 +82,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     }
 
     func start() {
-        lastTimestamp = 0
+        lastTimestamp = now()
         totalFrameCount = 0
         hitchCount = 0
         totalHitchDuration = 0

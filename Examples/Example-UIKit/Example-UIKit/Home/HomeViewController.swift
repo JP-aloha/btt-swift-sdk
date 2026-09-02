@@ -46,13 +46,6 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource{
         tableView.deselectRow(at: indexPath, animated: true)
         let item = model.homeItems()[indexPath.row]
 
-        #if DEBUG
-        if item == "Animation Hitch"{
-            self.navigationController?.pushViewController(AnimationHitchViewController(), animated: true)
-            return
-        }
-        #endif
-
         if item == "Test Present"{
             if let vc = model.getHomeItem(item){
                 self.present(vc, animated: true)

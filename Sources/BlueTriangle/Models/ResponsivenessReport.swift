@@ -152,32 +152,3 @@ extension HitchHistogramBucket {
             }
     }
 }
-
-/// Internal-only: read via `BlueTriangle.currentResponsivenessStats()` by the Animation Hitch
-/// example screen's debug HUD (accessed there via `@testable import`), not part of the SDK's
-/// public API.
-final class BTResponsivenessStats: NSObject {
-    let hitchCount: Int64
-    let totalHitchDuration: Millisecond
-    let longestHitch: Millisecond
-    let hangCount: Int64
-    let totalHangDuration: Millisecond
-    let longestHang: Millisecond
-    let totalFrameCount: Int64
-    let fullTime: Millisecond
-    let hitchHistograms: [HitchHistogramBucket]
-    let hitchesSeverity: Double
-
-    init(_ report: ResponsivenessReport?, fullTime: Millisecond = 0) {
-        self.hitchCount = report?.hitchCount ?? 0
-        self.totalHitchDuration = report?.totalHitchDuration ?? 0
-        self.longestHitch = report?.longestHitch ?? 0
-        self.hangCount = report?.hangCount ?? 0
-        self.totalHangDuration = report?.totalHangDuration ?? 0
-        self.longestHang = report?.longestHang ?? 0
-        self.totalFrameCount = report?.totalFrameCount ?? 0
-        self.fullTime = fullTime
-        self.hitchHistograms = report?.hitchHistograms ?? HitchHistogramBucket.makeDefaultBuckets()
-        self.hitchesSeverity = report?.hitchesSeverity ?? 0
-    }
-}

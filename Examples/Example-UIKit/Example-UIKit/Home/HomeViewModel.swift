@@ -20,13 +20,9 @@ class HomeViewModel : NSObject {
     }
     
     @MainActor func homeItems() -> [String]{
-        var items = UIDevice.isIPad
+        UIDevice.isIPad
             ? ["Test Push" , "Test Present", "Test Full Present", "Test Container","Test Tab", "Pager", "Sub View", "Split View", "Hitch"]
             : ["Test Push" , "Test Present", "Test Full Present", "Test Container","Test Tab", "Pager", "Sub View", "Hitch"]
-        #if DEBUG
-        items.append("Animation Hitch")
-        #endif
-        return items
     }
     
     @MainActor func getHomeItem(_ item : String) -> UIViewController?{

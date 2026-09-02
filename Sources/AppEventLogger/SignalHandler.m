@@ -18,9 +18,6 @@
 #include <mach/mach.h>
 #include <TargetConditionals.h>
 
-// MXMetricManager is API_UNAVAILABLE(tvos, watchos) - the tvOS SDK still ships the ObjC headers
-// (__has_include succeeds), so the platform excludes below are required in addition to it, not
-// redundant with it. watchOS has no MetricKit framework at all.
 #if __has_include(<MetricKit/MetricKit.h>) && !TARGET_OS_TV && !TARGET_OS_WATCH
 #define BTT_HAS_METRICKIT 1
 #import <MetricKit/MetricKit.h>
