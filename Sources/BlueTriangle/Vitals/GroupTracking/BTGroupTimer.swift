@@ -320,11 +320,11 @@ final class BTTimerGroup {
             loadEndTime: prop.loadEndTime,
             maxMainThreadUsage: prop.maxMainThreadUsage,
             screenType: prop.screenType,
-            offline: 0,
-            wifi: 0,
-            cellular: 0,
-            ethernet: 0,
-            other: 0,
+            offline: prop.offline,
+            wifi: prop.wifi,
+            cellular: prop.cellular,
+            ethernet: prop.ethernet,
+            other: prop.other,
             grouped: true,
             netState: prop.netState,
             netStateSource: prop.netStateSource,
@@ -368,11 +368,6 @@ final class BTTimerGroup {
         total += currentEnd - currentStart
         return total
     }
-    
-   /* private func extractLastPageName(from titles: [(String, String)]) -> String {
-        if let lastWithTitle = titles.last(where: { !$0.1.isEmpty }) { return lastWithTitle.1 }
-        return titles.last?.0 ?? ""
-    }*/
     
     private func extractLastPageName(from titles: [(String, String)]) -> (name: String, fromTitle: Bool) {
         let names = titles.compactMap { !$0.1.isEmpty ? $0.1 : nil }
