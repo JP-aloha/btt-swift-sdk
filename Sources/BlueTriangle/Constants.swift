@@ -91,8 +91,8 @@ enum Constants {
     
     static let crashSignpostName: StaticString = "MatricKitCrash"
     static let externalFatalErrorSignpostName: StaticString = "ExteralFatalError"
-
-    // Custom Metrics
+    
+    static let pendingCrashRecordExpiry: TimeInterval = 60 * 60 * 24 * 3
     static let metricsCharacterLimit = 1024
     static let metricsSizeLimit = 3_000_000
 

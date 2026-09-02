@@ -12,7 +12,7 @@ struct PendingCrashRecord: Codable {
     let trafficSegment: String?
     let pageType: String?
     let breadcrumbs: String?
-    let crashTime: UInt64?
+    let crashTime: Millisecond?
 }
 
 enum PendingCrashRecordStore {
@@ -35,7 +35,7 @@ enum PendingCrashRecordStore {
         return record
     }
 
-    static func consume(matchingCrashTime crashTime: UInt64?, key: UserDefaultsUtility.UserDefaultKeys = .pendingCrashRecord) -> PendingCrashRecord? {
+    static func consume(matchingCrashTime crashTime: Millisecond?, key: UserDefaultsUtility.UserDefaultKeys = .pendingCrashRecord) -> PendingCrashRecord? {
         guard let record = UserDefaultsUtility.loadCodable(PendingCrashRecord.self, key: key) else {
             return nil
         }
@@ -44,5 +44,15 @@ enum PendingCrashRecordStore {
         }
         UserDefaultsUtility.removeData(key: key)
         return record
+    }
+
+    static func removeExpiredCrashRecord(key: UserDefaultsUtility.UserDefaultKeys = .pendingCrashRecord) {
+        guard let record = UserDefaultsUtility.loadCodable(PendingCrashRecord.self, key: key),
+              let crashTime = record.crashTime
+        else { return }
+        let ageSeconds = Date().timeIntervalSince1970 - TimeInterval(crashTime) / 1000
+        if ageSeconds > Constants.pendingCrashRecordExpiry {
+            UserDefaultsUtility.removeData(key: key)
+        }
     }
 }

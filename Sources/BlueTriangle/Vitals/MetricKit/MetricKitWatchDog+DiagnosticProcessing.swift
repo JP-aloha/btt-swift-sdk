@@ -192,12 +192,15 @@ extension MetricKitWatchDog {
                            breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
     }
 
-    private func crashSignpostTime(from diagnostic: MXDiagnostic) -> UInt64? {
+    /// The signal-crash path's signpost category leads with `time(NULL)` (seconds since epoch) - convert
+    /// to milliseconds to match `PendingCrashRecord.crashTime`'s convention.
+    private func crashSignpostTime(from diagnostic: MXDiagnostic) -> Millisecond? {
         guard #available(iOS 17.0, *),
               let record = diagnostic.signpostData?.first(where: { $0.name == String(describing: Constants.crashSignpostName) }),
-              let crashTimeText = record.category.components(separatedBy: " - ").first
+              let crashTimeText = record.category.components(separatedBy: " - ").first,
+              let crashTimeSeconds = Millisecond(crashTimeText)
         else { return nil }
-        return UInt64(crashTimeText)
+        return crashTimeSeconds * 1000
     }
 
     private func hasFatalErrorSignpost(_ diagnostic: MXDiagnostic) -> Bool {

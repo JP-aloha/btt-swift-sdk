@@ -188,10 +188,12 @@ void btt_signal_handler(int signo, siginfo_t *sinfo, void *context)
 
 #if BTT_HAS_METRICKIT
     if (@available(iOS 13.0, macOS 12.0, *)) {
-        NSString *signpostCategory = [NSString stringWithFormat:@"%ld - %s + %s",
-                                       (long)crash_time,
-                                       __btt_session_id ? __btt_session_id : "unknown",
-                                       __current_page_name ? __current_page_name : "unknown"];
+        char signpostCategoryBuf[320];
+                snprintf(signpostCategoryBuf, sizeof(signpostCategoryBuf), "%ld - %s + %s",
+                         (long)crash_time,
+                         __btt_session_id ? __btt_session_id : "unknown",
+                         __current_page_name ? __current_page_name : "unknown");
+        NSString *signpostCategory = [NSString stringWithUTF8String:signpostCategoryBuf];
         os_log_t crashSignpostLog = [MXMetricManager makeLogHandleWithCategory:signpostCategory];
         MXSignpostIntervalBegin(crashSignpostLog, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
         MXSignpostIntervalEnd(crashSignpostLog, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");

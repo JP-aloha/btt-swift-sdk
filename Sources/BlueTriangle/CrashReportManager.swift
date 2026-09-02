@@ -45,7 +45,7 @@ final class CrashReportManager: CrashReportManaging {
                                                              trafficSegment: crashReport.segment,
                                                              pageType: crashReport.pageType,
                                                              breadcrumbs: crashReport.report.nativeApp.breadcrumbs,
-                                                             crashTime: nil),
+                                                             crashTime: crashReport.report.time),
                                          key: .pendingCrashRecord)
             crashReportPersistence.clear()
         }

@@ -31,6 +31,7 @@ final class MetricKitWatchDog: NSObject {
     }
 
     func start() {
+        PendingCrashRecordStore.removeExpiredCrashRecord()
         self.observingSince = Date()
         self.startupTask = Task.delayed(byTimeInterval: Constants.startupDelay, priority: .utility) { [weak self] in
             defer { self?.startupTask = nil }
