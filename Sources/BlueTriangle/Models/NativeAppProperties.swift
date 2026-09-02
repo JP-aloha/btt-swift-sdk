@@ -69,7 +69,6 @@ struct NativeAppProperties: Equatable {
     var netState: String = BlueTriangle.networkStateMonitor?.state.value?.description.lowercased() ?? ""
     var deviceModel : String = Device.model
     var netStateSource : String = BlueTriangle.networkStateMonitor?.networkSource.value?.description ?? ""
-    var childViews:[String] = [String]()
     /// Set only for MetricKit crash diagnostics - see MetricKitWatchDog+DiagnosticProcessing.reportCrash().
     var eMetadata: String?
     /// Set only for MetricKit crash diagnostics - see MetricKitWatchDog+DiagnosticProcessing.reportCrash().
@@ -246,7 +245,6 @@ extension NativeAppProperties: Codable{
         self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause) ?? ""
         self.groupNameSource = try container.decodeIfPresent(GroupSource.self, forKey: .groupNameSource)
         self.groupingCauseInterval = try container.decodeIfPresent(Millisecond.self, forKey: .groupingCauseInterval) ?? 0
-        self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID) ?? ""
         self.autoCheckout = try container.decodeIfPresent(Bool.self, forKey: .autoCheckout) ?? false
         self.breadcrumbs = try container.decodeIfPresent(String.self, forKey: .breadcrumbs).flatMap { $0.isEmpty ? nil : $0 }
         self.installTime = try container.decodeIfPresent(Millisecond.self, forKey: .installTime)  ?? 0
