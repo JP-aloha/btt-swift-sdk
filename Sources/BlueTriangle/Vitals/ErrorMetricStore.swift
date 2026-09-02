@@ -19,8 +19,6 @@ public actor ErrorMetricStore {
     private var appLaunches: [UUID: ErrorMetric] = [:]
     private var crashes: [UUID: ErrorMetric] = [:]
 
-    // MARK: - Add
-
     func addAnrError(id: UUID, message: String, breadcrumbs: String?) {
         if let current = anrs[id] {
             anrs[id] = ErrorMetric(

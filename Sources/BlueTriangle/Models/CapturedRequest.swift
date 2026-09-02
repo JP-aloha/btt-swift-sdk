@@ -54,8 +54,6 @@ struct CapturedRequest: Encodable, Equatable {
     var decodedBodySize: Int64
     /// Decompressed size of content.
     var encodedBodySize: Int64
-    //Http method
-    var httpMethod: String?
     // Native App Properties
     var nativeAppProperty: NativeAppProperties = .nstEmpty
     
@@ -150,14 +148,15 @@ extension CapturedRequest {
             response: response)
     }
     
-    init(timer: InternalTimer, relativeTo startTime: Millisecond, response: URLResponse?) {
+    init(timer: InternalTimer, relativeTo startTime: Millisecond, response: URLResponse?, method: String? = nil) {
         self.init(
             startTime: timer.startTime.milliseconds - startTime,
             endTime: timer.endTime.milliseconds - startTime,
             duration: timer.endTime.milliseconds - timer.startTime.milliseconds < 15 ? 15 : timer.endTime.milliseconds - timer.startTime.milliseconds,
             decodedBodySize: response?.expectedContentLength ?? 0,
             encodedBodySize: 0,
-            response: response)
+            response: response,
+            method: method)
     }
     
     init(timer: InternalTimer, relativeTo startTime: Millisecond, request: URLRequest?, error : Error?) {
@@ -191,7 +190,8 @@ extension CapturedRequest {
                 duration: metrics.taskInterval.duration.milliseconds,
                 decodedBodySize: lastMetric?.countOfResponseBodyBytesAfterDecoding ?? 0,
                 encodedBodySize: lastMetric?.countOfResponseBodyBytesReceived ?? 0,
-                response: response)
+                response: response,
+                method: lastMetric?.request.httpMethod)
         }else{
             self.init(
                 startTime: metrics.taskInterval.start.timeIntervalSince1970.milliseconds - startTime,
@@ -242,14 +242,14 @@ extension CapturedRequest {
     ) {
         self.host = ""
         self.domain = ""
-        self.httpMethod = response.method
         if let statusCode = response.httpStatusCode{
             self.statusCode = "\(statusCode)"
         }
-        
+
         if let error = response.error?.localizedDescription{
             self.nativeAppProperty = NativeAppProperties.`init`(error)
         }
+        self.nativeAppProperty.httpMethod = response.method
         self.initiatorType =  .init(rawValue: response.contentType) ?? .other
         self.url = response.url
         self.file =  URL(string: response.url)?.lastPathComponent ?? ""
@@ -277,9 +277,6 @@ extension CapturedRequest {
             self.domain = request?.url?.host ?? ""
         }
 
-        if let httpMethod = request?.httpMethod {
-            self.httpMethod = httpMethod
-        }
         if let _ = error{
             self.statusCode = "600"
         }
@@ -290,9 +287,12 @@ extension CapturedRequest {
         } else {
             self.initiatorType = .other
         }
-        
+
         if let error = error?.localizedDescription{
             self.nativeAppProperty = NativeAppProperties.`init`(error)
+        }
+        if let httpMethod = request?.httpMethod {
+            self.nativeAppProperty.httpMethod = httpMethod
         }
         self.url = request?.url?.absoluteString ?? ""
         self.file = request?.url?.lastPathComponent ?? ""
@@ -309,7 +309,8 @@ extension CapturedRequest {
         duration: Millisecond,
         decodedBodySize: Int64,
         encodedBodySize: Int64,
-        response: URLResponse?
+        response: URLResponse?,
+        method: String? = nil
     ) {
         let hostComponents = response?.url?.host?.split(separator: ".") ?? []
         self.host = hostComponents.first != nil ? String(hostComponents.first!) : ""
@@ -318,7 +319,7 @@ extension CapturedRequest {
         } else {
             self.domain = response?.url?.host ?? ""
         }
-
+    
         let httpResponse = response as? HTTPURLResponse
         if let statusCode = httpResponse?.statusCode {
             self.statusCode = String(statusCode)
@@ -340,6 +341,7 @@ extension CapturedRequest {
         self.duration = duration
         self.decodedBodySize = decodedBodySize
         self.encodedBodySize = encodedBodySize
+        self.nativeAppProperty.httpMethod = method
     }
 }
 

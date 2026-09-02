@@ -289,7 +289,8 @@ final public class BlueTriangle: NSObject {
     private static var timerFactory: (Page, BTTimer.TimerType, Bool) -> BTTimer = {
         configuration.timerConfiguration.makeTimerFactory(
             logger: logger,
-            performanceMonitorFactory: configuration.makePerformanceMonitorFactory())
+            performanceMonitorFactory: configuration.makePerformanceMonitorFactory(),
+            responsivenessTrackerFactory: configuration.makeResponsivenessTrackerFactory())
     }()
 
     private static var internalTimerFactory: () -> InternalTimer = {
@@ -1084,7 +1085,14 @@ public extension BlueTriangle {
                 return
             }
             uploader.send(request: request)
-            
+
+            let props = timer.nativeAppProperties
+            logger.info("""
+            BlueTriangle :: Responsiveness for \(timer.getPageName()) — \
+            grade: \(props.responsivenessGrade ?? 0), \
+            meta: \(props.responsivenessMeta ?? "{}")
+            """)
+
             anrWatchDog?.uploadAnrReportForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
             memoryWarningWatchDog?.uploadMemoryWarningReport(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
             nsExeptionReporter?.uploadErrorForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
@@ -1094,6 +1102,21 @@ public extension BlueTriangle {
             }
 #endif
         }
+    }
+}
+
+// MARK: - Responsiveness stats
+extension BlueTriangle {
+
+    // Internal-only: backs the Animation Hitch example screen's debug HUD via `@testable import`.
+    // Not part of the SDK's public surface — the upload payload uses `ResponsivenessReport` directly.
+    static func currentResponsivenessStats() -> BTResponsivenessStats {
+        let timer = recentTimer()
+        let fullTime: Millisecond = {
+            guard let startTime = timer?.startTime, startTime > 0 else { return 0 }
+            return Millisecond((Date().timeIntervalSince1970 - startTime) * 1000)
+        }()
+        return BTResponsivenessStats(timer?.responsivenessReport, fullTime: fullTime)
     }
 }
 
@@ -1311,10 +1334,10 @@ public extension BlueTriangle {
         }
     }
     
-    static func captureRequest(timer: InternalTimer, response: URLResponse?) {
+    static func captureRequest(timer: InternalTimer, response: URLResponse?, method: String? = nil) {
         Task {
-            await getNetworkRequestCapture()?.collect(timer: timer, response: response)
-            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
+            await getNetworkRequestCapture()?.collect(timer: timer, response: response, method: method)
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response, method: method))
         }
     }
 
@@ -1329,10 +1352,10 @@ public extension BlueTriangle {
     /// - Parameters:
     ///   - timer: The request timer.
     ///   - tuple: The asynchronously-delivered tuple containing the request contents as a Data instance and a URLResponse.
-    static func captureRequest(timer: InternalTimer, tuple: (Data, URLResponse)) {
+    static func captureRequest(timer: InternalTimer, tuple: (Data, URLResponse), method: String? = nil) {
         Task {
-            await getNetworkRequestCapture()?.collect(timer: timer, response: tuple.1)
-            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1))
+            await getNetworkRequestCapture()?.collect(timer: timer, response: tuple.1, method: method)
+            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1, method: method))
         }
     }
     
@@ -1378,7 +1401,7 @@ public extension BlueTriangle {
     }
     
     private static func reportNetworkBreadcrumbFor(_ request: CapturedRequest) {
-        BlueTriangle.collectBreadcrumb(NetworkRequestEvent(url: request.url, statusCode: request.statusCode ?? ""))
+        BlueTriangle.collectBreadcrumb(NetworkRequestEvent(url: request.url, method: request.nativeAppProperty.httpMethod ?? "", statusCode: request.statusCode ?? ""))
     }
 }
 
@@ -1727,6 +1750,10 @@ extension BlueTriangle {
         }
     }
 
+    internal static func updateResponsiveness(_ enabled : Bool) {
+        configuration.enableScreenResponsiveness = enabled
+    }
+
     internal static func updateWebViewStitching(_ enabled : Bool) {
         configuration.enableWebViewStitching = enabled
 #if os(iOS)
@@ -1827,4 +1854,3 @@ extension BlueTriangle {
         appInstallUpdateTracker?.reportAppInstall()
     }
 }
-

@@ -362,6 +362,8 @@ class TimerMapActivity {
             cellular: networkReport?.cellular ?? 0,
             ethernet: networkReport?.ethernet ?? 0,
             other: networkReport?.other ?? 0,
+            responsivenessMeta: timer.responsivenessReport?.metaJSON,
+            responsivenessGrade: timer.responsivenessReport?.grade,
             confidenceRate: self.confidenceRate,
             confidenceMsg: self.confidenceMsg,
             netState: networkReport?.netState ?? "",
