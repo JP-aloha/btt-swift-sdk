@@ -57,6 +57,19 @@ extension UIApplication {
     }
 
     @objc func swizzled_sendEvent(_ event: UIEvent) {
+        // Record the tap's timestamp BEFORE dispatching the event: a tap that synchronously
+        // triggers navigation (e.g. pushViewController from a button action) runs the new
+        // screen's group-break check inside the call below, before it returns. Recording the
+        // timestamp after dispatch means that check sees a stale lastActionTime from before this
+        // tap, and the group never breaks for this navigation.
+        if event.type == .touches {
+            event.allTouches?
+                .filter { $0.phase == .began || $0.phase == .ended }
+                .forEach { _ in
+                    BlueTriangle.groupTimer.setLastAction(Date())
+                }
+        }
+
         swizzled_sendEvent(event)
 
         guard event.type == .touches else { return }
@@ -64,7 +77,6 @@ extension UIApplication {
         event.allTouches?
             .filter { $0.phase == .began || $0.phase == .ended}
             .forEach { touch in
-                BlueTriangle.groupTimer.setLastAction(Date())
                 guard let window = touch.window ?? UIApplication.shared.bt_keyWindow else { return }
                 let point = touch.location(in: window)
                 let x = Float(point.x)
