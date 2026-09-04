@@ -72,9 +72,6 @@ final public class BlueTriangleConfiguration: NSObject {
     /// Boolean indicating whether performance monitoring is enabled.
     @objc public var isPerformanceMonitorEnabled: Bool = true
 
-    /// Boolean indicating whether Hitch and Hang (responsiveness) tracking is enabled.
-    @objc public var enableScreenResponsiveness: Bool = true
-
     /// Percentage of sessions for which network calls will be captured. A value of `0.05`
     /// means that 5% of sessions will be tracked.
     @objc public var networkSampleRate: Double = 0.05
@@ -90,6 +87,9 @@ final public class BlueTriangleConfiguration: NSObject {
    // Session storage expiry duration 2 * 60 * 1000 millisecond
     internal var sessionExpiryDuration: Millisecond =  30 * 60 * 1000
     
+    /// Boolean indicating whether Hitch and Hang (responsiveness) tracking is enabled.
+    internal var enableScreenResponsiveness: Bool = true
+
     /// Boolean indicating whether grouping  is enabled.
     internal var enableGrouping: Bool =  true
     internal var groupingIdleTime: Double =  2.0

@@ -612,6 +612,22 @@ BlueTriangle.configure { config in
    }
 ```
 
+### Hitch and Hang Detection
+
+Hitch and Hang Detection is the tracking of brief slowdowns and longer freezes in the UI during the Timer interval. A Hitch is a brief moment where the UI updates noticeably slower than usual but quickly recovers. A Hang is a much longer freeze of the app (by default, more than 750 Ms) where the UI stops responding altogether.
+
+Against each screen, Blue Triangle calculates a single responsiveness grade between 0 (best) and 100 (worst), based on the Hitches and Hangs observed during that screen.
+
+Hitch and Hang Detection is enabled by default, and is measured alongside CPU and Memory Usage above, so it also requires "isPerformanceMonitorEnabled" to be "true".
+
+To disable Hitch and Hang Detection set the following field in BlueTriangleConfiguration:
+
+```swift
+BlueTriangle.configure { config in
+       ...
+       config.isPerformanceMonitorEnabled = false
+   }
+```
 
 ### Offline Caching
 

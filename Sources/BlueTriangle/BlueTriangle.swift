@@ -200,6 +200,7 @@ final public class BlueTriangle: NSObject {
     private static let groupCaptureLock = NSLock()
     private static let networkCaptureLock = NSLock()
     private static let trackingLock = NSRecursiveLock()
+    private static let crashAndMetricKitTrackingLock = NSLock()
     private static let enableAllTrackingLock = NSLock()
     private static let appInitializeLock = NSLock()
     private static var activeTimers = [BTTimer]()
@@ -681,30 +682,43 @@ extension BlueTriangle {
         logger.info("BlueTriangle :: Launch time collection and reporting were stopped due to SDK disable.")
     }
     
-    // Starts crash tracking for both exceptions and signals
-    private static func startNsAndSignalCrashTracking(){
+    private static func startCrashAndMetricKitTracking(){
         if let crashConfig = configuration.crashTracking.configuration {
             DispatchQueue.global(qos: .utility).async {
-                if nsExeptionReporter == nil{
-                    configureCrashTracking(with: crashConfig)
-                }
-                
-                if signalCrashReporter == nil{
-                    configureSignalCrash(with: crashConfig, debugLog: configuration.enableDebugLogging)
+                crashAndMetricKitTrackingLock.sync {
+                    if nsExeptionReporter == nil{
+                        configureCrashTracking(with: crashConfig)
+                    }
+
+                    if signalCrashReporter == nil{
+                        configureSignalCrash(with: crashConfig, debugLog: configuration.enableDebugLogging)
+                    }
+
+#if os(iOS)
+                    if metricKitWatchDog == nil{
+                        configureMetricKit(with: crashConfig)
+                    }
+#endif
                 }
             }
         }
-        
+
         logger.info("BlueTriangle :: Crash tracking has started.")
     }
-    
-    // Stops crash tracking for both exceptions and signals
-    private static func stopNsAndSignalCrashTracking(){
-        nsExeptionReporter?.stop()
-        nsExeptionReporter = nil
-        signalCrashReporter?.stop()
-        signalCrashReporter = nil
-        
+
+    // Stops crash tracking for exceptions, signals, and MetricKit diagnostics
+    private static func stopCrashAndMetricKitTracking(){
+        crashAndMetricKitTrackingLock.sync {
+            nsExeptionReporter?.stop()
+            nsExeptionReporter = nil
+            signalCrashReporter?.stop()
+            signalCrashReporter = nil
+#if os(iOS)
+            metricKitWatchDog?.stop()
+            metricKitWatchDog = nil
+#endif
+        }
+
         logger.info("BlueTriangle :: Crash tracking was stopped due to SDK disable.")
     }
     
@@ -723,27 +737,6 @@ extension BlueTriangle {
         memoryWarningWatchDog = nil
 
         logger.info("BlueTriangle :: Memory warning tracking was stopped due to SDK disable.")
-    }
-
-    // Starts MetricKit diagnostic reporting if not already configured
-    private static func startMetricKit(){
-#if os(iOS)
-        if metricKitWatchDog == nil{
-            configureMetricKit(with: configuration.crashTracking == .nsException)
-        }
-
-        logger.info("BlueTriangle :: MetricKit reporting has started.")
-#endif
-    }
-
-    // Stops MetricKit diagnostic reporting
-    private static func stopMetricKit(){
-#if os(iOS)
-        metricKitWatchDog?.stop()
-        metricKitWatchDog = nil
-
-        logger.info("BlueTriangle :: MetricKit reporting was stopped due to SDK disable.")
-#endif
     }
 
     // Starts ANR tracking if not already configured
@@ -906,9 +899,16 @@ extension BlueTriangle {
     private static func startAllTrackers() {
         
         logger.info("BlueTriangle :: SDK is in enabled mode.")
-        
+
         self.startSession()
-        
+
+#if os(iOS)
+        // WebView session stitching is a separate, independently-documented feature from
+        // automatic screen tracking - its logger must not depend on `enableScreenTracking`,
+        // otherwise disabling screen tracking silently drops every stitching diagnostic message.
+        BTTWebViewTracker.logger = logger
+#endif
+
         if  BlueTriangle.configuration.enableScreenTracking {
             self.setUpSwizzling()
         }
@@ -933,27 +933,23 @@ extension BlueTriangle {
         }
         
         if  BlueTriangle.configuration.crashTracking == .nsException {
-            self.startNsAndSignalCrashTracking()
+            self.startCrashAndMetricKitTracking()
         }
-        
+
         if  BlueTriangle.configuration.enableMemoryWarning {
             self.startMemoryWarning()
         }
-        
+
         if BlueTriangle.configuration.ANRMonitoring {
             self.startANR()
         }
-        
+
         if BlueTriangle.configuration.enableTrackingNetworkState {
             self.startNetworkStatus()
         }
-        
+
         if BlueTriangle.configuration.enableLaunchTime {
             self.startLaunchTime()
-        }
-
-        if BlueTriangle.configuration.crashTracking == .nsException {
-            self.startMetricKit()
         }
     }
     
@@ -974,7 +970,7 @@ extension BlueTriangle {
         self.endSession()
         self.stopHttpNetworkCapture()
         self.stopHttpGroupedChildCapture()
-        self.stopNsAndSignalCrashTracking()
+        self.stopCrashAndMetricKitTracking()
         self.stopMemoryWarning()
         self.stopANR()
         self.stopScreenTracking()
@@ -983,7 +979,6 @@ extension BlueTriangle {
         self.stopAppForceRestartTracker()
         self.stopNetworkStatus()
         self.stopLaunchTime()
-        self.stopMetricKit()
         self.clearAllCache()
     }
 
@@ -1498,7 +1493,6 @@ extension BlueTriangle{
         
 #if os(iOS)
         BTTWebViewTracker.shouldCaptureRequests = shouldCaptureRequests
-        BTTWebViewTracker.logger = logger
         UIViewController.setUpVcSwizzling()
 #endif
     }
@@ -1574,8 +1568,9 @@ extension BlueTriangle{
 
 //MARK: - MetricKit
 extension BlueTriangle{
-    static func configureMetricKit(with enabled: Bool){
-        if enabled{
+    static func configureMetricKit(with crashConfiguration: CrashReportConfiguration){
+        switch crashConfiguration {
+        case .nsException:
 #if os(iOS)
             metricKitWatchDog = MetricKitWatchDog(
                 session: {session()},
@@ -1711,9 +1706,9 @@ extension BlueTriangle {
     internal static func updateCrashTracking(_ enabled : Bool) {
         configuration.crashTracking = enabled ? .nsException : .none
         if enabled {
-            self.startNsAndSignalCrashTracking()
+            self.startCrashAndMetricKitTracking()
         } else {
-            self.stopNsAndSignalCrashTracking()
+            self.stopCrashAndMetricKitTracking()
         }
     }
     
