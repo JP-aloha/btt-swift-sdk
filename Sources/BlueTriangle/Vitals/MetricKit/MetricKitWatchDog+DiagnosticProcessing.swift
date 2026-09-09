@@ -112,6 +112,7 @@ extension MetricKitWatchDog {
         default: return "Signal \(number)"
         }
     }
+
 }
 
 // MARK: - Crash report assembly
@@ -123,31 +124,42 @@ extension MetricKitWatchDog {
             return
         }
 
-        let (message, stackTrace, crashLocation) = crashStyleMessage(summary: crashSummary(for: diagnostic), callStackTree: diagnostic.callStackTree)
+        let (message, flattenedStackTrace, crashLocation) = crashStyleMessage(summary: crashSummary(for: diagnostic), callStackTree: diagnostic.callStackTree)
+        let stackTrace = structuredStackTrace(for: diagnostic) ?? flattenedStackTrace
 
         var extraPairs = [String]()
         if let signal = diagnostic.signal?.intValue { extraPairs.append("signal: \(signal)") }
         if let exceptionCode = diagnostic.exceptionCode?.intValue { extraPairs.append("exceptionCode: \(exceptionCode)") }
         if let exceptionType = diagnostic.exceptionType?.intValue { extraPairs.append("exceptionType: \(exceptionType)") }
-        let eMetadata = eMetadataString(diagnostic, title: crashLocation, extraPairs: extraPairs)
+        let eMeta = eMetaString(diagnostic, title: crashLocation, extraPairs: extraPairs)
 
         if let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic)) {
             uploadCrashReport(kind: .crash, sessionID: pendingCrash.sessionID, message: message, stackTrace: stackTrace,
                               pageName: pendingCrash.pageName, trafficSegment: pendingCrash.trafficSegment,
                               pageType: pendingCrash.pageType, breadcrumbs: pendingCrash.breadcrumbs,
-                              eMetadata: eMetadata, eIdentifier: crashLocation,
+                              eMeta: eMeta, eIdentifier: crashLocation,
                               session: session, timeStampBegin: timeStampBegin)
         } else if let timer = BlueTriangle.recentTimer() {
             Task {
-                await errorMetricStore.addCrash(id: timer.uuid, message: message, stackTrace: stackTrace, eMetadata: eMetadata, eIdentifier: crashLocation, breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
+                await errorMetricStore.addCrash(id: timer.uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: crashLocation, breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
             }
         } else {
             uploadCrashReport(kind: .crash, sessionID: BlueTriangle.sessionID, message: message, stackTrace: stackTrace,
                               pageName: nil, trafficSegment: nil, pageType: nil,
                               breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs(),
-                              eMetadata: eMetadata, eIdentifier: crashLocation,
+                              eMeta: eMeta, eIdentifier: crashLocation,
                               session: session, timeStampBegin: timeStampBegin)
         }
+    }
+
+    /// Structured (JSON-string) stack trace for a crash diagnostic - nil if the call stack tree
+    /// can't be decoded or has no call stacks, in which case reportCrash() falls back to the
+    /// flattened plain-text format.
+    private func structuredStackTrace(for diagnostic: MXCrashDiagnostic) -> String? {
+        guard let tree = MXCallStackTreeJSON.decode(from: diagnostic.callStackTree.jsonRepresentation()) else {
+            return nil
+        }
+        return tree.buildStructuredStackTrace()
     }
 
     private func crashSummary(for diagnostic: MXCrashDiagnostic) -> String {
@@ -173,13 +185,13 @@ extension MetricKitWatchDog {
         timeStampEnd: Date
     ) {
         let (message, stackTrace, location) = crashStyleMessage(summary: summary, callStackTree: diagnostic.callStackTree)
-        let eMetadata = eMetadataString(diagnostic, title: location, extraPairs: extraMetadataPairs)
+        let eMeta = eMetaString(diagnostic, title: location, extraPairs: extraMetadataPairs)
 
         guard isLive, let timer = BlueTriangle.recentTimer() else {
             uploadCrashReport(kind: kind, sessionID: BlueTriangle.sessionID, message: message, stackTrace: stackTrace,
                               pageName: nil, trafficSegment: nil, pageType: nil,
                               breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs(),
-                              eMetadata: eMetadata, eIdentifier: location,
+                              eMeta: eMeta, eIdentifier: location,
                               session: session, timeStampBegin: timeStampBegin)
             return
         }
@@ -187,7 +199,7 @@ extension MetricKitWatchDog {
                            uuid: timer.uuid,
                            message: message,
                            stackTrace: stackTrace,
-                           eMetadata: eMetadata,
+                           eMeta: eMeta,
                            eIdentifier: location,
                            breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
     }
@@ -212,17 +224,17 @@ extension MetricKitWatchDog {
 // MARK: - Deferred non-crash diagnostics (saved until the page they occurred on submits)
 @available(iOS 14.0, *)
 extension MetricKitWatchDog {
-    private func deferForPageSubmit(kind: MetricKitDiagnosticKind, uuid: UUID, message: String, stackTrace: String?, eMetadata: String, eIdentifier: String?, breadcrumbs: String?) {
+    private func deferForPageSubmit(kind: MetricKitDiagnosticKind, uuid: UUID, message: String, stackTrace: String?, eMeta: String, eIdentifier: String?, breadcrumbs: String?) {
         Task {
             switch kind {
             case .cpuException:
-                await errorMetricStore.addCPUException(id: uuid, message: message, stackTrace: stackTrace, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
+                await errorMetricStore.addCPUException(id: uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
             case .diskWriteException:
-                await errorMetricStore.addDiskWriteException(id: uuid, message: message, stackTrace: stackTrace, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
+                await errorMetricStore.addDiskWriteException(id: uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
             case .hang:
-                await errorMetricStore.addHang(id: uuid, message: message, stackTrace: stackTrace, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
+                await errorMetricStore.addHang(id: uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
             case .slowLaunch:
-                await errorMetricStore.addAppLaunch(id: uuid, message: message, stackTrace: stackTrace, eMetadata: eMetadata, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
+                await errorMetricStore.addAppLaunch(id: uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
             case .crash:
                 break // reportCrash() defers crash diagnostics itself, via errorMetricStore.addCrash().
             }
@@ -255,7 +267,7 @@ extension MetricKitWatchDog {
     private func uploadPendingMetric(_ metric: ErrorMetric, kind: MetricKitDiagnosticKind, pageName: String, session: Session, segment: String, pageType: String) {
         var nativeApp = NativeAppProperties.nstEmpty
         nativeApp.breadcrumbs = metric.breadcrumbs
-        nativeApp.eMetadata = metric.eMetadata
+        nativeApp.eMeta = metric.eMeta
         nativeApp.eIdentifier = metric.eIdentifier
         nativeApp.stackTrace = metric.stackTrace
         let crashReport = CrashReport(errorType: kind.errorType,
@@ -301,7 +313,7 @@ private extension MetricKitWatchDog {
 // MARK: - Shared mk_matadata assembly
 @available(iOS 14.0, *)
 private extension MetricKitWatchDog {
-    func eMetadataString(_ diagnostic: MXDiagnostic, title: String?, extraPairs: [String]) -> String {
+    func eMetaString(_ diagnostic: MXDiagnostic, title: String?, extraPairs: [String]) -> String {
         var pairs = [String]()
         if let title {
             pairs.append("title: \"\(title)\"")

@@ -51,14 +51,14 @@ extension MetricKitWatchDog {
         trafficSegment: String?,
         pageType: String?,
         breadcrumbs: String?,
-        eMetadata: String? = nil,
+        eMeta: String? = nil,
         eIdentifier: String? = nil,
         session: Session,
         timeStampBegin: Date
     ) {
         var nativeApp = NativeAppProperties.nstEmpty
         nativeApp.breadcrumbs = breadcrumbs
-        nativeApp.eMetadata = eMetadata
+        nativeApp.eMeta = eMeta
         nativeApp.eIdentifier = eIdentifier
         nativeApp.stackTrace = stackTrace
         let event = kind.event

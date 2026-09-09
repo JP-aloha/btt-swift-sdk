@@ -70,7 +70,7 @@ struct NativeAppProperties: Equatable {
     var deviceModel : String = Device.model
     var netStateSource : String = BlueTriangle.networkStateMonitor?.networkSource.value?.description ?? ""
     /// Set only for MetricKit crash diagnostics - see MetricKitWatchDog+DiagnosticProcessing.reportCrash().
-    var eMetadata: String?
+    var eMeta: String?
     /// Set only for MetricKit crash diagnostics - see MetricKitWatchDog+DiagnosticProcessing.reportCrash().
     var eIdentifier: String?
     /// Set only for MetricKit diagnostics - the call stack, split off of the message's first two lines.
@@ -193,8 +193,8 @@ extension NativeAppProperties: Codable{
             try con.encode(configKey, forKey: .configKey)
         }
 
-        if let eMetadata = eMetadata, !eMetadata.isEmpty {
-            try con.encode(eMetadata, forKey: .eMetadata)
+        if let eMeta = eMeta, !eMeta.isEmpty {
+            try con.encode(eMeta, forKey: .eMeta)
         }
 
         if let eIdentifier = eIdentifier, !eIdentifier.isEmpty {
@@ -249,7 +249,7 @@ extension NativeAppProperties: Codable{
         self.breadcrumbs = try container.decodeIfPresent(String.self, forKey: .breadcrumbs).flatMap { $0.isEmpty ? nil : $0 }
         self.installTime = try container.decodeIfPresent(Millisecond.self, forKey: .installTime)  ?? 0
         self.configKey = try container.decodeIfPresent(String.self, forKey: .configKey).flatMap { $0.isEmpty ? nil : $0 }
-        self.eMetadata = try container.decodeIfPresent(String.self, forKey: .eMetadata)
+        self.eMeta = try container.decodeIfPresent(String.self, forKey: .eMeta)
         self.eIdentifier = try container.decodeIfPresent(String.self, forKey: .eIdentifier)
         self.stackTrace = try container.decodeIfPresent(String.self, forKey: .stackTrace)
     }
@@ -290,7 +290,7 @@ extension NativeAppProperties: Codable{
         case breadcrumbs
         case installTime
         case configKey
-        case eMetadata
+        case eMeta
         case eIdentifier
         case stackTrace
     }

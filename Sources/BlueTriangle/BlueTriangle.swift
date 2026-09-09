@@ -1396,27 +1396,31 @@ public extension BlueTriangle {
         function: StaticString = #function,
         line: UInt = #line
     ) {
-        nsExeptionReporter?.uploadError(error, file: file, function: function, line: line)
+        nsExeptionReporter?.uploadError(error, stackTrace: nil, file: file, function: function, line: line)
     }
 
     /// Reports an error the host app has already caught, for external reporting from its own error/crash
     /// handling.
     ///
-    /// - Parameter isFatal: `false` (the default `logError` behavior) uploads immediately. `true` saves
-    ///   the current session/page/breadcrumb context and reports it on the app's *next* launch instead -
-    ///   matching how a real crash is handled, since the process may not survive long enough for a
-    ///   network request started now to complete.
+    /// - Parameters:
+    ///   - isFatal: `false` (the default `logError` behavior) uploads immediately. `true` saves
+    ///     the current session/page/breadcrumb context and reports it on the app's *next* launch instead -
+    ///     matching how a real crash is handled, since the process may not survive long enough for a
+    ///     network request started now to complete.
+    ///   - stackTrace: A caller-supplied stack trace string (e.g. from the host app's own crash
+    ///     reporter), sent as-is in `NATIVEAPP.stackTrace`. `nil` by default.
     static func logError<E: Error>(
         _ error: E,
         isFatal: Bool = false,
+        stackTrace: String? = nil,
         file: StaticString = #fileID,
         function: StaticString = #function,
         line: UInt = #line
     ) {
         if isFatal {
-            nsExeptionReporter?.logFatalError(error, file: file, function: function, line: line)
+            nsExeptionReporter?.logFatalError(error, stackTrace: stackTrace, file: file, function: function, line: line)
         } else {
-            nsExeptionReporter?.uploadError(error, file: file, function: function, line: line)
+            nsExeptionReporter?.uploadError(error, stackTrace: stackTrace, file: file, function: function, line: line)
         }
     }
 }

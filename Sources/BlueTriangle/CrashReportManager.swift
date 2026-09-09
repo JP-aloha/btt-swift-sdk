@@ -86,6 +86,7 @@ final class CrashReportManager: CrashReportManaging {
 
     func logFatalError<E: Error>(
         _ error: E,
+        stackTrace: String?,
         file: StaticString,
         function: StaticString,
         line: UInt
@@ -94,18 +95,21 @@ final class CrashReportManager: CrashReportManaging {
         let fatalErrorSignpost = SignpostLogger(category: "\(BlueTriangle.sessionID) + \(timer?.getPageName() ?? "Unknown")")
         fatalErrorSignpost.begin(name: Constants.externalFatalErrorSignpostName)
         fatalErrorSignpost.end(name: Constants.externalFatalErrorSignpostName)
+        var nativeApp = CrashReportPersistence.nativeAppProperties()
+        nativeApp.stackTrace = stackTrace
         let crashReport = CrashReport(sessionID: BlueTriangle.sessionID,
                                       message: String(describing: error),
                                       pageName: timer?.getPageName(),
                                       segment: timer?.getTrafficSegment(),
                                       pageType: timer?.page.pageType,
-                                      nativeApp: CrashReportPersistence.nativeAppProperties(),
+                                      nativeApp: nativeApp,
                                       intervalProvider: intervalProvider())
         PendingCrashRecordStore.save(crashReport, key: .pendingFatalErrorRecord)
     }
 
     func uploadError<E: Error>(
         _ error: E,
+        stackTrace: String?,
         file: StaticString,
         function: StaticString,
         line: UInt
@@ -113,17 +117,18 @@ final class CrashReportManager: CrashReportManaging {
         guard let session = session() else {
             return
         }
-        
+
         do {
             if let timer = BlueTriangle.recentTimer() {
                 let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
                 Task {
-                    let message =  String(describing: error)
-                    await errorMetricStore.addError(id: timer.uuid, message: message, line: line, breadcrumbs: breadcrumbs)
+                    let message = String(describing: error)
+                    await errorMetricStore.addError(id: timer.uuid, message: message, line: line, breadcrumbs: breadcrumbs, stackTrace: stackTrace)
                 }
             } else {
                 var nativeApp = NativeAppProperties.nstEmpty
                 nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
+                nativeApp.stackTrace = stackTrace
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error, line: line, time: intervalProvider().milliseconds)
                 let event = BTTEvents.iOSCrash
                 try upload(session:session , report: report, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
@@ -133,16 +138,17 @@ final class CrashReportManager: CrashReportManaging {
             logger.error(error.localizedDescription)
         }
     }
-    
+
     func uploadErrorForPage(pageName: String, uuid: UUID, segment : String, pageType : String) {
         Task {
             do {
                 guard let session = self.session(), let errorMetric = await self.errorMetricStore.flushError(id: uuid) else {
                     return
                 }
-                
+
                 var nativeApp = NativeAppProperties.nstEmpty
                 nativeApp.breadcrumbs = errorMetric.breadcrumbs
+                nativeApp.stackTrace = errorMetric.stackTrace
                 let event = BTTEvents.iOSCrash
                 let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: errorMetric.message])
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error , line: errorMetric.line, time: errorMetric.time.milliseconds, eCnt: errorMetric.eCount)

@@ -109,7 +109,7 @@ final class CrashReportManagerTests: XCTestCase {
             intervalProvider: { expectedErrorStart }
         )
 
-        sut.uploadError(TestError(), file: #file, function: #function, line: #line)
+        sut.uploadError(TestError(), stackTrace: nil, file: #file, function: #function, line: #line)
         wait(for: [uploadExpectation], timeout: 1.0)
 
         let actualTimer = try JSONDecoder().decode(TimerRequest.self, from: timerRequest.body!.base64DecodedData()!)
@@ -141,7 +141,7 @@ final class CrashReportManagerTests: XCTestCase {
             intervalProvider: { expectedErrorStart }
         )
 
-        sut.uploadError(TestError(), file: #file, function: #function, line: #line)
+        sut.uploadError(TestError(), stackTrace: nil, file: #file, function: #function, line: #line)
         wait(for: [uploadExpectation], timeout: 1.0)
 
         let actualReport = try JSONDecoder().decode([ErrorReport].self,from: errorRequest.body!.base64DecodedData()!).first!
