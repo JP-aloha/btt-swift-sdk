@@ -1459,6 +1459,7 @@ extension BlueTriangle {
             let pageType = BlueTriangle.recentTimer()?.page.pageType ?? session.pageType
             var nativeApp = NativeAppProperties.nstEmpty
             nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
+            nativeApp.eMeta = EMetaBuilder.build(source: .nsException, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
             let crashReport = CrashReport(sessionID: sessionID, exception: exception, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp)
             PendingCrashRecordStore.save(crashReport, key: .pendingFatalErrorRecord)
         }

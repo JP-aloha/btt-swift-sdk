@@ -69,23 +69,23 @@ extension MetricKitWatchDog {
 @available(iOS 14.0, *)
 extension MetricKitWatchDog {
     func cpuExceptionSummary(for diagnostic: MXCPUExceptionDiagnostic) -> String {
-        "Excessive CPU usage detected, indicating that the app is consuming more CPU resources than expected, identified by Matric Kit"
+        "Excessive CPU usage detected, indicating that the app is consuming more CPU resources than expected."
     }
 
     func diskWriteSummary(for diagnostic: MXDiskWriteExceptionDiagnostic) -> String {
-        "App encountered an excessive disk write exception, identified through Matric Kit"
+        "App encountered an excessive disk write exception."
     }
 
     private static let hangThresholdMilliseconds = 750
 
     @available(iOS 15.0, *)
     func hangSummary(for diagnostic: MXHangDiagnostic) -> String {
-        "Potential app hang detected due to prolonged blocking of the main thread, identified by Matric Kit"
+        "Potential app hang detected due to prolonged blocking of the main thread."
     }
 
     @available(iOS 16.0, *)
     func appLaunchSummary(for diagnostic: MXAppLaunchDiagnostic) -> String {
-        "Slow app launch detected, indicating that the app took longer than expected to launch, detected through Matric Kit"
+        "Slow app launch detected, indicating that the app took longer than expected to launch"
     }
 
     func crashTitle(for diagnostic: MXCrashDiagnostic) -> String {
@@ -131,7 +131,7 @@ extension MetricKitWatchDog {
         if let signal = diagnostic.signal?.intValue { extraPairs.append("signal: \(signal)") }
         if let exceptionCode = diagnostic.exceptionCode?.intValue { extraPairs.append("exceptionCode: \(exceptionCode)") }
         if let exceptionType = diagnostic.exceptionType?.intValue { extraPairs.append("exceptionType: \(exceptionType)") }
-        let eMeta = eMetaString(diagnostic, title: crashLocation, extraPairs: extraPairs)
+        let eMeta = eMetaString(diagnostic, extraPairs: extraPairs)
 
         if let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic)) {
             uploadCrashReport(kind: .crash, sessionID: pendingCrash.sessionID, message: message, stackTrace: stackTrace,
@@ -163,11 +163,27 @@ extension MetricKitWatchDog {
     }
 
     private func crashSummary(for diagnostic: MXCrashDiagnostic) -> String {
-        let signo = diagnostic.signal?.intValue ?? 0
-        let signalLabel = signalName(signo) ?? "Crash"
-        let errno = diagnostic.exceptionCode?.intValue ?? 0
-        let sigCode = diagnostic.exceptionType?.intValue ?? 0
-        return "App crashed with \(signalLabel), signo: \(signo), errno: \(errno), signal code: \(sigCode), identified through Matric Kit"
+        let signalLabel = signalName(diagnostic.signal?.intValue) ?? "an unknown signal"
+        let exceptionLabel = exceptionTypeName(diagnostic.exceptionType?.intValue) ?? "an unknown exception"
+        return "App crashed with \(exceptionLabel) (\(signalLabel))."
+    }
+
+    /// Mach exception type (`<mach/exception_types.h>`), not the POSIX signal - this is what a
+    /// standard crash log's "Exception Type" line names (e.g. EXC_BAD_ACCESS for a SIGSEGV).
+    private func exceptionTypeName(_ number: Int?) -> String? {
+        guard let number else { return nil }
+        switch number {
+        case 1: return "EXC_BAD_ACCESS"
+        case 2: return "EXC_BAD_INSTRUCTION"
+        case 3: return "EXC_ARITHMETIC"
+        case 4: return "EXC_EMULATION"
+        case 5: return "EXC_SOFTWARE"
+        case 6: return "EXC_BREAKPOINT"
+        case 10: return "EXC_CRASH"
+        case 11: return "EXC_RESOURCE"
+        case 12: return "EXC_GUARD"
+        default: return "Exception \(number)"
+        }
     }
 }
 
@@ -185,7 +201,7 @@ extension MetricKitWatchDog {
         timeStampEnd: Date
     ) {
         let (message, stackTrace, location) = crashStyleMessage(summary: summary, callStackTree: diagnostic.callStackTree)
-        let eMeta = eMetaString(diagnostic, title: location, extraPairs: extraMetadataPairs)
+        let eMeta = eMetaString(diagnostic, extraPairs: extraMetadataPairs)
 
         guard isLive, let timer = BlueTriangle.recentTimer() else {
             uploadCrashReport(kind: kind, sessionID: BlueTriangle.sessionID, message: message, stackTrace: stackTrace,
@@ -313,23 +329,18 @@ private extension MetricKitWatchDog {
 // MARK: - Shared mk_matadata assembly
 @available(iOS 14.0, *)
 private extension MetricKitWatchDog {
-    func eMetaString(_ diagnostic: MXDiagnostic, title: String?, extraPairs: [String]) -> String {
-        var pairs = [String]()
-        if let title {
-            pairs.append("title: \"\(title)\"")
-        }
-        pairs.append(contentsOf: extraPairs)
-        pairs.append("appVersion: \"\(diagnostic.applicationVersion)\"")
-        pairs.append("appBuildVersion: \"\(diagnostic.metaData.applicationBuildVersion)\"")
-        pairs.append("osVersion: \"\(diagnostic.metaData.osVersion)\"")
-        pairs.append("deviceType: \"\(diagnostic.metaData.deviceType)\"")
-        pairs.append("platformArchitecture: \"\(diagnostic.metaData.platformArchitecture)\"")
-        pairs.append("regionFormat: \"\(diagnostic.metaData.regionFormat)\"")
+    func eMetaString(_ diagnostic: MXDiagnostic, extraPairs: [String]) -> String {
+        var allExtraPairs = extraPairs
+        allExtraPairs.append("regionFormat: \"\(diagnostic.metaData.regionFormat)\"")
         if #available(iOS 17.0, *) {
-            pairs.append("isTestFlightApp: \(diagnostic.metaData.isTestFlightApp)")
-            pairs.append("lowPowerModeEnabled: \(diagnostic.metaData.lowPowerModeEnabled)")
+            allExtraPairs.append("isTestFlightApp: \(diagnostic.metaData.isTestFlightApp)")
+            allExtraPairs.append("lowPowerModeEnabled: \(diagnostic.metaData.lowPowerModeEnabled)")
         }
-        return "[\(pairs.joined(separator: ", "))]"
+        return EMetaBuilder.build(
+            source: .metricKit,
+            build: diagnostic.metaData.applicationBuildVersion,
+            arch: diagnostic.metaData.platformArchitecture,
+            extraPairs: allExtraPairs)
     }
 }
 #endif

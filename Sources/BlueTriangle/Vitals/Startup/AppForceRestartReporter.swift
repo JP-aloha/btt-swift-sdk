@@ -40,6 +40,7 @@ extension AppForceRestartReporter {
                 let event = BTTEvents.forceRestart
                 var nativeApp = NativeAppProperties.nstEmpty
                 nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
+                nativeApp.eMeta = EMetaBuilder.build(source: .forceRestart, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
                 let report = CrashReport(sessionID: BlueTriangle.sessionID, forceRestartMessage: message, eCount: 1, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp)
                 let reportRequest = try self.makeForceRestartReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)

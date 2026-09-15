@@ -97,6 +97,7 @@ final class CrashReportManager: CrashReportManaging {
         fatalErrorSignpost.end(name: Constants.externalFatalErrorSignpostName)
         var nativeApp = CrashReportPersistence.nativeAppProperties()
         nativeApp.stackTrace = stackTrace
+        nativeApp.eMeta = EMetaBuilder.build(source: .externalError, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
         let crashReport = CrashReport(sessionID: BlueTriangle.sessionID,
                                       message: String(describing: error),
                                       pageName: timer?.getPageName(),
@@ -119,16 +120,18 @@ final class CrashReportManager: CrashReportManaging {
         }
 
         do {
+            let eMeta = EMetaBuilder.build(source: .externalError, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
             if let timer = BlueTriangle.recentTimer() {
                 let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
                 Task {
                     let message = String(describing: error)
-                    await errorMetricStore.addError(id: timer.uuid, message: message, line: line, breadcrumbs: breadcrumbs, stackTrace: stackTrace)
+                    await errorMetricStore.addError(id: timer.uuid, message: message, line: line, breadcrumbs: breadcrumbs, stackTrace: stackTrace, eMeta: eMeta)
                 }
             } else {
                 var nativeApp = NativeAppProperties.nstEmpty
                 nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
                 nativeApp.stackTrace = stackTrace
+                nativeApp.eMeta = eMeta
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error, line: line, time: intervalProvider().milliseconds)
                 let event = BTTEvents.iOSCrash
                 try upload(session:session , report: report, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
@@ -149,6 +152,7 @@ final class CrashReportManager: CrashReportManaging {
                 var nativeApp = NativeAppProperties.nstEmpty
                 nativeApp.breadcrumbs = errorMetric.breadcrumbs
                 nativeApp.stackTrace = errorMetric.stackTrace
+                nativeApp.eMeta = errorMetric.eMeta
                 let event = BTTEvents.iOSCrash
                 let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: errorMetric.message])
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error , line: errorMetric.line, time: errorMetric.time.milliseconds, eCnt: errorMetric.eCount)

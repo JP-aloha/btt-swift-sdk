@@ -55,13 +55,14 @@ public actor ErrorMetricStore {
         }
     }
 
-    func addError(id: UUID, message: String, line: UInt = 1, breadcrumbs: String?, stackTrace: String? = nil) {
+    func addError(id: UUID, message: String, line: UInt = 1, breadcrumbs: String?, stackTrace: String? = nil, eMeta: String? = nil) {
         if let current = errors[id] {
             errors[id] = ErrorMetric(
                 message: current.message,
                 eCount: current.eCount + 1,
                 line: line,
                 breadcrumbs: breadcrumbs,
+                eMeta: current.eMeta,
                 stackTrace: current.stackTrace
             )
         } else {
@@ -70,6 +71,7 @@ public actor ErrorMetricStore {
                 eCount: 1,
                 line: line,
                 breadcrumbs: breadcrumbs,
+                eMeta: eMeta,
                 stackTrace: stackTrace
             )
         }

@@ -119,6 +119,7 @@ An task blocking main thread since \(self.errorTriggerInterval) seconds
             let event = BTTEvents.memoryWarning
             var nativeApp = NativeAppProperties.nstEmpty
             nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
+            nativeApp.eMeta = EMetaBuilder.build(source: .anrWatchDog, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
             let report = CrashReport(sessionID: BlueTriangle.sessionID, ANRmessage: message, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, nativeApp: nativeApp)
             uploadReports(session: session, report: report, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
         }
@@ -154,6 +155,7 @@ An task blocking main thread since \(self.errorTriggerInterval) seconds
                 let event = BTTEvents.anrWarning
                 var nativeApp = NativeAppProperties.nstEmpty
                 nativeApp.breadcrumbs = errorMetric.breadcrumbs
+                nativeApp.eMeta = EMetaBuilder.build(source: .anrWatchDog, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
                 let report = CrashReport(sessionID: BlueTriangle.sessionID, ANRmessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: errorMetric.time)
                 let reportRequest = try self.makeCrashReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
