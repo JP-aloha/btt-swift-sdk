@@ -47,6 +47,7 @@ final public class BTTimer: NSObject, @unchecked Sendable {
     private let responsivenessTracker: ResponsivenessTracking?
     private var networkAccumulator : BTTimerNetStateAccumulatorProtocol?
     private var nativeAppProp : NativeAppProperties?
+    private var event: BTTEvent?
     
     @objc internal var isGroupTimer: Bool = false
     
@@ -92,6 +93,14 @@ final public class BTTimer: NSObject, @unchecked Sendable {
     
     @objc public func setTrafficSegment(_ trafficSegment: String) { lock.sync { trafficSegmentName = trafficSegment }}
     @objc public func getTrafficSegment() -> String { lock.sync { trafficSegmentName } }
+
+    func setEvent(_ event: BTTEvent) { lock.sync { self.event = event } }
+    func getEvent() -> BTTEvent? {
+        lock.sync {
+            defer { event = nil }
+            return event
+        }
+    }
 
     var pageTimeInterval: PageTimeInterval {
         PageTimeInterval(

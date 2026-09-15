@@ -122,6 +122,7 @@ final class CrashReportManager: CrashReportManaging {
         do {
             let eMeta = EMetaBuilder.build(source: .externalError, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
             if let timer = BlueTriangle.recentTimer() {
+                timer.setEvent(BTTEvents.iOSCrash)
                 let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
                 Task {
                     let message = String(describing: error)
@@ -175,7 +176,7 @@ private extension CrashReportManager {
         let timer = PageTimeInterval(startTime: report.time, interactiveTime: 0, pageTime: Constants.minPgTm)
         var nativeProperty =  report.nativeApp.copy(.Regular)
         nativeProperty.breadcrumbs = nil
-        if  pageName == nil { nativeProperty.eventId = event.id }
+        nativeProperty.eventId = event.id
         let customMetrics = session.customVarriables(logger: logger)
         let model = TimerRequest(session: session,
                                  page: page,

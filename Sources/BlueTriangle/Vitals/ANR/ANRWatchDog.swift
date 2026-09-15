@@ -111,12 +111,13 @@ Potential ANR Detected
 An task blocking main thread since \(self.errorTriggerInterval) seconds
 """
         if let timer = BlueTriangle.recentTimer() {
+            timer.setEvent(BTTEvents.anrWarning)
             let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             Task {
                 await errorMetricStore.addAnrError(id: timer.uuid, message: message, breadcrumbs: breadcrumbs)
             }
         } else {
-            let event = BTTEvents.memoryWarning
+            let event = BTTEvents.anrWarning
             var nativeApp = NativeAppProperties.nstEmpty
             nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             nativeApp.eMeta = EMetaBuilder.build(source: .anrWatchDog, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)

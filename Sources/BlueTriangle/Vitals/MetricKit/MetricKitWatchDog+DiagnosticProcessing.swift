@@ -140,6 +140,7 @@ extension MetricKitWatchDog {
                               eMeta: eMeta, eIdentifier: crashLocation,
                               session: session, timeStampBegin: timeStampBegin)
         } else if let timer = BlueTriangle.recentTimer() {
+            timer.setEvent(BTTEvents.iOSCrash)
             Task {
                 await errorMetricStore.addCrash(id: timer.uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: crashLocation, breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
             }
@@ -211,6 +212,7 @@ extension MetricKitWatchDog {
                               session: session, timeStampBegin: timeStampBegin)
             return
         }
+        timer.setEvent(kind.event)
         deferForPageSubmit(kind: kind,
                            uuid: timer.uuid,
                            message: message,

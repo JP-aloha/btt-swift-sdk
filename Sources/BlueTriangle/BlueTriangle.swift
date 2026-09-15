@@ -1069,6 +1069,9 @@ public extension BlueTriangle {
         
         if let session = session(), timer.enableAllTracking {
             purchaseConfirmation?.orderTime = timer.endTime
+            if let event = timer.getEvent() {
+                timer.nativeAppProperties.eventId = event.id
+            }
             let request: Request
             lock.lock()
             do {

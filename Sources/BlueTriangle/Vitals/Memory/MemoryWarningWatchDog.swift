@@ -46,6 +46,7 @@ class MemoryWarningWatchDog {
         let message = formatedMemoryWarningMessage()
 
         if let timer = BlueTriangle.recentTimer() {
+            timer.setEvent(BTTEvents.memoryWarning)
             let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             Task {
                 await self.errorMetricStore.addMemoryWarning(id: timer.uuid, message: message, breadcrumbs: breadcrumbs)
