@@ -27,9 +27,9 @@ internal struct BTTEvents {
         defaultPageName: BTTEventDefaultPageName.memoryWarning.rawValue
     )
 
-    static let iOSCrash = BTTEvent(
-        id: BTTEventId.iOSCrash.rawValue,
-        defaultPageName: BTTEventDefaultPageName.iOSCrash.rawValue
+    static let nativeAppCrash = BTTEvent(
+        id: BTTEventId.nativeAppCrash.rawValue,
+        defaultPageName: BTTEventDefaultPageName.nativeAppCrash.rawValue
     )
     
     static let appInstall = BTTEvent(
@@ -68,7 +68,7 @@ internal enum BTTEventDefaultPageName : String {
     case hotLaunchPage       = "HotLaunchTime"
     case anrWarning          = "ANRWarning"
     case memoryWarning       = "MemoryWarning"
-    case iOSCrash            = "iOS Crash"
+    case nativeAppCrash      = "NativeAppCrash"
     case appInstall          = "AppInstall"
     case forceRestart        = "ForceRestart"
     case cpuException        = "ExcessCPUUsage"
@@ -81,7 +81,7 @@ internal enum BTTEventId: String {
     case hotLaunch     = "3"
     case anrWarning    = "4"
     case memoryWarning = "5"
-    case iOSCrash      = "6"
+    case nativeAppCrash = "6"
     case appInstall    = "8"
     case forceRestart  = "9"
     case cpuException       = "10"

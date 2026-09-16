@@ -24,7 +24,7 @@ enum MetricKitDiagnosticKind {
 
     var event: BTTEvent {
         switch self {
-        case .crash: return BTTEvents.iOSCrash
+        case .crash: return BTTEvents.nativeAppCrash
         case .cpuException: return BTTEvents.cpuException
         case .diskWriteException: return BTTEvents.diskWriteException
         case .hang: return BTTEvents.anrWarning
