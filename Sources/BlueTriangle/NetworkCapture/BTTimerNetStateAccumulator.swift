@@ -69,7 +69,8 @@ class BTTimerNetStateAccumulator  : BTTimerNetStateAccumulatorProtocol {
     }
 
     func makeReport() -> NetworkReport{
-        lock.sync { self.updateStopWatch(monitor.state.value) }
+        self.stop()
+        
         let netSource = networkSource.joined(separator: "|")
         let netStateData = self.getNetState()
         
