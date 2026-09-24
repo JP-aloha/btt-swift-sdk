@@ -54,10 +54,10 @@ extension MXCallStackTreeJSON {
             frame = next
         }
 
-        if let appBinaryName, let appFrame = chain.reversed().first(where: { $0.binaryName == appBinaryName }) {
+        if let appBinaryName, let appFrame = chain.first(where: { $0.binaryName == appBinaryName }) {
             return appFrame
         }
-        return chain.last
+        return chain.first
     }
 }
 
@@ -71,8 +71,11 @@ extension MXCallStackTreeJSON.Frame {
 }
 
 private extension MXCallStackTreeJSON.Frame {
+    /// `callStackRootFrames` is the crashed/current frame itself, and each frame's `subFrames` walks
+    /// *outward* toward its caller, ending at thread entry (dyld/main) - so putting `self` first and
+    /// recursing after is what puts the actual crash frame at index 0.
     func flattenedDeepestFirst() -> [MXCallStackTreeJSON.Frame] {
-        (subFrames ?? []).flatMap { $0.flattenedDeepestFirst() } + [self]
+        [self] + (subFrames ?? []).flatMap { $0.flattenedDeepestFirst() }
     }
 
     func formattedFrameLine(index: Int) -> String {
