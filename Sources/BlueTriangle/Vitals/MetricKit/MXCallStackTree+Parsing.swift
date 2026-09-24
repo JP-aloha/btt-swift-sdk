@@ -44,6 +44,9 @@ extension MXCallStackTreeJSON {
         return lines.joined(separator: "\n")
     }
 
+    /// Walks from the deepest/actual crash frame outward toward its caller, and returns the first
+    /// (deepest) frame in that chain that belongs to the app's own binary - not a system/framework
+    /// frame, and not a later app frame further up the chain either.
     func crashedThreadFrame(preferringBinaryNamed appBinaryName: String?) -> Frame? {
         let stack = callStacks.first(where: { $0.threadAttributed == true }) ?? callStacks.first
         guard var frame = stack?.callStackRootFrames.first else { return nil }

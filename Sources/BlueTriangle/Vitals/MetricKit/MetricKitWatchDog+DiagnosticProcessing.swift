@@ -310,11 +310,11 @@ private extension MetricKitWatchDog {
     func crashStyleMessage(summary: String, callStackTree: MXCallStackTree) -> (message: String, stackTrace: String?, location: String?) {
         let appBinaryName = Bundle.main.infoDictionary?["CFBundleExecutable"] as? String
         let tree = MXCallStackTreeJSON.decode(from: callStackTree.jsonRepresentation())
-        let location = tree?.crashedThreadFrame(preferringBinaryNamed: appBinaryName)?.formattedCrashLocation()
+        let crashLocation = tree?.crashedThreadFrame(preferringBinaryNamed: appBinaryName)?.formattedCrashLocation()
 
         var messageLines = [summary]
-        if let location {
-            messageLines.append(location)
+        if let crashLocation {
+            messageLines.append(crashLocation)
         }
         let message = messageLines.joined(separator: "\n")
 
@@ -324,7 +324,7 @@ private extension MetricKitWatchDog {
             .filter { !$0.isEmpty }
             .joined(separator: Constants.crashReportLineSeparator)
 
-        return (message, stackTrace.isEmpty ? nil : stackTrace, location)
+        return (message, stackTrace.isEmpty ? nil : stackTrace, crashLocation)
     }
 }
 
