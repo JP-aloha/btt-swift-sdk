@@ -56,6 +56,7 @@ class SessionManager : SessionManagerProtocol{
     private var foregroundObserver: NSObjectProtocol?
     private var backgroundObserver: NSObjectProtocol?
     private var orientationObserver: NSObjectProtocol?
+    private var lastOrientation: String?
     private var keyboardShowObserver: NSObjectProtocol?
     private var keyboardHideObserver: NSObjectProtocol?
     
@@ -281,16 +282,19 @@ extension SessionManager {
             queue: nil
         ) { _ in
             let orientation = UIDevice.current.orientation
-            var orientationString = Constants.Breadcrums.Orientation.unknown
+            let orientationString: String?
             switch orientation {
             case .portrait, .portraitUpsideDown:
                 orientationString = Constants.Breadcrums.Orientation.portrait
             case .landscapeLeft, .landscapeRight:
                 orientationString = Constants.Breadcrums.Orientation.landscape
             default:
-                break
+                orientationString = nil
             }
-            BlueTriangle.collectBreadcrumb(AppSystemEvent(event: orientationString, eventType: Constants.Breadcrums.Orientation.className))
+            if let orientationString = orientationString, orientationString != self.lastOrientation {
+                self.lastOrientation = orientationString
+                BlueTriangle.collectBreadcrumb(AppSystemEvent(event: orientationString, eventType: Constants.Breadcrums.Orientation.className))
+            }
         }
         
         keyboardShowObserver = NotificationCenter.default.addObserver(

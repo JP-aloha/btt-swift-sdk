@@ -30,7 +30,6 @@ enum Constants {
             static let className = "orientation"
             static let portrait = "portrait"
             static let landscape = "landscape"
-            static let unknown = "unknown"
         }
         
         enum Keyboard {
