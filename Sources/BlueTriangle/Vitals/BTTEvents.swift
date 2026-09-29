@@ -42,19 +42,19 @@ internal struct BTTEvents {
         defaultPageName: BTTEventDefaultPageName.forceRestart.rawValue
     )
 
-    static let cpuException = BTTEvent(
-        id: BTTEventId.cpuException.rawValue,
-        defaultPageName: BTTEventDefaultPageName.cpuException.rawValue
+    static let excessCPUUsage = BTTEvent(
+        id: BTTEventId.excessCPUUsage.rawValue,
+        defaultPageName: BTTEventDefaultPageName.excessCPUUsage.rawValue
     )
 
-    static let diskWriteException = BTTEvent(
-        id: BTTEventId.diskWriteException.rawValue,
-        defaultPageName: BTTEventDefaultPageName.diskWriteException.rawValue
+    static let heavyDiskWrite = BTTEvent(
+        id: BTTEventId.heavyDiskWrite.rawValue,
+        defaultPageName: BTTEventDefaultPageName.heavyDiskWrite.rawValue
     )
 
-    static let slowAppLaunch = BTTEvent(
-        id: BTTEventId.appLaunch.rawValue,
-        defaultPageName: BTTEventDefaultPageName.slowAppLaunch.rawValue
+    static let slowLaunch = BTTEvent(
+        id: BTTEventId.slowLaunch.rawValue,
+        defaultPageName: BTTEventDefaultPageName.slowLaunch.rawValue
     )
 }
 
@@ -71,9 +71,9 @@ internal enum BTTEventDefaultPageName : String {
     case nativeAppCrash      = "NativeAppCrash"
     case appInstall          = "AppInstall"
     case forceRestart        = "ForceRestart"
-    case cpuException        = "ExcessCPUUsage"
-    case diskWriteException  = "HeavyDiskWrite"
-    case slowAppLaunch       = "SlowLaunch"
+    case excessCPUUsage      = "ExcessCPUUsage"
+    case heavyDiskWrite      = "HeavyDiskWrite"
+    case slowLaunch          = "SlowLaunch"
 }
 
 internal enum BTTEventId: String {
@@ -83,8 +83,8 @@ internal enum BTTEventId: String {
     case memoryWarning = "5"
     case nativeAppCrash = "6"
     case appInstall    = "8"
-    case forceRestart  = "9"
-    case cpuException       = "10"
-    case diskWriteException = "11"
-    case appLaunch          = "12"
+    case forceRestart  = "15"
+    case excessCPUUsage = "16"
+    case heavyDiskWrite = "17"
+    case slowLaunch     = "18"
 }

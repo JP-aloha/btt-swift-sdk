@@ -7,16 +7,16 @@
 #if os(iOS)
 enum MetricKitDiagnosticKind {
     case crash
-    case cpuException
-    case diskWriteException
+    case excessCPUUsage
+    case heavyDiskWrite
     case hang
     case slowLaunch
 
     var errorType: BT_ErrorType {
         switch self {
         case .crash: return .NativeAppCrash
-        case .cpuException: return .ExcessCPUUsage
-        case .diskWriteException: return .HeavyDiskWrite
+        case .excessCPUUsage: return .ExcessCPUUsage
+        case .heavyDiskWrite: return .HeavyDiskWrite
         case .hang: return .ANRWarning
         case .slowLaunch: return .SlowLaunch
         }
@@ -25,10 +25,10 @@ enum MetricKitDiagnosticKind {
     var event: BTTEvent {
         switch self {
         case .crash: return BTTEvents.nativeAppCrash
-        case .cpuException: return BTTEvents.cpuException
-        case .diskWriteException: return BTTEvents.diskWriteException
+        case .excessCPUUsage: return BTTEvents.excessCPUUsage
+        case .heavyDiskWrite: return BTTEvents.heavyDiskWrite
         case .hang: return BTTEvents.anrWarning
-        case .slowLaunch: return BTTEvents.slowAppLaunch
+        case .slowLaunch: return BTTEvents.slowLaunch
         }
     }
 }

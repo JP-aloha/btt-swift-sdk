@@ -43,11 +43,11 @@ extension MetricKitWatchDog {
                     "totalCPUTime: \"\(measurementFormatter.string(from: $0.totalCPUTime))\"",
                     "totalSampledTime: \"\(measurementFormatter.string(from: $0.totalSampledTime))\""
                 ]
-                reportOrDefer($0, kind: .cpuException, summary: cpuExceptionSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
+                reportOrDefer($0, kind: .excessCPUUsage, summary: cpuExceptionSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
             }
             payload.diskWriteExceptionDiagnostics?.forEach {
                 let extraPairs = ["writesCaused: \"\(measurementFormatter.string(from: $0.totalWritesCaused))\""]
-                reportOrDefer($0, kind: .diskWriteException, summary: diskWriteSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
+                reportOrDefer($0, kind: .heavyDiskWrite, summary: diskWriteSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
             }
             if #available(iOS 15.0, *) {
                 payload.hangDiagnostics?.forEach {
@@ -245,9 +245,9 @@ extension MetricKitWatchDog {
     private func deferForPageSubmit(kind: MetricKitDiagnosticKind, uuid: UUID, message: String, stackTrace: String?, eMeta: String, eIdentifier: String?, breadcrumbs: String?) {
         Task {
             switch kind {
-            case .cpuException:
+            case .excessCPUUsage:
                 await errorMetricStore.addCPUException(id: uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
-            case .diskWriteException:
+            case .heavyDiskWrite:
                 await errorMetricStore.addDiskWriteException(id: uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
             case .hang:
                 await errorMetricStore.addHang(id: uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: eIdentifier, breadcrumbs: breadcrumbs)
@@ -271,10 +271,10 @@ extension MetricKitWatchDog {
                 uploadPendingMetric(metric, kind: .hang, pageName: pageName, session: session, segment: segment, pageType: pageType)
             }
             if let metric = await errorMetricStore.flushCPUException(id: uuid) {
-                uploadPendingMetric(metric, kind: .cpuException, pageName: pageName, session: session, segment: segment, pageType: pageType)
+                uploadPendingMetric(metric, kind: .excessCPUUsage, pageName: pageName, session: session, segment: segment, pageType: pageType)
             }
             if let metric = await errorMetricStore.flushDiskWriteException(id: uuid) {
-                uploadPendingMetric(metric, kind: .diskWriteException, pageName: pageName, session: session, segment: segment, pageType: pageType)
+                uploadPendingMetric(metric, kind: .heavyDiskWrite, pageName: pageName, session: session, segment: segment, pageType: pageType)
             }
             if let metric = await errorMetricStore.flushAppLaunch(id: uuid) {
                 uploadPendingMetric(metric, kind: .slowLaunch, pageName: pageName, session: session, segment: segment, pageType: pageType)
