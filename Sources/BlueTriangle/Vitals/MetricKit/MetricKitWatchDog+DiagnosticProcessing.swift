@@ -36,7 +36,7 @@ extension MetricKitWatchDog {
 
             payload.crashDiagnostics?.forEach {
                 logger.info("MetricKit Watch Dog: crash title = \(self.crashTitle(for: $0))")
-                reportCrash($0, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
+                reportCrash($0, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
             }
             payload.cpuExceptionDiagnostics?.forEach {
                 let extraPairs = [
@@ -118,7 +118,7 @@ extension MetricKitWatchDog {
 // MARK: - Crash report assembly
 @available(iOS 14.0, *)
 extension MetricKitWatchDog {
-    func reportCrash(_ diagnostic: MXCrashDiagnostic, session: Session, timeStampBegin: Date, timeStampEnd: Date) {
+    func reportCrash(_ diagnostic: MXCrashDiagnostic, isLive: Bool, session: Session, timeStampBegin: Date, timeStampEnd: Date) {
         guard !hasFatalErrorSignpost(diagnostic) else {
             print("MetricKitWatchDog has FatalErrorSignpost, skipping")
             return
@@ -139,7 +139,10 @@ extension MetricKitWatchDog {
                               pageType: pendingCrash.pageType, breadcrumbs: pendingCrash.breadcrumbs,
                               eMeta: eMeta, eIdentifier: crashLocation,
                               session: session, timeStampBegin: timeStampBegin)
-        } else if let timer = BlueTriangle.recentTimer() {
+        } else if isLive, let timer = BlueTriangle.recentTimer() {
+            // Only attribute to the currently-running page when this diagnostic is genuinely from the
+            // current observation window - a historical/batched diagnostic (no pending-crash match,
+            // not live) has no reliable relationship to whatever page happens to be open right now.
             timer.setEvent(BTTEvents.nativeAppCrash)
             Task {
                 await errorMetricStore.addCrash(id: timer.uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: crashLocation, breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
