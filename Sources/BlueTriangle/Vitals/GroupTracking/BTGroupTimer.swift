@@ -262,16 +262,14 @@ final class BTTimerGroup {
                 newName = customName
                 groupTimer.setPageName(newName)
                 groupNameSource = .Manual
-            } else if let first = orderedTimers.first {
-                let title = first.getPageTitle()
-                if !title.isEmpty {
-                    newName = title
-                    groupNameSource = .NavigationTitle
-                } else {
-                    newName = first.getPageName()
-                    groupNameSource = .LastChildName
-                }
+            } else if let titled = orderedTimers.first(where: { !$0.getPageTitle().isEmpty }) {
+                newName = titled.getPageTitle()
                 groupTimer.setPageName(newName)
+                groupNameSource = .NavigationTitle
+            } else if let first = orderedTimers.first {
+                newName = first.getPageName()
+                groupTimer.setPageName(newName)
+                groupNameSource = .LastChildName
             } else {
                 newName = groupTimer.getPageName()
             }
