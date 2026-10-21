@@ -23,6 +23,7 @@ enum GroupingCause {
 
 final class BTTimerGroup {
     private var timers: Set<BTTimer> = []
+    private var orderedTimers: [BTTimer] = []
     private var idleTimer: Timer?
     private var groupTimer: BTTimer
     private let logger: Logging
@@ -72,7 +73,9 @@ final class BTTimerGroup {
         let shouldUpdateNameAndReset: Bool = lock.sync {
             // Allow adding to closed groups that haven't been submitted yet
             guard !hasSubmitted else { return false }
-            timers.insert(timer)
+            if timers.insert(timer).inserted {
+                orderedTimers.append(timer)
+            }
             return true
         }
 
@@ -251,9 +254,6 @@ final class BTTimerGroup {
     
     private func updatePageNameFromSnapshot() {
         lock.sync {
-            let pairs: [(String, String)] = Array(timers).map { timer in
-                (timer.getPageName(), timer.getPageTitle())
-            }
             let newName: String
             if hasForcedGroup {
                 newName = groupTimer.getPageName()
@@ -262,11 +262,18 @@ final class BTTimerGroup {
                 newName = customName
                 groupTimer.setPageName(newName)
                 groupNameSource = .Manual
-            } else {
-                let extracted = extractLastPageName(from: pairs)
-                newName = extracted.name
+            } else if let first = orderedTimers.first {
+                let title = first.getPageTitle()
+                if !title.isEmpty {
+                    newName = title
+                    groupNameSource = .NavigationTitle
+                } else {
+                    newName = first.getPageName()
+                    groupNameSource = .LastChildName
+                }
                 groupTimer.setPageName(newName)
-                groupNameSource = extracted.fromTitle ? .NavigationTitle : .LastChildName
+            } else {
+                newName = groupTimer.getPageName()
             }
             let traficSegment = BlueTriangle.trafficSegmentName == Constants.defaultTraficSegment ? Constants.SCREEN_TRACKING_TRAFFIC_SEGMENT : BlueTriangle.trafficSegmentName
             groupTimer.setTrafficSegment(traficSegment)
@@ -369,18 +376,6 @@ final class BTTimerGroup {
         return total
     }
     
-    private func extractLastPageName(from titles: [(String, String)]) -> (name: String, fromTitle: Bool) {
-        let names = titles.compactMap { !$0.1.isEmpty ? $0.1 : nil }
-        let source = names.isEmpty ? titles.compactMap { !$0.0.isEmpty ? $0.0 : nil } : names
-        guard !source.isEmpty else { return ("", false) }
-
-        let freq = source.reduce(into: [String: Int]()) { $0[$1, default: 0] += 1 }
-        let minCount = freq.values.min()!
-        let uniqueNames = Set(freq.filter { $0.value == minCount }.keys)
-        let name = source.reversed().first(where: { uniqueNames.contains($0) }) ?? source.last!
-        return (name, !names.isEmpty)
-    }
-
     private var timeInterval: TimeInterval { Date().timeIntervalSince1970 }
 
     // Snapshot type for submit()
@@ -395,6 +390,7 @@ final class BTTimerGroup {
         let pageName: String
         let fullTime: Millisecond
         let groupNameSource: GroupSource
+        let firstMemberPageName: String?
 
         static func make(from g: BTTimerGroup) -> SubmissionSnapshot {
             let timersArr = Array(g.timers)
@@ -409,7 +405,8 @@ final class BTTimerGroup {
                 causeInterval: g.causeInterval,
                 pageName: gt.getPageName(),
                 fullTime: g.timeInterval.milliseconds - gt.startTime.milliseconds,
-                groupNameSource: g.groupNameSource
+                groupNameSource: g.groupNameSource,
+                firstMemberPageName: g.orderedTimers.first?.getPageName()
             )
         }
     }
