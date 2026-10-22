@@ -75,7 +75,13 @@ final public class BlueTriangleConfiguration: NSObject {
     /// Percentage of sessions for which network calls will be captured. A value of `0.05`
     /// means that 5% of sessions will be tracked.
     @objc public var networkSampleRate: Double = 0.05
-    
+
+    /// Percentage of fatal errors (NSException/signal crashes, MetricKit crash diagnostics, and
+    @objc public var fatalErrorSampleRate: Double = 1.0
+
+    /// Percentage of non-fatal errors (ANR, memory warning, force restart, MetricKit
+    @objc public var nonFatalErrorSampleRate: Double = 1.0
+
     /// Offline or Failure request storage expiry period by default it is 2 day i.e 2 * 24 * 60 * 60  1000 millisecond
     /// Interval unit should be in Millisecond
     @objc public var cacheExpiryDuration: Millisecond = 2 * 24 * 60 * 60 * 1000

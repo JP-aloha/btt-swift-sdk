@@ -56,6 +56,11 @@ internal struct BTTEvents {
         id: BTTEventId.slowLaunch.rawValue,
         defaultPageName: BTTEventDefaultPageName.slowLaunch.rawValue
     )
+
+    static let networkError = BTTEvent(
+        id: BTTEventId.networkError.rawValue,
+        defaultPageName: BTTEventDefaultPageName.networkError.rawValue
+    )
 }
 
 internal struct BTTEvent {
@@ -74,6 +79,7 @@ internal enum BTTEventDefaultPageName : String {
     case excessCPUUsage      = "ExcessCPUUsage"
     case heavyDiskWrite      = "HeavyDiskWrite"
     case slowLaunch          = "SlowLaunch"
+    case networkError        = "NetworkError"
 }
 
 internal enum BTTEventId: String {
@@ -87,4 +93,5 @@ internal enum BTTEventId: String {
     case excessCPUUsage = "16"
     case heavyDiskWrite = "17"
     case slowLaunch     = "18"
+    case networkError   = "21"
 }

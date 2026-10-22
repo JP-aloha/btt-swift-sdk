@@ -132,17 +132,20 @@ extension MetricKitWatchDog {
         if let exceptionCode = diagnostic.exceptionCode?.intValue { extraPairs.append("exceptionCode: \(exceptionCode)") }
         if let exceptionType = diagnostic.exceptionType?.intValue { extraPairs.append("exceptionType: \(exceptionType)") }
         let eMeta = eMetaString(diagnostic, extraPairs: extraPairs)
+        let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic))
 
-        if let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic)) {
+        if let pendingCrash {
             uploadCrashReport(kind: .crash, sessionID: pendingCrash.sessionID, message: message, stackTrace: stackTrace,
                               pageName: pendingCrash.pageName, trafficSegment: pendingCrash.trafficSegment,
                               pageType: pendingCrash.pageType, breadcrumbs: pendingCrash.breadcrumbs,
                               eMeta: eMeta, eIdentifier: crashLocation,
                               session: session, timeStampBegin: timeStampBegin)
-        } else if isLive, let timer = BlueTriangle.recentTimer() {
-            // Only attribute to the currently-running page when this diagnostic is genuinely from the
-            // current observation window - a historical/batched diagnostic (no pending-crash match,
-            // not live) has no reliable relationship to whatever page happens to be open right now.
+            return
+        }
+
+        guard BlueTriangle.shouldReportFatalErrors else { return }
+
+        if isLive, let timer = BlueTriangle.recentTimer() {
             timer.setEvent(BTTEvents.nativeAppCrash)
             Task {
                 await errorMetricStore.addCrash(id: timer.uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: crashLocation, breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
@@ -204,6 +207,8 @@ extension MetricKitWatchDog {
         timeStampBegin: Date,
         timeStampEnd: Date
     ) {
+        guard BlueTriangle.shouldReportNonFatalErrors else { return }
+
         let (message, stackTrace, location) = crashStyleMessage(summary: summary, callStackTree: diagnostic.callStackTree)
         let eMeta = eMetaString(diagnostic, extraPairs: extraMetadataPairs)
 

@@ -12,6 +12,7 @@ enum EMetaSource: String {
     case anrWatchDog = "ANRWatchDog"
     case memoryWarning = "OSMemoryWarning"
     case forceRestart = "ForceRestartTracker"
+    case networkError = "NetworkErrorWatchDog"
     case nsException = "nsException"
     case externalError = "ExternalError"
     case metricKit = "MetricKit"

@@ -68,6 +68,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
               enableForceRestart: config.enableForceRestart,
               forceRestartDuration: config.forceRestartDuration,
               enableScreenResponsiveness: config.enableScreenResponsiveness,
+              fatalErrorSampleRate: config.fatalErrorSampleRate,
+              nonFatalErrorSampleRate: config.nonFatalErrorSampleRate,
               dateSaved: Date().timeIntervalSince1970.milliseconds
           )
         
@@ -111,6 +113,8 @@ class BTTConfigurationRepo : ConfigurationRepo{
              enableForceRestart: config.enableForceRestart,
              forceRestartDuration: config.forceRestartDuration,
              enableScreenResponsiveness: config.enableScreenResponsiveness,
+             fatalErrorSampleRate: config.fatalErrorSampleRate,
+             nonFatalErrorSampleRate: config.nonFatalErrorSampleRate,
              dateSaved: Date().timeIntervalSince1970.milliseconds
          )
         

@@ -18,6 +18,10 @@ public actor ErrorMetricStore {
     private var hangs: [UUID: ErrorMetric] = [:]
     private var appLaunches: [UUID: ErrorMetric] = [:]
     private var crashes: [UUID: ErrorMetric] = [:]
+    /// Keyed by page timer id, then by failed URL - so distinct URLs failing within the same page
+    /// are each tracked (and counted) separately, instead of collapsing into one entry like the
+    /// other categories above.
+    private var networkErrors: [UUID: [String: ErrorMetric]] = [:]
 
     func addAnrError(id: UUID, message: String, breadcrumbs: String?) {
         if let current = anrs[id] {
@@ -119,6 +123,26 @@ public actor ErrorMetricStore {
         }
     }
 
+    func addNetworkError(id: UUID, url: String, message: String, breadcrumbs: String?) {
+        var urlErrors = networkErrors[id] ?? [:]
+        if let current = urlErrors[url] {
+            urlErrors[url] = ErrorMetric(
+                message: current.message,
+                eCount: current.eCount + 1,
+                line: 1,
+                breadcrumbs: breadcrumbs
+            )
+        } else {
+            urlErrors[url] = ErrorMetric(
+                message: message,
+                eCount: 1,
+                line: 1,
+                breadcrumbs: breadcrumbs
+            )
+        }
+        networkErrors[id] = urlErrors
+    }
+
     // MARK: - Flush (get + remove)
     func flushAnrError(id: UUID) -> ErrorMetric? {
         anrs.removeValue(forKey: id)
@@ -150,6 +174,12 @@ public actor ErrorMetricStore {
 
     func flushCrash(id: UUID) -> ErrorMetric? {
         crashes.removeValue(forKey: id)
+    }
+
+    /// Returns and removes every distinct URL's `ErrorMetric` recorded for this page timer, so the
+    /// caller can send one report per URL.
+    func flushNetworkErrors(id: UUID) -> [String: ErrorMetric]? {
+        networkErrors.removeValue(forKey: id)
     }
 }
 

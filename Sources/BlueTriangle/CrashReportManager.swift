@@ -91,6 +91,8 @@ final class CrashReportManager: CrashReportManaging {
         function: StaticString,
         line: UInt
     ) {
+        guard BlueTriangle.shouldReportFatalErrors else { return }
+
         let timer = BlueTriangle.recentTimer()
         let fatalErrorSignpost = SignpostLogger(category: "\(BlueTriangle.sessionID) + \(timer?.getPageName() ?? "Unknown")")
         fatalErrorSignpost.begin(name: Constants.externalFatalErrorSignpostName)
@@ -118,6 +120,8 @@ final class CrashReportManager: CrashReportManaging {
         guard let session = session() else {
             return
         }
+
+        guard BlueTriangle.shouldReportNonFatalErrors else { return }
 
         do {
             let eMeta = EMetaBuilder.build(source: .externalError, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)

@@ -44,6 +44,8 @@ class BTTStoredConfigSyncer {
             guard let config = try configRepo.get() else { return }
             let defaultConfig = configRepo.defaultConfig
             syncNetworkSampleRate(from: config, defaultConfig: defaultConfig)
+            syncFatalErrorSampleRate(from: config, defaultConfig: defaultConfig)
+            syncNonFatalErrorSampleRate(from: config, defaultConfig: defaultConfig)
             syncIgnoreScreens(from: config, defaultConfig: defaultConfig)
             syncScreenTracking(from: config, defaultConfig: defaultConfig)
             syncGrouping(from: config, defaultConfig: defaultConfig)
@@ -84,6 +86,16 @@ class BTTStoredConfigSyncer {
         }
     }
     
+    private func syncFatalErrorSampleRate(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        guard let rate = config.fatalErrorSampleRate ?? defaultConfig.fatalErrorSampleRate else { return }
+        BlueTriangle.updateFatalErrorSampleRate(rate == 0 ? 0.0 : Double(rate) / 100.0)
+    }
+
+    private func syncNonFatalErrorSampleRate(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        guard let rate = config.nonFatalErrorSampleRate ?? defaultConfig.nonFatalErrorSampleRate else { return }
+        BlueTriangle.updateNonFatalErrorSampleRate(rate == 0 ? 0.0 : Double(rate) / 100.0)
+    }
+
     private func syncIgnoreScreens(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
         let ignoreScreens = config.ignoreScreens ?? defaultConfig.ignoreScreens
         if let ignoreVcs = ignoreScreens {

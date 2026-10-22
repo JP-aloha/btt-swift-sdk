@@ -473,6 +473,12 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
 }
 
 + (NSString*) reportsFolderPath{
+    if (__report_folder_path == NULL) {
+        [self initReportFolderPath];
+    }
+    if (__report_folder_path == NULL) {
+        return @"";
+    }
     return [NSString stringWithCString:__report_folder_path encoding:NSASCIIStringEncoding];
 }
 

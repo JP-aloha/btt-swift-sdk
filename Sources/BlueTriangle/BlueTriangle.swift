@@ -146,6 +146,16 @@ final public class BlueTriangle: NSObject {
         }
     }
 
+    private static var _networkErrorWatchDog : NetworkErrorWatchDog?
+    internal static var networkErrorWatchDog : NetworkErrorWatchDog?{
+        get {
+            trackingLock.sync { _networkErrorWatchDog }
+        }
+        set{
+            trackingLock.sync { _networkErrorWatchDog = newValue }
+        }
+    }
+
 #if os(iOS)
     private static var _metricKitWatchDog : MetricKitWatchDog?
     internal static var metricKitWatchDog : MetricKitWatchDog?{
@@ -301,7 +311,18 @@ final public class BlueTriangle: NSObject {
     internal static var shouldCaptureRequests: Bool = {
         sessionData()?.shouldNetworkCapture ?? false
     }()
-    
+
+    /// Decided once per session (see `SessionData.shouldReportFatalErrors`/`shouldReportNonFatalErrors`) -
+    /// refreshed via `updateFatalErrorReportingFlags()`/`updateNonFatalErrorReportingFlags()`, never
+    /// re-rolled per occurrence.
+    internal static var shouldReportFatalErrors: Bool = {
+        sessionData()?.shouldReportFatalErrors ?? false
+    }()
+
+    internal static var shouldReportNonFatalErrors: Bool = {
+        sessionData()?.shouldReportNonFatalErrors ?? false
+    }()
+
     /// A Boolean value indicating  whether the SDK has been successfully configured and initialized.
     ///
     /// - `true`: The SDK has been configured and is ready to function. This means
@@ -683,6 +704,29 @@ extension BlueTriangle {
     }
     
     private static func startCrashAndMetricKitTracking(){
+        startCrashReporters()
+#if os(iOS)
+        startMetricKitTracking()
+#endif
+    }
+
+    // Stops crash tracking for exceptions, signals, and MetricKit diagnostics
+    private static func stopCrashAndMetricKitTracking(){
+        stopCrashReporters()
+#if os(iOS)
+        stopMetricKitTracking()
+#endif
+    }
+
+    // Starts the NSException/signal crash reporters - these only ever report fatal errors, so they're
+    // controlled independently from MetricKit (which also reports non-fatal diagnostics).
+    //
+    // Always (re)constructs the reporters (idempotent - each only constructs once) so any
+    // crash/fatal-error already persisted from a previous launch gets migrated into a
+    // PendingCrashRecord and retried - that record was already sampled in when it was first saved,
+    // so it's reportable regardless of the CURRENT session's fatalErrorSampleRate. Only the live
+    // handlers (for catching a NEW crash in this session) are gated by `shouldReportFatalErrors`.
+    private static func startCrashReporters(){
         if let crashConfig = configuration.crashTracking.configuration {
             DispatchQueue.global(qos: .utility).async {
                 crashAndMetricKitTrackingLock.sync {
@@ -694,11 +738,13 @@ extension BlueTriangle {
                         configureSignalCrash(with: crashConfig, debugLog: configuration.enableDebugLogging)
                     }
 
-#if os(iOS)
-                    if metricKitWatchDog == nil{
-                        configureMetricKit(with: crashConfig)
+                    if shouldReportFatalErrors {
+                        CrashReportPersistence.configureCrashHandling(configuration: crashConfig)
+                        SignalHandler.enableCrashTracking(withApp_version: Device.sdkVersion, debug_log: configuration.enableDebugLogging, bttSessionID: "\(sessionID)")
+                    } else {
+                        CrashReportPersistence.disableExaptionHandler()
+                        SignalHandler.disableCrashTracking()
                     }
-#endif
                 }
             }
         }
@@ -706,21 +752,69 @@ extension BlueTriangle {
         logger.info("BlueTriangle :: Crash tracking has started.")
     }
 
-    // Stops crash tracking for exceptions, signals, and MetricKit diagnostics
-    private static func stopCrashAndMetricKitTracking(){
+    private static func stopCrashReporters(){
         crashAndMetricKitTrackingLock.sync {
             nsExeptionReporter?.stop()
             nsExeptionReporter = nil
             signalCrashReporter?.stop()
             signalCrashReporter = nil
-#if os(iOS)
-            metricKitWatchDog?.stop()
-            metricKitWatchDog = nil
-#endif
         }
 
         logger.info("BlueTriangle :: Crash tracking was stopped due to SDK disable.")
     }
+
+#if os(iOS)
+    // Starts MetricKit diagnostic tracking - reports both fatal (MXCrashDiagnostic) and non-fatal
+    // (hang/cpuException/diskWriteException/slowLaunch) diagnostics, so it's only stopped when
+    // neither category is trackable (see `updateMetricKitTrackingForSampling`).
+    private static func startMetricKitTracking(){
+        if let crashConfig = configuration.crashTracking.configuration {
+            DispatchQueue.global(qos: .utility).async {
+                crashAndMetricKitTrackingLock.sync {
+                    if metricKitWatchDog == nil{
+                        configureMetricKit(with: crashConfig)
+                    }
+                }
+            }
+        }
+
+        logger.info("BlueTriangle :: MetricKit tracking has started.")
+    }
+
+    private static func stopMetricKitTracking(){
+        crashAndMetricKitTrackingLock.sync {
+            metricKitWatchDog?.stop()
+            metricKitWatchDog = nil
+        }
+
+        logger.info("BlueTriangle :: MetricKit tracking was stopped.")
+    }
+#endif
+
+    // Re-evaluates the NSException/signal crash reporters against the current fatal sampling state.
+    // Always runs `startCrashReporters()` (never `stopCrashReporters()`, which fully tears the
+    // reporters down and is reserved for crash tracking being disabled entirely) so a crash
+    // persisted from a previous launch still gets migrated/retried even when this session's
+    // `shouldReportFatalErrors` is now false - see `startCrashReporters()`. A no-op if crash tracking
+    // itself is disabled.
+    private static func updateCrashReportersForSampling(){
+        guard configuration.crashTracking == .nsException else { return }
+        startCrashReporters()
+    }
+
+#if os(iOS)
+    // Starts/stops MetricKit based on whether this session is sampled in for either fatal or
+    // non-fatal errors - it reports both categories, so it only stops when neither is. A no-op if
+    // crash tracking itself is disabled.
+    private static func updateMetricKitTrackingForSampling(){
+        guard configuration.crashTracking == .nsException else { return }
+        if shouldReportFatalErrors || shouldReportNonFatalErrors {
+            startMetricKitTracking()
+        } else {
+            stopMetricKitTracking()
+        }
+    }
+#endif
     
     // Starts memory warning tracking if not already configured
     private static func startMemoryWarning(){
@@ -753,10 +847,27 @@ extension BlueTriangle {
     private static func stopANR(){
         anrWatchDog?.stop()
         anrWatchDog = nil
-        
+
         logger.info("BlueTriangle :: ANR tracking was stopped due to SDK disable.")
     }
-    
+
+    // Starts network error tracking if not already configured - gated purely by
+    // `shouldReportNonFatalErrors` (see `updateNonFatalErrorReportingFlags()`), no separate enable flag.
+    private static func startNetworkErrorWatchDog(){
+        if networkErrorWatchDog == nil{
+            configureNetworkErrorWatchDog()
+        }
+
+        logger.info("BlueTriangle :: Network error tracking has started.")
+    }
+
+    // Stops network error tracking
+    private static func stopNetworkErrorWatchDog(){
+        networkErrorWatchDog = nil
+
+        logger.info("BlueTriangle :: Network error tracking was stopped.")
+    }
+
     // Starts screen tracking if not already configured
     
     private static func setUpSwizzling(){
@@ -928,21 +1039,8 @@ extension BlueTriangle {
             self.startAppInstallUpdateTracker()
         }
         
-        if  BlueTriangle.configuration.enableForceRestart {
-            self.startAppForceRestartTracker()
-        }
-        
-        if  BlueTriangle.configuration.crashTracking == .nsException {
-            self.startCrashAndMetricKitTracking()
-        }
-
-        if  BlueTriangle.configuration.enableMemoryWarning {
-            self.startMemoryWarning()
-        }
-
-        if BlueTriangle.configuration.ANRMonitoring {
-            self.startANR()
-        }
+        self.updateFatalErrorReportingFlags()
+        self.updateNonFatalErrorReportingFlags()
 
         if BlueTriangle.configuration.enableTrackingNetworkState {
             self.startNetworkStatus()
@@ -973,6 +1071,7 @@ extension BlueTriangle {
         self.stopCrashAndMetricKitTracking()
         self.stopMemoryWarning()
         self.stopANR()
+        self.stopNetworkErrorWatchDog()
         self.stopScreenTracking()
         self.stopBreadcrumbs()
         self.stopAppInstallUpdateTracker()
@@ -1093,6 +1192,7 @@ public extension BlueTriangle {
 
             anrWatchDog?.uploadAnrReportForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
             memoryWarningWatchDog?.uploadMemoryWarningReport(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
+            networkErrorWatchDog?.uploadNetworkErrorReport(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
             nsExeptionReporter?.uploadErrorForPage(pageName: timer.getPageName(), uuid: timer.uuid, segment: timer.getTrafficSegment(), pageType: timer.page.pageType)
 #if os(iOS)
             if #available(iOS 14.0, *) {
@@ -1290,8 +1390,15 @@ public extension BlueTriangle {
         }
     }
     /// Returns a timer for network capture.
+    ///
+    /// Starts a timer whenever either is needed - network capture (`shouldCaptureRequests`/
+    /// `networkSampleRate`) or non-fatal error reporting (`shouldReportNonFatalErrors`/
+    /// `nonFatalErrorSampleRate`, via `NetworkErrorWatchDog` if the request fails). Only when BOTH
+    /// are off is there nothing downstream that could use the timer, so it returns `nil` then. The
+    /// capture functions below still gate the wcdv02.rcv network-capture recording on
+    /// `shouldCaptureRequests` themselves, since a timer existing doesn't mean capture is wanted.
     static func startRequestTimer() -> InternalTimer? {
-        guard shouldCaptureRequests else {
+        guard shouldCaptureRequests || shouldReportNonFatalErrors else {
             return nil
         }
         var timer = internalTimerFactory()
@@ -1319,16 +1426,21 @@ public extension BlueTriangle {
     
     static func captureRequest(timer: InternalTimer, response: URLResponse?, method: String? = nil) {
         Task {
-            await getNetworkRequestCapture()?.collect(timer: timer, response: response, method: method)
-            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response, method: method))
+            if shouldCaptureRequests {
+                await getNetworkRequestCapture()?.collect(timer: timer, response: response, method: method)
+                await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response, method: method))
+            }
         }
     }
 
     internal static func captureRequest(timer: InternalTimer, response: CustomResponse) {
         Task {
-            await getNetworkRequestCapture()?.collect(timer: timer, response: response)
-            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
+            if shouldCaptureRequests {
+                await getNetworkRequestCapture()?.collect(timer: timer, response: response)
+                await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: response))
+            }
         }
+        reportNetworkErrorIfNeeded(method: response.method, url: response.url, error: response.error)
     }
 
     /// Captures a network request.
@@ -1337,26 +1449,42 @@ public extension BlueTriangle {
     ///   - tuple: The asynchronously-delivered tuple containing the request contents as a Data instance and a URLResponse.
     static func captureRequest(timer: InternalTimer, tuple: (Data, URLResponse), method: String? = nil) {
         Task {
-            await getNetworkRequestCapture()?.collect(timer: timer, response: tuple.1, method: method)
-            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1, method: method))
+            if shouldCaptureRequests {
+                await getNetworkRequestCapture()?.collect(timer: timer, response: tuple.1, method: method)
+                await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, response: tuple.1, method: method))
+            }
         }
     }
-    
+
     static func captureRequest(timer: InternalTimer, request : URLRequest, error: Error?) {
         Task {
-            await getNetworkRequestCapture()?.collect(timer: timer, request: request, error: error)
-            await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, request: request, error: error))
+            if shouldCaptureRequests {
+                await getNetworkRequestCapture()?.collect(timer: timer, request: request, error: error)
+                await recardNetworkFor(CapturedRequest(timer: timer, relativeTo: 0, request: request, error: error))
+            }
         }
+        reportNetworkErrorIfNeeded(method: request.httpMethod, url: request.url?.absoluteString, error: error)
     }
     /// Captures a network request.
     /// - Parameter metrics: An object encapsulating the metrics for a session task.
     static func captureRequest(metrics: URLSessionTaskMetrics, error : Error?) {
         Task {
-            await getNetworkRequestCapture()?.collect(metrics: metrics, error: error)
-            await recardNetworkFor(CapturedRequest(metrics: metrics, relativeTo: 0, error: error))
+            if shouldCaptureRequests {
+                await getNetworkRequestCapture()?.collect(metrics: metrics, error: error)
+                await recardNetworkFor(CapturedRequest(metrics: metrics, relativeTo: 0, error: error))
+            }
         }
+        reportNetworkErrorIfNeeded(method: metrics.transactionMetrics.last?.request.httpMethod, url: metrics.transactionMetrics.last?.request.url?.absoluteString, error: error)
     }
-    
+
+    /// Feeds a failed request's method/URL/error to `NetworkErrorWatchDog`, same as the other
+    /// failure-carrying `captureRequest` overloads above - a no-op when there's no error or no URL
+    /// to report.
+    private static func reportNetworkErrorIfNeeded(method: String?, url: String?, error: Error?) {
+        guard let error, let url, !url.isEmpty else { return }
+        networkErrorWatchDog?.raiseNetworkError(method: method, url: url, error: error)
+    }
+
     private static func recardNetworkFor(_ request: CapturedRequest) async {
         guard let _ = getNetworkRequestCapture() else { return }
         await BlueTriangle.reportAutoCheckoutFor(request)
@@ -1430,16 +1558,18 @@ public extension BlueTriangle {
 
 // MARK: - Crash Reporting
 extension BlueTriangle {
+    // Only constructs the reporter - this also migrates any crash persisted from a previous launch
+    // into a PendingCrashRecord (see `CrashReportManager.init`), which must happen regardless of
+    // sampling. The live NSException handler is installed separately in `startCrashReporters()`,
+    // gated by `shouldReportFatalErrors`.
     static func configureCrashTracking(with crashConfiguration: CrashReportConfiguration) {
         nsExeptionReporter = CrashReportManager(crashReportPersistence: CrashReportPersistence.self,
                                                 logger: logger,
                                                 uploader: uploader,
                                                 session: {session()})
-        
-        CrashReportPersistence.configureCrashHandling(configuration: crashConfiguration)
     }
-    
-    
+
+
     public static func startCrashTracking() {
 #if DEBUG
         SignalHandler.enableCrashTracking(withApp_version: Device.sdkVersion, debug_log: true, bttSessionID: "\(sessionID)")
@@ -1447,9 +1577,16 @@ extension BlueTriangle {
         SignalHandler.enableCrashTracking(withApp_version: Device.sdkVersion, debug_log: false, bttSessionID: "\(sessionID)")
 #endif
     }
-    
+
+    // Only constructs the reporter - this also migrates any signal crash persisted from a previous
+    // launch into a PendingCrashRecord (see `BTSignalCrashReporter.configureSignalCrashHandling`),
+    // which must happen regardless of sampling. `SignalHandler.reportsFolderPath()` lazily
+    // self-initializes the C-level report-folder path if needed, so this is safe to call without
+    // `SignalHandler.enableCrashTracking` ever having run. The live signal handler is installed
+    // separately in `startCrashReporters()`, gated by `shouldReportFatalErrors` - it's only ever
+    // called when actually needed, since `SignalHandler`'s registration is a one-time latch (it
+    // won't re-register on a later call if disabled again right after).
     static func configureSignalCrash(with crashConfiguration: CrashReportConfiguration, debugLog : Bool) {
-        SignalHandler.enableCrashTracking(withApp_version: Device.sdkVersion, debug_log: debugLog, bttSessionID: "\(sessionID)")
         signalCrashReporter = BTSignalCrashReporter(directory: SignalHandler.reportsFolderPath(), logger: logger)
         signalCrashReporter?.configureSignalCrashHandling(configuration: crashConfiguration)
     }
@@ -1574,6 +1711,18 @@ extension BlueTriangle{
     }
 }
 
+//MARK: - Network Error
+extension BlueTriangle{
+    static func configureNetworkErrorWatchDog(){
+        networkErrorWatchDog = NetworkErrorWatchDog(
+            session: {session()},
+            uploader: configuration.uploaderConfiguration.makeUploader(logger: logger, failureHandler: RequestFailureHandler(
+                file: .requests,
+                logger: logger)),
+            logger: BlueTriangle.logger)
+    }
+}
+
 //MARK: - MetricKit
 extension BlueTriangle{
     static func configureMetricKit(with crashConfiguration: CrashReportConfiguration){
@@ -1645,6 +1794,60 @@ extension BlueTriangle {
     internal static func updateNetworkSampleRate(_ rate : Double) {
         configuration.networkSampleRate = rate
     }
+
+    internal static func updateFatalErrorSampleRate(_ rate: Double) {
+        configuration.fatalErrorSampleRate = rate
+    }
+
+    internal static func updateNonFatalErrorSampleRate(_ rate: Double) {
+        configuration.nonFatalErrorSampleRate = rate
+    }
+
+    internal static func updateFatalErrorReportingFlags() {
+        if let sessionData = sessionData() {
+            shouldReportFatalErrors = sessionData.shouldReportFatalErrors
+        }
+
+        updateCrashReportersForSampling()
+#if os(iOS)
+        updateMetricKitTrackingForSampling()
+#endif
+    }
+
+
+    internal static func updateNonFatalErrorReportingFlags() {
+        if let sessionData = sessionData() {
+            shouldReportNonFatalErrors = sessionData.shouldReportNonFatalErrors
+        }
+
+        if configuration.ANRMonitoring && shouldReportNonFatalErrors {
+            startANR()
+        } else {
+            stopANR()
+        }
+
+        if configuration.enableMemoryWarning && shouldReportNonFatalErrors {
+            startMemoryWarning()
+        } else {
+            stopMemoryWarning()
+        }
+
+        if configuration.enableForceRestart && shouldReportNonFatalErrors {
+            startAppForceRestartTracker()
+        } else {
+            stopAppForceRestartTracker()
+        }
+
+        if shouldReportNonFatalErrors {
+            startNetworkErrorWatchDog()
+        } else {
+            stopNetworkErrorWatchDog()
+        }
+
+#if os(iOS)
+        updateMetricKitTrackingForSampling()
+#endif
+    }
     
     internal static func updateIgnoreVcs(_ vcs : Set<String>?) {
         if let vcs = vcs{
@@ -1714,24 +1917,27 @@ extension BlueTriangle {
     internal static func updateCrashTracking(_ enabled : Bool) {
         configuration.crashTracking = enabled ? .nsException : .none
         if enabled {
-            self.startCrashAndMetricKitTracking()
+            self.updateCrashReportersForSampling()
+#if os(iOS)
+            self.updateMetricKitTrackingForSampling()
+#endif
         } else {
             self.stopCrashAndMetricKitTracking()
         }
     }
-    
+
     internal static func updateAnrMonitoring(_ enabled : Bool) {
         configuration.ANRMonitoring = enabled
-        if enabled {
+        if enabled && shouldReportNonFatalErrors {
             self.startANR()
         } else {
             self.stopANR()
         }
     }
-    
+
     internal static func updateMemoryWarning(_ enabled : Bool) {
         configuration.enableMemoryWarning = enabled
-        if enabled {
+        if enabled && shouldReportNonFatalErrors {
             self.startMemoryWarning()
         } else {
             self.stopMemoryWarning()
@@ -1800,7 +2006,7 @@ extension BlueTriangle {
     
     internal static func updateForceRestart(_ enable: Bool) {
         configuration.enableForceRestart = enable
-        if enable {
+        if enable && shouldReportNonFatalErrors {
             startAppForceRestartTracker()
         } else {
             stopAppForceRestartTracker()

@@ -179,6 +179,8 @@ extension SessionManager {
     private func updateConfigurationOnChange(){
         self.syncStoredConfigToSessionAndApply()
         BlueTriangle.updateCaptureRequests()
+        BlueTriangle.updateFatalErrorReportingFlags()
+        BlueTriangle.updateNonFatalErrorReportingFlags()
         configSyncer.updateAndApplySDKState()
     }
     
@@ -187,6 +189,10 @@ extension SessionManager {
             if session.isNewSession {
                 configSyncer.syncConfigurationFromStorage()
                 session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
+                session.fatalErrorSampleRate = BlueTriangle.configuration.fatalErrorSampleRate
+                session.nonFatalErrorSampleRate = BlueTriangle.configuration.nonFatalErrorSampleRate
+                session.shouldReportFatalErrors = .random(probability: BlueTriangle.configuration.fatalErrorSampleRate)
+                session.shouldReportNonFatalErrors = .random(probability: BlueTriangle.configuration.nonFatalErrorSampleRate)
                 session.enableScreenTracking = BlueTriangle.configuration.enableScreenTracking
                 session.enableGrouping = BlueTriangle.configuration.enableGrouping
                 session.groupingIdleTime = BlueTriangle.configuration.groupingIdleTime
@@ -219,6 +225,8 @@ extension SessionManager {
                 BlueTriangle.updateGrouping(session.enableGrouping, idleTime: session.groupingIdleTime)
                 BlueTriangle.updateScreenTracking(session.enableScreenTracking)
                 BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
+                BlueTriangle.updateFatalErrorSampleRate(session.fatalErrorSampleRate)
+                BlueTriangle.updateNonFatalErrorSampleRate(session.nonFatalErrorSampleRate)
                 BlueTriangle.updateIgnoreVcs(session.ignoreViewControllers)
                 BlueTriangle.updateLaunchTime(session.enableLaunchTime)
                 BlueTriangle.updateTrackingNetworkState(session.enableNetworkStateTracking)

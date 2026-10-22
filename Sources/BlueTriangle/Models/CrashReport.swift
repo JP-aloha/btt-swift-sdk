@@ -160,6 +160,32 @@ extension CrashReport {
     }
 }
 
+//NetworkError
+extension CrashReport {
+    init(
+        sessionID: Identifier,
+        networkErrorMessage: String,
+        eCount: Int = 1,
+        pageName:String?,
+        segment:String?,
+        pageType:String?,
+        nativeApp : NativeAppProperties = .nstEmpty,
+        intervalProvider: TimeInterval = Date().timeIntervalSince1970
+    ) {
+        self.sessionID = sessionID
+        self.pageName = pageName
+        self.segment = segment
+        self.pageType = pageType
+        self.report = ErrorReport(eCnt: eCount,
+                                  nativeApp: nativeApp,
+                                  eTp: BT_ErrorType.NetworkError.rawValue,
+                                  message: networkErrorMessage,
+                                  line: 1,
+                                  column: 1,
+                                  time: intervalProvider.milliseconds)
+    }
+}
+
 enum BT_ErrorType : String{
     case NativeAppCrash
     case ANRWarning
@@ -168,6 +194,7 @@ enum BT_ErrorType : String{
     case ExcessCPUUsage
     case HeavyDiskWrite
     case SlowLaunch
+    case NetworkError
 }
 
 //MetricKit diagnostics
