@@ -24,7 +24,7 @@ class AppForceRestartReporter {
         guard let sessionData = BlueTriangle.sessionData(), sessionData.enableForceRestart else {
             return
         }
-        logger.debug("BlueTriangle:ForceRestartReporter -Force Restart detected...  ")
+        logger.debug("BlueTriangle:ForceRestartReporter -Force Restart detected... pageName: \(activity.pageName), nst: \(activity.pageStartTime)")
         let message = "User force restarted app."
         self.uploadForceRestartReport(message: message, pageName: activity.pageName, segment: activity.trafficSegment, pageType: activity.pageType, startTime: activity.pageStartTime)
         logger.debug(message)
@@ -33,11 +33,6 @@ class AppForceRestartReporter {
 
 extension AppForceRestartReporter {
 
-    /// `startTime` is the parent page's own nStart, as a raw `Millisecond` - there's no live page
-    /// timer at force-restart detection time (the app was killed and relaunched), so
-    /// `activity.pageStartTime` (persisted by `BTTActivityStore` from that page's own
-    /// `timer.startTime`) stands in for it. Kept as `Millisecond` end-to-end rather than converted
-    /// through `TimeInterval`, to avoid a 1ms drift from floating-point rounding.
     internal func uploadForceRestartReport(message : String, pageName: String, segment : String, pageType : String, startTime: Millisecond) {
         Task {
             do {

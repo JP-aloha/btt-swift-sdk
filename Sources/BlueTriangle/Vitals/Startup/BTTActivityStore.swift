@@ -30,10 +30,8 @@ final class BTTActivityStore {
             let segment = timer.getTrafficSegment()
             let type = timer.page.pageType
 
-            // `pageStartTime` must only ever change alongside `pageName`, from the same timer - never
-            // on its own, otherwise a later timer with an empty page name would leave `pageName` on
-            // its old value while `pageStartTime` jumped to the new timer's startTime, so the two
-            // would no longer describe the same page.
+            BTLogger.live.debug("BTTActivityStore.updatePageDetail: pageName=\(name) isGroupTimer=\(timer.isGroupTimer) type=\(timer.type) startTimeMs=\(timer.startTime.milliseconds)")
+
             if !name.isEmpty {
                 self.pageName = name
                 self.pageStartTime = timer.startTime.milliseconds
@@ -50,6 +48,7 @@ final class BTTActivityStore {
             let filename = "\(self.prefix)\(ts)\(self.separator)\(self.pageName)\(self.separator)\(self.trafficSegment)\(self.separator)\(self.pageType)\(self.separator)\(self.pageStartTime)"
             let url = self.dir.appendingPathComponent(filename)
             FileManager.default.createFile(atPath: url.path,contents: nil)
+            BTLogger.live.debug("BTTActivityStore.save: pageName=\(self.pageName) nst=\(self.pageStartTime)")
         }
     }
 
