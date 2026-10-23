@@ -262,14 +262,30 @@ final class BTTimerGroup {
                 newName = customName
                 groupTimer.setPageName(newName)
                 groupNameSource = .Manual
-            } else if let titled = orderedTimers.first(where: { !$0.getPageTitle().isEmpty }) {
-                newName = titled.getPageTitle()
+            } else if orderedTimers.contains(where: { $0.nativeAppProperties.screenType == .SwiftUI }) {
+                // A SwiftUI screen sets a meaningful navigation title deliberately - any member's
+                // title wins over a plain page name, and among members with a title, the first one
+                // (arrival order) is used. Falls back to the first member's raw page name if no
+                // member has a title.
+                if let titled = orderedTimers.first(where: { !$0.getPageTitle().isEmpty }) {
+                    newName = titled.getPageTitle()
+                    groupTimer.setPageName(newName)
+                    groupNameSource = .NavigationTitle
+                } else if let first = orderedTimers.first {
+                    newName = first.getPageName()
+                    groupTimer.setPageName(newName)
+                    groupNameSource = .LastChildName
+                } else {
+                    newName = groupTimer.getPageName()
+                }
+            } else if !orderedTimers.isEmpty {
+                // No SwiftUI screen in this group (pure UIKit/manual/etc.) - use the earlier "last
+                // unique" naming instead of the title-priority logic above.
+                let pairs = orderedTimers.map { ($0.getPageName(), $0.getPageTitle()) }
+                let extracted = extractLastPageName(from: pairs)
+                newName = extracted.name
                 groupTimer.setPageName(newName)
-                groupNameSource = .NavigationTitle
-            } else if let first = orderedTimers.first {
-                newName = first.getPageName()
-                groupTimer.setPageName(newName)
-                groupNameSource = .LastChildName
+                groupNameSource = extracted.fromTitle ? .NavigationTitle : .LastChildName
             } else {
                 newName = groupTimer.getPageName()
             }
@@ -281,7 +297,22 @@ final class BTTimerGroup {
             )
         }
     }
-    
+
+    /// Among all members' titles (or, if none has a title, their raw page names), picks the least-
+    /// frequent ("most unique") one, preferring the last such occurrence in arrival order - restores
+    /// the pre-title-priority naming behavior for groups with no SwiftUI member.
+    private func extractLastPageName(from titles: [(String, String)]) -> (name: String, fromTitle: Bool) {
+        let names = titles.compactMap { !$0.1.isEmpty ? $0.1 : nil }
+        let source = names.isEmpty ? titles.compactMap { !$0.0.isEmpty ? $0.0 : nil } : names
+        guard !source.isEmpty else { return ("", false) }
+
+        let freq = source.reduce(into: [String: Int]()) { $0[$1, default: 0] += 1 }
+        let minCount = freq.values.min()!
+        let uniqueNames = Set(freq.filter { $0.value == minCount }.keys)
+        let name = source.reversed().first(where: { uniqueNames.contains($0) }) ?? source.last!
+        return (name, !names.isEmpty)
+    }
+
     private func submitChildsWcdRequests() {
         let pageName = groupTimer.getPageName()
         let pageType = groupTimer.page.pageType
