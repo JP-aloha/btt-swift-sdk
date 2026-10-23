@@ -268,29 +268,31 @@ extension MetricKitWatchDog {
     }
 
     /// Each of the five kinds that fired on this page gets its own beacon - none of them are merged
-    /// together.
-    func uploadPendingDiagnosticReports(pageName: String, uuid: UUID, segment: String, pageType: String) {
+    /// together. `startTime` is the PAGE's own nStart (`timer.startTime`), not when each diagnostic
+    /// occurred - every report for this page must carry the same nStart as the page's own beacon so
+    /// the backend can correlate them, instead of each diagnostic's own occurrence time.
+    func uploadPendingDiagnosticReports(pageName: String, uuid: UUID, segment: String, pageType: String, startTime: TimeInterval) {
         Task {
             guard let session = session() else { return }
             if let metric = await errorMetricStore.flushCrash(id: uuid) {
-                uploadPendingMetric(metric, kind: .crash, pageName: pageName, session: session, segment: segment, pageType: pageType)
+                uploadPendingMetric(metric, kind: .crash, pageName: pageName, session: session, segment: segment, pageType: pageType, startTime: startTime)
             }
             if let metric = await errorMetricStore.flushHang(id: uuid) {
-                uploadPendingMetric(metric, kind: .hang, pageName: pageName, session: session, segment: segment, pageType: pageType)
+                uploadPendingMetric(metric, kind: .hang, pageName: pageName, session: session, segment: segment, pageType: pageType, startTime: startTime)
             }
             if let metric = await errorMetricStore.flushCPUException(id: uuid) {
-                uploadPendingMetric(metric, kind: .excessCPUUsage, pageName: pageName, session: session, segment: segment, pageType: pageType)
+                uploadPendingMetric(metric, kind: .excessCPUUsage, pageName: pageName, session: session, segment: segment, pageType: pageType, startTime: startTime)
             }
             if let metric = await errorMetricStore.flushDiskWriteException(id: uuid) {
-                uploadPendingMetric(metric, kind: .heavyDiskWrite, pageName: pageName, session: session, segment: segment, pageType: pageType)
+                uploadPendingMetric(metric, kind: .heavyDiskWrite, pageName: pageName, session: session, segment: segment, pageType: pageType, startTime: startTime)
             }
             if let metric = await errorMetricStore.flushAppLaunch(id: uuid) {
-                uploadPendingMetric(metric, kind: .slowLaunch, pageName: pageName, session: session, segment: segment, pageType: pageType)
+                uploadPendingMetric(metric, kind: .slowLaunch, pageName: pageName, session: session, segment: segment, pageType: pageType, startTime: startTime)
             }
         }
     }
 
-    private func uploadPendingMetric(_ metric: ErrorMetric, kind: MetricKitDiagnosticKind, pageName: String, session: Session, segment: String, pageType: String) {
+    private func uploadPendingMetric(_ metric: ErrorMetric, kind: MetricKitDiagnosticKind, pageName: String, session: Session, segment: String, pageType: String, startTime: TimeInterval) {
         var nativeApp = NativeAppProperties.nstEmpty
         nativeApp.breadcrumbs = metric.breadcrumbs
         nativeApp.eMeta = metric.eMeta
@@ -304,7 +306,7 @@ extension MetricKitWatchDog {
                                       segment: segment,
                                       pageType: pageType,
                                       nativeApp: nativeApp,
-                                      intervalProvider: metric.time)
+                                      intervalProvider: startTime)
         uploadReportOnly(session: session, report: crashReport, pageName: pageName, segment: segment, pageType: pageType, event: kind.event)
     }
 }

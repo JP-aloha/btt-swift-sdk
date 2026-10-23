@@ -10,6 +10,6 @@ import Foundation
 protocol CrashReportManaging {
     func uploadError<E: Error>(_ error: E, stackTrace: String?, file: StaticString, function: StaticString, line: UInt)
     func logFatalError<E: Error>(_ error: E, stackTrace: String?, file: StaticString, function: StaticString, line: UInt)
-    func uploadErrorForPage(pageName: String, uuid: UUID, segment : String, pageType: String)
+    func uploadErrorForPage(pageName: String, uuid: UUID, segment : String, pageType: String, startTime: TimeInterval)
     func stop()
 }

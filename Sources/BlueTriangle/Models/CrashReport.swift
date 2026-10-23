@@ -136,6 +136,11 @@ extension CrashReport {
 
 //ForceRestart
 extension CrashReport {
+    /// Takes `time` as a raw `Millisecond` rather than a `TimeInterval` + `.milliseconds` conversion -
+    /// this value comes from `BTTActivityStore`'s persisted page start time, already stored as
+    /// milliseconds; round-tripping it through `TimeInterval` (seconds, as a `Double`) and back would
+    /// risk a 1ms drift from floating-point rounding, and it would then no longer match the parent
+    /// page's own `nStart`.
     init(
         sessionID: Identifier,
         forceRestartMessage: String,
@@ -144,7 +149,7 @@ extension CrashReport {
         segment:String?,
         pageType:String?,
         nativeApp : NativeAppProperties = .nstEmpty,
-        intervalProvider: TimeInterval = Date().timeIntervalSince1970
+        time: Millisecond
     ) {
         self.sessionID = sessionID
         self.pageName = pageName
@@ -156,7 +161,7 @@ extension CrashReport {
                                   message: forceRestartMessage,
                                   line: 1,
                                   column: 1,
-                                  time: intervalProvider.milliseconds)
+                                  time: time)
     }
 }
 

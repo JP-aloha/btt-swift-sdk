@@ -115,7 +115,7 @@ extension MemoryWarningWatchDog {
         }
     }
     
-    internal func uploadMemoryWarningReport(pageName: String, uuid: UUID, segment : String, pageType : String) {
+    internal func uploadMemoryWarningReport(pageName: String, uuid: UUID, segment : String, pageType : String, startTime: TimeInterval) {
         Task {
             do {
                 guard let session = self.session(), let errorMetric = await self.errorMetricStore.flushMemoryWarning(id: uuid) else {
@@ -125,7 +125,7 @@ extension MemoryWarningWatchDog {
                 var nativeApp = NativeAppProperties.nstEmpty
                 nativeApp.breadcrumbs = errorMetric.breadcrumbs
                 nativeApp.eMeta = EMetaBuilder.build(source: .memoryWarning, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
-                let report = CrashReport(sessionID: BlueTriangle.sessionID, memoryWarningMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: errorMetric.time)
+                let report = CrashReport(sessionID: BlueTriangle.sessionID, memoryWarningMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: startTime)
                 let reportRequest = try self.makeCrashReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
                 self.uploader.send(request: reportRequest)
@@ -171,6 +171,7 @@ extension MemoryWarningWatchDog {
             "sessionID": String(session.sessionID),
             "pgTm": String(Constants.minPgTm),
             "pageType": pageType,
+            "wcd": String(session.wcd),
             "AB": session.abTestID,
             "DCTR": session.dataCenter,
             "CmpN": session.campaignName,

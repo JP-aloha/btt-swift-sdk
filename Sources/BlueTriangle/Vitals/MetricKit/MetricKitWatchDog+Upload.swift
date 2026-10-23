@@ -114,6 +114,7 @@ extension MetricKitWatchDog {
             "sessionID": String(session.sessionID),
             "pgTm": String(Constants.minPgTm),
             "pageType": pageTypeValue,
+            "wcd": String(session.wcd),
             "AB": session.abTestID,
             "DCTR": session.dataCenter,
             "CmpN": session.campaignName,

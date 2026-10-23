@@ -45,12 +45,10 @@ class NetworkErrorWatchDog {
         }
     }
 
-    /// e.g. "GET https://untrusted-root.badssl.com/ failed with URLError : The certificate for this
-    /// server is invalid."
     private func formattedMessage(method: String?, url: String, error: Error) -> String {
         let httpMethod = method.map { "\($0.uppercased()) " } ?? ""
-        let exceptionName = String(describing: type(of: error))
-        return "\(httpMethod)\(url) failed with \(exceptionName) : \(error.localizedDescription)"
+        let description = error.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        return "\(httpMethod)\(url)~~Error:" + (description.isEmpty ? "" : " \(description)")
     }
 }
 
@@ -77,7 +75,10 @@ extension NetworkErrorWatchDog {
     }
 
 
-    internal func uploadNetworkErrorReport(pageName: String, uuid: UUID, segment : String, pageType : String) {
+    /// `startTime` is the PAGE's own nStart (`timer.startTime`), not when each individual network
+    /// error occurred - every error reported for this page must carry the same nStart as the page's
+    /// own beacon so the backend can correlate them, instead of each error's own occurrence time.
+    internal func uploadNetworkErrorReport(pageName: String, uuid: UUID, segment : String, pageType : String, startTime: TimeInterval) {
         Task {
             guard let session = self.session(), let urlErrors = await self.errorMetricStore.flushNetworkErrors(id: uuid) else {
                 return
@@ -88,7 +89,7 @@ extension NetworkErrorWatchDog {
                     var nativeApp = NativeAppProperties.nstEmpty
                     nativeApp.breadcrumbs = errorMetric.breadcrumbs
                     nativeApp.eMeta = EMetaBuilder.build(source: .networkError, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
-                    let report = CrashReport(sessionID: BlueTriangle.sessionID, networkErrorMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: errorMetric.time)
+                    let report = CrashReport(sessionID: BlueTriangle.sessionID, networkErrorMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: startTime)
                     let reportRequest = try self.makeCrashReportRequest(session: session,
                                                                         report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
                     self.uploader.send(request: reportRequest)
@@ -135,6 +136,7 @@ extension NetworkErrorWatchDog {
             "sessionID": String(session.sessionID),
             "pgTm": String(Constants.minPgTm),
             "pageType": pageType,
+            "wcd": String(session.wcd),
             "AB": session.abTestID,
             "DCTR": session.dataCenter,
             "CmpN": session.campaignName,

@@ -147,7 +147,9 @@ An task blocking main thread since \(self.errorTriggerInterval) seconds
         }
     }
     
-    internal func uploadAnrReportForPage(pageName: String, uuid: UUID, segment : String, pageType : String) {
+    /// `startTime` is the PAGE's own nStart (`timer.startTime`), not when the ANR occurred - the
+    /// report must carry the same nStart as the page's own beacon so the backend can correlate them.
+    internal func uploadAnrReportForPage(pageName: String, uuid: UUID, segment : String, pageType : String, startTime: TimeInterval) {
         Task {
             do {
                 guard let session = self.session(), let errorMetric = await self.errorMetricStore.flushAnrError(id: uuid) else {
@@ -157,7 +159,7 @@ An task blocking main thread since \(self.errorTriggerInterval) seconds
                 var nativeApp = NativeAppProperties.nstEmpty
                 nativeApp.breadcrumbs = errorMetric.breadcrumbs
                 nativeApp.eMeta = EMetaBuilder.build(source: .anrWatchDog, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
-                let report = CrashReport(sessionID: BlueTriangle.sessionID, ANRmessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: errorMetric.time)
+                let report = CrashReport(sessionID: BlueTriangle.sessionID, ANRmessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: startTime)
                 let reportRequest = try self.makeCrashReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
                 self.uploader.send(request: reportRequest)
@@ -203,6 +205,7 @@ An task blocking main thread since \(self.errorTriggerInterval) seconds
             "sessionID": String(session.sessionID),
             "pgTm": String(Constants.minPgTm),
             "pageType": pageTypeValue,
+            "wcd": String(session.wcd),
             "AB": session.abTestID,
             "DCTR": session.dataCenter,
             "CmpN": session.campaignName,

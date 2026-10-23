@@ -26,14 +26,19 @@ class AppForceRestartReporter {
         }
         logger.debug("BlueTriangle:ForceRestartReporter -Force Restart detected...  ")
         let message = "User force restarted app."
-        self.uploadForceRestartReport(message: message, pageName: activity.pageName, segment: activity.trafficSegment, pageType: activity.pageType)
+        self.uploadForceRestartReport(message: message, pageName: activity.pageName, segment: activity.trafficSegment, pageType: activity.pageType, startTime: activity.pageStartTime)
         logger.debug(message)
     }
 }
 
 extension AppForceRestartReporter {
-   
-    internal func uploadForceRestartReport(message : String, pageName: String, segment : String, pageType : String) {
+
+    /// `startTime` is the parent page's own nStart, as a raw `Millisecond` - there's no live page
+    /// timer at force-restart detection time (the app was killed and relaunched), so
+    /// `activity.pageStartTime` (persisted by `BTTActivityStore` from that page's own
+    /// `timer.startTime`) stands in for it. Kept as `Millisecond` end-to-end rather than converted
+    /// through `TimeInterval`, to avoid a 1ms drift from floating-point rounding.
+    internal func uploadForceRestartReport(message : String, pageName: String, segment : String, pageType : String, startTime: Millisecond) {
         Task {
             do {
                 guard let session = self.session() else { return }
@@ -41,7 +46,7 @@ extension AppForceRestartReporter {
                 var nativeApp = NativeAppProperties.nstEmpty
                 nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
                 nativeApp.eMeta = EMetaBuilder.build(source: .forceRestart, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
-                let report = CrashReport(sessionID: BlueTriangle.sessionID, forceRestartMessage: message, eCount: 1, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp)
+                let report = CrashReport(sessionID: BlueTriangle.sessionID, forceRestartMessage: message, eCount: 1, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, time: startTime)
                 let reportRequest = try self.makeForceRestartReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
                 self.uploader.send(request: reportRequest)
