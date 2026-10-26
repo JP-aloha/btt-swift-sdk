@@ -74,10 +74,6 @@ extension NetworkErrorWatchDog {
         }
     }
 
-
-    /// `startTime` is the PAGE's own nStart (`timer.startTime`), not when each individual network
-    /// error occurred - every error reported for this page must carry the same nStart as the page's
-    /// own beacon so the backend can correlate them, instead of each error's own occurrence time.
     internal func uploadNetworkErrorReport(pageName: String, uuid: UUID, segment : String, pageType : String, startTime: TimeInterval) {
         Task {
             guard let session = self.session(), let urlErrors = await self.errorMetricStore.flushNetworkErrors(id: uuid) else {

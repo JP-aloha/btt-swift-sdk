@@ -240,8 +240,13 @@ extension CapturedRequest {
         encodedBodySize: Int64,
         response: CustomResponse
     ) {
-        self.host = ""
-        self.domain = ""
+        let hostComponents = URL(string: response.url)?.host?.split(separator: ".") ?? []
+        self.host = hostComponents.first != nil ? String(hostComponents.first!) : ""
+        if hostComponents.count > 2 {
+            self.domain = hostComponents.dropFirst().joined(separator: ".")
+        } else {
+            self.domain = URL(string: response.url)?.host ?? ""
+        }
         if let statusCode = response.httpStatusCode{
             self.statusCode = "\(statusCode)"
         }
@@ -347,7 +352,7 @@ extension CapturedRequest {
 
 // MARK: - Supporting Types
 extension CapturedRequest {
-    
+
     enum CodingKeys: String, CodingKey {
         case entryType = "e"
         case domain = "dmn"
