@@ -93,5 +93,5 @@ internal enum BTTEventId: String {
     case excessCPUUsage = "16"
     case heavyDiskWrite = "17"
     case slowLaunch     = "18"
-    case networkError   = "21"
+    case networkError   = "22"
 }
