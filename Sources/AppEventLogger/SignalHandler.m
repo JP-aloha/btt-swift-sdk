@@ -62,6 +62,10 @@ static bool __is_register = false;
 
 static pthread_mutex_t page_context_lock   = PTHREAD_MUTEX_INITIALIZER;
 
+#if BTT_HAS_METRICKIT
+static os_log_t __crash_signpost_log = NULL;
+#endif
+
 void register_btt_tracker(void){
     
     register_alt_stack();
@@ -185,15 +189,10 @@ void btt_signal_handler(int signo, siginfo_t *sinfo, void *context)
 
 #if BTT_HAS_METRICKIT
     if (@available(iOS 13.0, macOS 12.0, *)) {
-        char signpostCategoryBuf[320];
-                snprintf(signpostCategoryBuf, sizeof(signpostCategoryBuf), "%ld - %s + %s",
-                         (long)crash_time,
-                         __btt_session_id ? __btt_session_id : "unknown",
-                         __current_page_name ? __current_page_name : "unknown");
-        NSString *signpostCategory = [NSString stringWithUTF8String:signpostCategoryBuf];
-        os_log_t crashSignpostLog = [MXMetricManager makeLogHandleWithCategory:signpostCategory];
-        MXSignpostIntervalBegin(crashSignpostLog, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
-        MXSignpostIntervalEnd(crashSignpostLog, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
+        if (__crash_signpost_log) {
+            MXSignpostIntervalBegin(__crash_signpost_log, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
+            MXSignpostIntervalEnd(__crash_signpost_log, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
+        }
     }
 #endif
 
@@ -453,6 +452,14 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
        return;
     }
     
+#if BTT_HAS_METRICKIT
+    if (@available(iOS 13.0, macOS 12.0, *)) {
+        if (!__crash_signpost_log) {
+            __crash_signpost_log = [MXMetricManager makeLogHandleWithCategory:@"MatricKitCrash"];
+        }
+    }
+#endif
+
     //Register all Signal handlers
     register_btt_tracker();
     

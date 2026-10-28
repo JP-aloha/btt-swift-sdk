@@ -135,11 +135,15 @@ extension MetricKitWatchDog {
         let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic))
 
         if let pendingCrash {
+            // nStart is the crash's own time, not the payload's - otherwise every crash delivered in one
+            // payload would share the same nStart. crashTime is whole seconds in ms, so the round trip
+            // through TimeInterval is exact.
+            let crashDate = pendingCrash.crashTime.map { Date(timeIntervalSince1970: TimeInterval($0) / 1000) } ?? timeStampBegin
             uploadCrashReport(kind: .crash, sessionID: pendingCrash.sessionID, message: message, stackTrace: stackTrace,
                               pageName: pendingCrash.pageName, trafficSegment: pendingCrash.trafficSegment,
                               pageType: pendingCrash.pageType, breadcrumbs: pendingCrash.breadcrumbs,
                               eMeta: eMeta, eIdentifier: crashLocation,
-                              session: session, timeStampBegin: timeStampBegin)
+                              session: session, timeStampBegin: crashDate)
             return
         }
 
@@ -230,15 +234,14 @@ extension MetricKitWatchDog {
                            breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
     }
 
-    /// The signal-crash path's signpost category leads with `time(NULL)` (seconds since epoch) - convert
-    /// to milliseconds to match `PendingCrashRecord.crashTime`'s convention.
+    /// The crash signpost is emitted right after the crash time is taken, so its begin timestamp is the
+    /// crash time. Truncated to whole seconds, then converted to milliseconds, to match
+    /// `PendingCrashRecord.crashTime`'s convention.
     private func crashSignpostTime(from diagnostic: MXDiagnostic) -> Millisecond? {
         guard #available(iOS 17.0, *),
-              let record = diagnostic.signpostData?.first(where: { $0.name == String(describing: Constants.crashSignpostName) }),
-              let crashTimeText = record.category.components(separatedBy: " - ").first,
-              let crashTimeSeconds = Millisecond(crashTimeText)
+              let record = diagnostic.signpostData?.first(where: { $0.name == String(describing: Constants.crashSignpostName) })
         else { return nil }
-        return crashTimeSeconds * 1000
+        return Millisecond(record.beginTimeStamp.timeIntervalSince1970) * 1000
     }
 
     private func hasFatalErrorSignpost(_ diagnostic: MXDiagnostic) -> Bool {

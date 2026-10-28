@@ -56,13 +56,12 @@ class BTSignalCrashReporter {
             let pageName = (crash.btt_page_name ?? "").isEmpty ? nil : crash.btt_page_name
             let trafficSegment = crash.trafic_segment.isEmpty ? nil : crash.trafic_segment
             let pageType = crash.page_type.isEmpty ? nil : crash.page_type
-            PendingCrashRecordStore.save(PendingCrashRecord(sessionID: sessionId,
-                                                             pageName: pageName,
-                                                             trafficSegment: trafficSegment,
-                                                             pageType: pageType,
-                                                             breadcrumbs: crash.breadcrumbs,
-                                                             crashTime: Millisecond(crash.crash_time) * 1000),
-                                         key: .pendingCrashRecord)
+            PendingCrashRecordStore.append(PendingCrashRecord(sessionID: sessionId,
+                                                               pageName: pageName,
+                                                               trafficSegment: trafficSegment,
+                                                               pageType: pageType,
+                                                               breadcrumbs: crash.breadcrumbs,
+                                                               crashTime: Millisecond(crash.crash_time) * 1000))
             try? removeFile(crash)
         }
     }

@@ -40,13 +40,12 @@ final class CrashReportManager: CrashReportManaging {
         self.intervalProvider = intervalProvider
 
         if let crashReport = crashReportPersistence.read() {
-            PendingCrashRecordStore.save(PendingCrashRecord(sessionID: crashReport.sessionID,
-                                                             pageName: crashReport.pageName,
-                                                             trafficSegment: crashReport.segment,
-                                                             pageType: crashReport.pageType,
-                                                             breadcrumbs: crashReport.report.nativeApp.breadcrumbs,
-                                                             crashTime: crashReport.report.time),
-                                         key: .pendingCrashRecord)
+            PendingCrashRecordStore.append(PendingCrashRecord(sessionID: crashReport.sessionID,
+                                                               pageName: crashReport.pageName,
+                                                               trafficSegment: crashReport.segment,
+                                                               pageType: crashReport.pageType,
+                                                               breadcrumbs: crashReport.report.nativeApp.breadcrumbs,
+                                                               crashTime: crashReport.report.time))
             crashReportPersistence.clear()
         }
 

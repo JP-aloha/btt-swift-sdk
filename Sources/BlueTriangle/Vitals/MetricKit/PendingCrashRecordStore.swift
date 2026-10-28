@@ -16,9 +16,13 @@ struct PendingCrashRecord: Codable {
 }
 
 enum PendingCrashRecordStore {
+    /// Crash times are captured with second precision (`time(NULL)` / truncated `Date`), so two
+    /// records - or a record and a signpost - within this window describe the same crash.
+    static let crashTimeTolerance: Millisecond = 1000
+    private static let lock = NSLock()
+
     static func save<T: Codable>(_ record: T, key: UserDefaultsUtility.UserDefaultKeys) {
         UserDefaultsUtility.saveCodable(record, key: key)
-        print("PendingCrashRecordStore Saved properly")
     }
 
     static func load<T: Codable>(_ type: T.Type, key: UserDefaultsUtility.UserDefaultKeys) -> T? {
@@ -35,24 +39,86 @@ enum PendingCrashRecordStore {
         return record
     }
 
-    static func consume(matchingCrashTime crashTime: Millisecond?, key: UserDefaultsUtility.UserDefaultKeys = .pendingCrashRecord) -> PendingCrashRecord? {
-        guard let record = UserDefaultsUtility.loadCodable(PendingCrashRecord.self, key: key) else {
-            return nil
+    // MARK: - Crash records
+    static func append(_ record: PendingCrashRecord) {
+        lock.lock()
+        defer { lock.unlock() }
+        var records = loadCrashRecords()
+        let isDuplicate = records.contains {
+            $0.sessionID == record.sessionID && isSameCrashTime($0.crashTime, record.crashTime)
         }
-        if let crashTime, let recordCrashTime = record.crashTime, crashTime != recordCrashTime {
-            return nil
+        guard !isDuplicate else { return }
+        records.append(record)
+        saveCrashRecords(records)
+    }
+
+    /// Removes and returns the record belonging to one MetricKit crash diagnostic.
+    static func consume(matchingCrashTime crashTime: Millisecond?) -> PendingCrashRecord? {
+        lock.lock()
+        defer { lock.unlock() }
+        var records = loadCrashRecords()
+        let index: Int?
+        if let crashTime {
+            index = records.firstIndex { isSameCrashTime($0.crashTime, crashTime) }
+        } else {
+            index = records.indices.min { (records[$0].crashTime ?? .max) < (records[$1].crashTime ?? .max) }
         }
-        UserDefaultsUtility.removeData(key: key)
+        guard let index else { return nil }
+        let record = records.remove(at: index)
+        saveCrashRecords(records)
         return record
     }
 
-    static func removeExpiredCrashRecord(key: UserDefaultsUtility.UserDefaultKeys = .pendingCrashRecord) {
-        guard let record = UserDefaultsUtility.loadCodable(PendingCrashRecord.self, key: key),
-              let crashTime = record.crashTime
-        else { return }
-        let ageSeconds = Date().timeIntervalSince1970 - TimeInterval(crashTime) / 1000
-        if ageSeconds > Constants.pendingCrashRecordExpiry {
-            UserDefaultsUtility.removeData(key: key)
+    static func crashRecords() -> [PendingCrashRecord] {
+        lock.lock()
+        defer { lock.unlock() }
+        return loadCrashRecords()
+    }
+
+    static func removeAllCrashRecords() {
+        lock.lock()
+        defer { lock.unlock() }
+        UserDefaultsUtility.removeData(key: .pendingCrashRecord)
+    }
+
+    static func removeExpiredCrashRecords(now: TimeInterval = Date().timeIntervalSince1970) {
+        lock.lock()
+        defer { lock.unlock() }
+        let records = loadCrashRecords()
+        let unexpired = records.filter { record in
+            guard let crashTime = record.crashTime else { return true }
+            return now - TimeInterval(crashTime) / 1000 <= Constants.pendingCrashRecordExpiry
         }
+        guard unexpired.count != records.count else { return }
+        saveCrashRecords(unexpired)
+    }
+
+    // MARK: - Private
+
+    /// Also reads the single-record format this key held before records were kept as a list.
+    private static func loadCrashRecords() -> [PendingCrashRecord] {
+        guard let data = UserDefaultsUtility.getData(type: Data.self, forKey: .pendingCrashRecord) else { return [] }
+        let decoder = JSONDecoder()
+        if let records = try? decoder.decode([PendingCrashRecord].self, from: data) {
+            return records
+        }
+        if let record = try? decoder.decode(PendingCrashRecord.self, from: data) {
+            return [record]
+        }
+        UserDefaultsUtility.removeData(key: .pendingCrashRecord)
+        return []
+    }
+
+    private static func saveCrashRecords(_ records: [PendingCrashRecord]) {
+        if records.isEmpty {
+            UserDefaultsUtility.removeData(key: .pendingCrashRecord)
+        } else {
+            UserDefaultsUtility.saveCodable(records, key: .pendingCrashRecord)
+        }
+    }
+
+    private static func isSameCrashTime(_ lhs: Millisecond?, _ rhs: Millisecond?) -> Bool {
+        guard let lhs, let rhs else { return lhs == nil && rhs == nil }
+        return abs(lhs - rhs) <= crashTimeTolerance
     }
 }

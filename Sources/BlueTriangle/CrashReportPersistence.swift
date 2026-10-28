@@ -47,8 +47,7 @@ struct CrashReportPersistence: CrashReportPersisting {
     static func handleUncaughtException(_ exception: NSException) {
         SignalHandler.disableCrashTracking()
         let crashTimeSeconds = Int64(Date().timeIntervalSince1970)
-        let pageName: String = BlueTriangle.recentTimer()?.getPageName() ?? "Unknown"
-        let crashSignpost = SignpostLogger(category: "\(crashTimeSeconds) - \(BlueTriangle.sessionID) + \(pageName)")
+        let crashSignpost = SignpostLogger(category: String(describing: Constants.crashSignpostName))
         crashSignpost.begin(name: Constants.crashSignpostName)
         crashSignpost.end(name: Constants.crashSignpostName)
         Self.save(
