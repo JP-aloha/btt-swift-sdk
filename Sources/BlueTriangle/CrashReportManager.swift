@@ -62,6 +62,7 @@ final class CrashReportManager: CrashReportManaging {
         self.startupTask = nil
         CrashReportPersistence.disableExaptionHandler()
         crashReportPersistence.clear()
+        PendingCrashRecordStore.removeAllCrashRecords()
     }
 
     private func uploadFatalReport(_ fatalReport: CrashReport) {

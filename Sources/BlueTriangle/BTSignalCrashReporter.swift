@@ -69,6 +69,7 @@ class BTSignalCrashReporter {
     func stop(){
         SignalHandler.disableCrashTracking()
         self.removeAllCrashes()
+        PendingCrashRecordStore.removeAllCrashRecords()
     }
 }
 
