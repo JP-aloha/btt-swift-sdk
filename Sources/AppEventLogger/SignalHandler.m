@@ -454,9 +454,7 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
     
 #if BTT_HAS_METRICKIT
     if (@available(iOS 13.0, macOS 12.0, *)) {
-        if (!__crash_signpost_log) {
-            __crash_signpost_log = [MXMetricManager makeLogHandleWithCategory:@"MatricKitCrash"];
-        }
+        __crash_signpost_log = [MXMetricManager makeLogHandleWithCategory:@"MatricKitCrash"];
     }
 #endif
 
