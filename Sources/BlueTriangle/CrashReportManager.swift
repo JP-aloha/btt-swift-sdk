@@ -62,7 +62,6 @@ final class CrashReportManager: CrashReportManaging {
         self.startupTask = nil
         CrashReportPersistence.disableExaptionHandler()
         crashReportPersistence.clear()
-        PendingCrashRecordStore.removeAllCrashRecords()
     }
 
     private func uploadFatalReport(_ fatalReport: CrashReport) {
@@ -94,9 +93,11 @@ final class CrashReportManager: CrashReportManaging {
         guard BlueTriangle.shouldReportFatalErrors else { return }
 
         let timer = BlueTriangle.recentTimer()
+#if canImport(MetricKit) && os(iOS)
         let fatalErrorSignpost = SignpostLogger(category: "\(BlueTriangle.sessionID) + \(timer?.getPageName() ?? "Unknown")")
         fatalErrorSignpost.begin(name: Constants.externalFatalErrorSignpostName)
         fatalErrorSignpost.end(name: Constants.externalFatalErrorSignpostName)
+#endif
         var nativeApp = CrashReportPersistence.nativeAppProperties()
         nativeApp.stackTrace = stackTrace
         nativeApp.eMeta = EMetaBuilder.build(source: .externalError, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)

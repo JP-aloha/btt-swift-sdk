@@ -187,6 +187,12 @@ void btt_signal_handler(int signo, siginfo_t *sinfo, void *context)
     
     time_t crash_time = time(NULL);
 
+    char* crash_report = make_report(name, sinfo, crash_time);
+    char* file_name = calloc(51, sizeof(char));
+    snprintf(file_name, 50, "%ld.bttcrash", crash_time);
+
+    [SignalHandler writeCrashReport:crash_report toReportFolderPath:__report_folder_path withfileName:file_name];
+
 #if BTT_HAS_METRICKIT
     if (@available(iOS 13.0, macOS 12.0, *)) {
         if (__crash_signpost_log) {
@@ -195,12 +201,6 @@ void btt_signal_handler(int signo, siginfo_t *sinfo, void *context)
         }
     }
 #endif
-
-    char* crash_report = make_report(name, sinfo, crash_time);
-    char* file_name = calloc(51, sizeof(char));
-    snprintf(file_name, 50, "%ld.bttcrash", crash_time);
-
-    [SignalHandler writeCrashReport:crash_report toReportFolderPath:__report_folder_path withfileName:file_name];
     
     [SignalHandler debug_log:[NSString stringWithFormat:@"Written btt crash %s\n%s", file_name, crash_report]];
     

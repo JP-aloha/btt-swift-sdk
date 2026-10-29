@@ -61,24 +61,12 @@ enum PendingCrashRecordStore {
         if let crashTime {
             index = records.firstIndex { isSameCrashTime($0.crashTime, crashTime) }
         } else {
-            index = records.indices.min { (records[$0].crashTime ?? .max) < (records[$1].crashTime ?? .max) }
+            index = records.count == 1 ? 0 : nil
         }
         guard let index else { return nil }
         let record = records.remove(at: index)
         saveCrashRecords(records)
         return record
-    }
-
-    static func crashRecords() -> [PendingCrashRecord] {
-        lock.lock()
-        defer { lock.unlock() }
-        return loadCrashRecords()
-    }
-
-    static func removeAllCrashRecords() {
-        lock.lock()
-        defer { lock.unlock() }
-        UserDefaultsUtility.removeData(key: .pendingCrashRecord)
     }
 
     static func removeExpiredCrashRecords(now: TimeInterval = Date().timeIntervalSince1970) {

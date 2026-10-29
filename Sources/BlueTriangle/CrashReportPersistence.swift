@@ -10,7 +10,9 @@ import Foundation
 import AppEventLogger
 #endif
 
+#if canImport(MetricKit) && os(iOS)
 import MetricKit
+#endif
 import os
 
 
@@ -47,9 +49,11 @@ struct CrashReportPersistence: CrashReportPersisting {
     static func handleUncaughtException(_ exception: NSException) {
         SignalHandler.disableCrashTracking()
         let crashTimeSeconds = Int64(Date().timeIntervalSince1970)
+#if canImport(MetricKit) && os(iOS)
         let crashSignpost = SignpostLogger(category: String(describing: Constants.crashSignpostName))
         crashSignpost.begin(name: Constants.crashSignpostName)
         crashSignpost.end(name: Constants.crashSignpostName)
+#endif
         Self.save(
             CrashReport(sessionID: BlueTriangle.sessionID,
                         exception: exception,
@@ -96,6 +100,7 @@ struct CrashReportPersistence: CrashReportPersisting {
     }
     
 }
+#if canImport(MetricKit) && os(iOS)
 /// Wraps MXMetricManager.makeLogHandle + mxSignpost to produce a custom
 /// MXSignpostMetric entry in the next metric payload.
 final class SignpostLogger {
@@ -118,4 +123,4 @@ final class SignpostLogger {
         signpostID = nil
     }
 }
-
+#endif
