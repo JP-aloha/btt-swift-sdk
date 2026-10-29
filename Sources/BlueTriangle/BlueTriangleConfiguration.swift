@@ -80,7 +80,7 @@ final public class BlueTriangleConfiguration: NSObject {
     @objc public var fatalErrorSampleRate: Double = 1.0
 
     /// Percentage of non-fatal errors (ANR, memory warning, force restart, MetricKit
-    @objc public var nonFatalErrorSampleRate: Double = 1.0
+    @objc public var nonFatalErrorSampleRate: Double = 0.05
 
     /// Offline or Failure request storage expiry period by default it is 2 day i.e 2 * 24 * 60 * 60  1000 millisecond
     /// Interval unit should be in Millisecond

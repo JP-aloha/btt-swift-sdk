@@ -32,9 +32,9 @@ struct CapturedRequest: Encodable, Equatable {
     }
 
     var entryType = Constants.EntryType.resource
-    /// Page domain without host.
+    /// Last two labels of the host, e.g. "staples.com".
     var domain: String
-    /// Subdomain of the fully qualified domain name.
+    /// Full host, e.g. "aka-qe101.staples.com". Never includes the port.
     var host: String
     /// Full URL.
     var url: String
@@ -240,13 +240,7 @@ extension CapturedRequest {
         encodedBodySize: Int64,
         response: CustomResponse
     ) {
-        let hostComponents = URL(string: response.url)?.host?.split(separator: ".") ?? []
-        self.host = hostComponents.first != nil ? String(hostComponents.first!) : ""
-        if hostComponents.count > 2 {
-            self.domain = hostComponents.dropFirst().joined(separator: ".")
-        } else {
-            self.domain = URL(string: response.url)?.host ?? ""
-        }
+        (self.host, self.domain) = CapturedRequest.hostAndDomain(from: URL(string: response.url))
         if let statusCode = response.httpStatusCode{
             self.statusCode = "\(statusCode)"
         }
@@ -274,13 +268,7 @@ extension CapturedRequest {
         request: URLRequest?,
         error: Error?
     ) {
-        let hostComponents = request?.url?.host?.split(separator: ".") ?? []
-        self.host = hostComponents.first != nil ? String(hostComponents.first!) : ""
-        if hostComponents.count > 2 {
-            self.domain = hostComponents.dropFirst().joined(separator: ".")
-        } else {
-            self.domain = request?.url?.host ?? ""
-        }
+        (self.host, self.domain) = CapturedRequest.hostAndDomain(from: request?.url)
 
         if let _ = error{
             self.statusCode = "600"
@@ -317,14 +305,8 @@ extension CapturedRequest {
         response: URLResponse?,
         method: String? = nil
     ) {
-        let hostComponents = response?.url?.host?.split(separator: ".") ?? []
-        self.host = hostComponents.first != nil ? String(hostComponents.first!) : ""
-        if hostComponents.count > 2 {
-            self.domain = hostComponents.dropFirst().joined(separator: ".")
-        } else {
-            self.domain = response?.url?.host ?? ""
-        }
-    
+        (self.host, self.domain) = CapturedRequest.hostAndDomain(from: response?.url)
+
         let httpResponse = response as? HTTPURLResponse
         if let statusCode = httpResponse?.statusCode {
             self.statusCode = String(statusCode)
@@ -347,6 +329,15 @@ extension CapturedRequest {
         self.decodedBodySize = decodedBodySize
         self.encodedBodySize = encodedBodySize
         self.nativeAppProperty.httpMethod = method
+    }
+}
+
+// MARK: - Host / domain
+extension CapturedRequest {
+
+    static func hostAndDomain(from url: URL?) -> (host: String, domain: String) {
+        let host = url?.host ?? ""
+        return (host, host.split(separator: ".").suffix(2).joined(separator: "."))
     }
 }
 
