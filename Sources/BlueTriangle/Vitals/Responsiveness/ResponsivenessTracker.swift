@@ -92,7 +92,8 @@ final class ResponsivenessTracker: ResponsivenessTracking {
         longestHang = 0
         hitchHistograms = HitchHistogramBucket.makeDefaultBuckets()
 
-        let link = CADisplayLink(target: self, selector: #selector(tick))
+        displayLink?.invalidate()
+        let link = CADisplayLink(target: DisplayLinkProxy(self), selector: #selector(DisplayLinkProxy.tick))
         link.add(to: .main, forMode: .common)
         displayLink = link
         state = .started
@@ -131,8 +132,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
             hitchesSeverity: HitchHistogramBucket.weightedMean(hitchHistograms))
     }
 
-    @objc
-    private func tick(_ link: CADisplayLink) {
+    fileprivate func tick(_ link: CADisplayLink) {
         defer { lastTimestamp = link.timestamp }
         guard lastTimestamp != 0 else { return }
         processFrame(expected: link.targetTimestamp - link.timestamp, actual: link.timestamp - lastTimestamp)
@@ -175,6 +175,22 @@ final class ResponsivenessTracker: ResponsivenessTracking {
             hitchHistograms[index].count += 1
             return
         }
+    }
+}
+
+private final class DisplayLinkProxy: NSObject {
+    private weak var tracker: ResponsivenessTracker?
+
+    init(_ tracker: ResponsivenessTracker) {
+        self.tracker = tracker
+    }
+
+    @objc func tick(_ link: CADisplayLink) {
+        guard let tracker else {
+            link.invalidate()
+            return
+        }
+        tracker.tick(link)
     }
 }
 #endif

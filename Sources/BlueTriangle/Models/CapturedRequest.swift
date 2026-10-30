@@ -32,9 +32,9 @@ struct CapturedRequest: Encodable, Equatable {
     }
 
     var entryType = Constants.EntryType.resource
-    /// Last two labels of the host, e.g. "staples.com".
+    /// Page domain without host.
     var domain: String
-    /// Full host, e.g. "aka-qe101.staples.com". Never includes the port.
+    /// Subdomain of the fully qualified domain name.
     var host: String
     /// Full URL.
     var url: String
