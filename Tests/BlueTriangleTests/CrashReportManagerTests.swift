@@ -38,14 +38,20 @@ final class CrashReportManagerTests: XCTestCase {
         .init(sessionID: 100_000_000_000_000_001, pageName: "CrashReportManagerTests", report: crashErrorReport, segment: "Main Segment", pageType: "Main Group")
     }
 
+    private var shouldReportNonFatalErrors = false
+
     override func setUp() {
         super.setUp()
+        // uploadError() only uploads when non-fatal error reporting is sampled in for the session.
+        shouldReportNonFatalErrors = BlueTriangle.shouldReportNonFatalErrors
+        BlueTriangle.shouldReportNonFatalErrors = true
         CrashReportPersistenceMock.reset()
         _ = PendingCrashRecordStore.consume(matchingCrashTime: nil)
     }
 
     override func tearDown() {
         super.tearDown()
+        BlueTriangle.shouldReportNonFatalErrors = shouldReportNonFatalErrors
         CrashReportPersistenceMock.reset()
         _ = PendingCrashRecordStore.consume(matchingCrashTime: nil)
     }
