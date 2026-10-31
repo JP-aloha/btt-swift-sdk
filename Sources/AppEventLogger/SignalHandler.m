@@ -196,10 +196,8 @@ void btt_signal_handler(int signo, siginfo_t *sinfo, void *context)
 #if BTT_HAS_METRICKIT
     if (@available(iOS 13.0, macOS 12.0, *)) {
         if (__crash_signpost_log) {
-            alarm(2);
             MXSignpostIntervalBegin(__crash_signpost_log, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
             MXSignpostIntervalEnd(__crash_signpost_log, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
-            alarm(0);
         }
     }
 #endif

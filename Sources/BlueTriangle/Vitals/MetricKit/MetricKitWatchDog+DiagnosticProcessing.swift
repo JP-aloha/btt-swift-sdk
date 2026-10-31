@@ -132,7 +132,10 @@ extension MetricKitWatchDog {
         if let exceptionCode = diagnostic.exceptionCode?.intValue { extraPairs.append("exceptionCode: \(exceptionCode)") }
         if let exceptionType = diagnostic.exceptionType?.intValue { extraPairs.append("exceptionType: \(exceptionType)") }
         let eMeta = eMetaString(diagnostic, extraPairs: extraPairs)
-        let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic))
+        // crashTime is whole seconds, so widen the window by the same tolerance on both ends.
+        let tolerance = PendingCrashRecordStore.crashTimeTolerance
+        let window = (timeStampBegin.timeIntervalSince1970.milliseconds - tolerance)...(timeStampEnd.timeIntervalSince1970.milliseconds + tolerance)
+        let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic), within: window)
 
         if let pendingCrash {
             // nStart is the crash's own time, not the payload's - otherwise every crash delivered in one

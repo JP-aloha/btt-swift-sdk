@@ -53,15 +53,24 @@ enum PendingCrashRecordStore {
     }
 
     /// Removes and returns the record belonging to one MetricKit crash diagnostic.
-    static func consume(matchingCrashTime crashTime: Millisecond?) -> PendingCrashRecord? {
+    /// Without a crash time (no signpost, iOS < 17), a single record is always used; with several,
+    /// the latest one whose crashTime falls inside `window` - the payload's time range - is used,
+    /// else the latest one overall (e.g. the app was not opened again until after the window).
+    static func consume(matchingCrashTime crashTime: Millisecond?, within window: ClosedRange<Millisecond>? = nil) -> PendingCrashRecord? {
         lock.lock()
         defer { lock.unlock() }
         var records = loadCrashRecords()
         let index: Int?
         if let crashTime {
             index = records.firstIndex { isSameCrashTime($0.crashTime, crashTime) }
+        } else if records.count == 1 {
+            index = 0
         } else {
-            index = records.indices.max { (records[$0].crashTime ?? 0) < (records[$1].crashTime ?? 0) }
+            let inWindow = window.map { window in
+                records.indices.filter { records[$0].crashTime.map { window.contains($0) } ?? false }
+            } ?? []
+            let candidates = inWindow.isEmpty ? Array(records.indices) : inWindow
+            index = candidates.max { (records[$0].crashTime ?? 0) < (records[$1].crashTime ?? 0) }
         }
         guard let index else { return nil }
         let record = records.remove(at: index)
