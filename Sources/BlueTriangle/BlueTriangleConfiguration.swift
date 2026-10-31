@@ -75,7 +75,13 @@ final public class BlueTriangleConfiguration: NSObject {
     /// Percentage of sessions for which network calls will be captured. A value of `0.05`
     /// means that 5% of sessions will be tracked.
     @objc public var networkSampleRate: Double = 0.05
-    
+
+    /// Percentage of fatal errors (NSException/signal crashes, MetricKit crash diagnostics, and
+    @objc public var fatalErrorSampleRate: Double = 1.0
+
+    /// Percentage of non-fatal errors (ANR, memory warning, force restart, MetricKit
+    @objc public var nonFatalErrorSampleRate: Double = 0.05
+
     /// Offline or Failure request storage expiry period by default it is 2 day i.e 2 * 24 * 60 * 60  1000 millisecond
     /// Interval unit should be in Millisecond
     @objc public var cacheExpiryDuration: Millisecond = 2 * 24 * 60 * 60 * 1000
@@ -87,6 +93,9 @@ final public class BlueTriangleConfiguration: NSObject {
    // Session storage expiry duration 2 * 60 * 1000 millisecond
     internal var sessionExpiryDuration: Millisecond =  30 * 60 * 1000
     
+    /// Boolean indicating whether Hitch and Hang (responsiveness) tracking is enabled.
+    internal var enableScreenResponsiveness: Bool = true
+
     /// Boolean indicating whether grouping  is enabled.
     internal var enableGrouping: Bool =  true
     internal var groupingIdleTime: Double =  2.0
@@ -155,7 +164,7 @@ final public class BlueTriangleConfiguration: NSObject {
     
     /// Boolean indicating whether launch time is enabled.
     @objc public var enableLaunchTime: Bool = true
-    
+
 
     var timerConfiguration: BTTimer.Configuration = .live
 
@@ -168,6 +177,8 @@ final public class BlueTriangleConfiguration: NSObject {
     var capturedGroupRequestCollectorConfiguration: CapturedGroupRequestCollector.Configuration = .live
     
     var performanceMonitorBuilder: PerformanceMonitorBuilder = .live
+
+    var responsivenessTrackerBuilder: ResponsivenessTrackerBuilder = .live
 
     lazy var requestBuilder: TimerRequestBuilder = {
         TimerRequestBuilder.live(logger: makeLogger())
@@ -221,14 +232,21 @@ extension BlueTriangleConfiguration {
     }
 
     func makePerformanceMonitorFactory() -> (() -> PerformanceMonitoring)? {
-        
+
         if isPerformanceMonitorEnabled{
             return performanceMonitorBuilder.builder(performanceMonitorSampleRate)
         }else{
             return nil
         }
     }
-    
+
+    func makeResponsivenessTrackerFactory() -> (() -> ResponsivenessTracking?)? {
+        return { [weak self] in
+            guard let self = self, self.isPerformanceMonitorEnabled, self.enableScreenResponsiveness else { return nil }
+            return self.responsivenessTrackerBuilder.builder()
+        }
+    }
+
     private static var currentSessionId : Identifier? {
         return BlueTriangle.sessionData()?.sessionID
     }

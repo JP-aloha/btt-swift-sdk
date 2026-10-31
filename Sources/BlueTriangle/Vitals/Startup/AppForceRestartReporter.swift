@@ -24,23 +24,24 @@ class AppForceRestartReporter {
         guard let sessionData = BlueTriangle.sessionData(), sessionData.enableForceRestart else {
             return
         }
-        logger.debug("BlueTriangle:ForceRestartReporter -Force Restart detected...  ")
+        logger.debug("BlueTriangle:ForceRestartReporter -Force Restart detected... pageName: \(activity.pageName), nst: \(activity.pageStartTime)")
         let message = "User force restarted app."
-        self.uploadForceRestartReport(message: message, pageName: activity.pageName, segment: activity.trafficSegment, pageType: activity.pageType)
+        self.uploadForceRestartReport(message: message, pageName: activity.pageName, segment: activity.trafficSegment, pageType: activity.pageType, startTime: activity.pageStartTime)
         logger.debug(message)
     }
 }
 
 extension AppForceRestartReporter {
-   
-    internal func uploadForceRestartReport(message : String, pageName: String, segment : String, pageType : String) {
+
+    internal func uploadForceRestartReport(message : String, pageName: String, segment : String, pageType : String, startTime: Millisecond) {
         Task {
             do {
                 guard let session = self.session() else { return }
                 let event = BTTEvents.forceRestart
                 var nativeApp = NativeAppProperties.nstEmpty
                 nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
-                let report = CrashReport(sessionID: BlueTriangle.sessionID, forceRestartMessage: message, eCount: 1, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp)
+                nativeApp.eMeta = EMetaBuilder.build(source: .forceRestart, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
+                let report = CrashReport(sessionID: BlueTriangle.sessionID, forceRestartMessage: message, eCount: 1, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, time: startTime)
                 let reportRequest = try self.makeForceRestartReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
                 self.uploader.send(request: reportRequest)

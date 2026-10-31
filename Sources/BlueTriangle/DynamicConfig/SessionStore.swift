@@ -60,6 +60,10 @@ class SessionData: Codable {
     var shouldNetworkCapture: Bool
     var enableScreenTracking: Bool
     var networkSampleRate : Double
+    var fatalErrorSampleRate: Double
+    var nonFatalErrorSampleRate: Double
+    var shouldReportFatalErrors: Bool
+    var shouldReportNonFatalErrors: Bool
     var enableGrouping: Bool
     var groupingIdleTime: Double
     var ignoreViewControllers: Set<String>
@@ -85,7 +89,9 @@ class SessionData: Codable {
     var enableForceRestart: Bool
     var forceRestartDuration: Double
 
-    
+    var enableScreenResponsiveness: Bool
+
+
     var enableBreadcrumbs : Bool
     var ignoreBreadcrumbs: Set<String>
     var configKey : String
@@ -100,6 +106,10 @@ class SessionData: Codable {
         self.groupingIdleTime = BlueTriangle.configuration.groupingIdleTime
         self.enableScreenTracking = BlueTriangle.configuration.enableScreenTracking
         self.networkSampleRate = BlueTriangle.configuration.networkSampleRate
+        self.fatalErrorSampleRate = BlueTriangle.configuration.fatalErrorSampleRate
+        self.nonFatalErrorSampleRate = BlueTriangle.configuration.nonFatalErrorSampleRate
+        self.shouldReportFatalErrors = false
+        self.shouldReportNonFatalErrors = false
         self.ignoreViewControllers = BlueTriangle.configuration.ignoreViewControllers
         
         self.enableCrashTracking = BlueTriangle.configuration.crashTracking == .nsException
@@ -125,6 +135,8 @@ class SessionData: Codable {
         self.enableAppInstall = BlueTriangle.configuration.enableAppInstall
         self.enableForceRestart = BlueTriangle.configuration.enableForceRestart
         self.forceRestartDuration = BlueTriangle.configuration.forceRestartDuration
+
+        self.enableScreenResponsiveness = BlueTriangle.configuration.enableScreenResponsiveness
     }
     
     private static func generateSessionID()-> Identifier {

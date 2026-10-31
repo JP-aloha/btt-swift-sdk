@@ -44,6 +44,8 @@ class BTTStoredConfigSyncer {
             guard let config = try configRepo.get() else { return }
             let defaultConfig = configRepo.defaultConfig
             syncNetworkSampleRate(from: config, defaultConfig: defaultConfig)
+            syncFatalErrorSampleRate(from: config, defaultConfig: defaultConfig)
+            syncNonFatalErrorSampleRate(from: config, defaultConfig: defaultConfig)
             syncIgnoreScreens(from: config, defaultConfig: defaultConfig)
             syncScreenTracking(from: config, defaultConfig: defaultConfig)
             syncGrouping(from: config, defaultConfig: defaultConfig)
@@ -52,6 +54,7 @@ class BTTStoredConfigSyncer {
             syncCrashTracking(from: config, defaultConfig: defaultConfig)
             syncANRTracking(from: config, defaultConfig: defaultConfig)
             syncMemoryWarning(from: config, defaultConfig: defaultConfig)
+            syncResponsiveness(from: config, defaultConfig: defaultConfig)
             syncWebViewStitching(from: config, defaultConfig: defaultConfig)
             syncGroupingTapDetection(from: config, defaultConfig: defaultConfig)
             syncAutoCheckout(from: config, defaultConfig: defaultConfig)
@@ -83,6 +86,16 @@ class BTTStoredConfigSyncer {
         }
     }
     
+    private func syncFatalErrorSampleRate(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        guard let rate = config.fatalErrorSampleRate ?? defaultConfig.fatalErrorSampleRate else { return }
+        BlueTriangle.updateFatalErrorSampleRate(rate == 0 ? 0.0 : Double(rate) / 100.0)
+    }
+
+    private func syncNonFatalErrorSampleRate(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        guard let rate = config.nonFatalErrorSampleRate ?? defaultConfig.nonFatalErrorSampleRate else { return }
+        BlueTriangle.updateNonFatalErrorSampleRate(rate == 0 ? 0.0 : Double(rate) / 100.0)
+    }
+
     private func syncIgnoreScreens(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
         let ignoreScreens = config.ignoreScreens ?? defaultConfig.ignoreScreens
         if let ignoreVcs = ignoreScreens {
@@ -136,7 +149,13 @@ class BTTStoredConfigSyncer {
             BlueTriangle.updateMemoryWarning(enableMemoryWarning)
         }
     }
-    
+
+    private func syncResponsiveness(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
+        if let enableScreenResponsiveness = config.enableScreenResponsiveness ?? defaultConfig.enableScreenResponsiveness {
+            BlueTriangle.updateResponsiveness(enableScreenResponsiveness)
+        }
+    }
+
     private func syncAppInstall(from config: BTTRemoteConfig, defaultConfig: BTTRemoteConfig) {
         if BlueTriangle.initialized, let enableAppInstall = config.enableAppInstall ?? defaultConfig.enableAppInstall {
             BlueTriangle.updateAppInstall(enableAppInstall)

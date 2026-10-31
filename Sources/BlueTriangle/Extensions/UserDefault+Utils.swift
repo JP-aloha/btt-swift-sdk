@@ -37,10 +37,25 @@ final class UserDefaultsUtility {
         UserDefaults.standard.removePersistentDomain(forName: domain)
         UserDefaults.standard.synchronize()
     }
-    
+
+    static func saveCodable<T: Codable>(_ value: T, key: UserDefaultKeys) {
+        guard let data = try? JSONEncoder().encode(value) else { return }
+        setData(value: data, key: key)
+    }
+
+    static func loadCodable<T: Codable>(_ type: T.Type, key: UserDefaultKeys) -> T? {
+        guard let data = getData(type: Data.self, forKey: key) else { return nil }
+        guard let value = try? JSONDecoder().decode(T.self, from: data) else {
+            removeData(key: key)
+            return nil
+        }
+        return value
+    }
+
     enum UserDefaultKeys: String {
-        
         case savedTimers
         case currentTimerDetail
+        case pendingCrashRecord
+        case pendingFatalErrorRecord
     }
 }

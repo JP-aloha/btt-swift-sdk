@@ -31,7 +31,7 @@ actor CapturedRequestCollectorMock: CapturedRequestCollecting {
         onCollectMetrics(metrics)
     }
     
-    func collect(timer: InternalTimer, response: URLResponse?){
+    func collect(timer: InternalTimer, response: URLResponse?, method: String? = nil){
         onCollectTimer(timer, response)
     }
     

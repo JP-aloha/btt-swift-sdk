@@ -27,9 +27,9 @@ internal struct BTTEvents {
         defaultPageName: BTTEventDefaultPageName.memoryWarning.rawValue
     )
 
-    static let iOSCrash = BTTEvent(
-        id: BTTEventId.iOSCrash.rawValue,
-        defaultPageName: BTTEventDefaultPageName.iOSCrash.rawValue
+    static let nativeAppCrash = BTTEvent(
+        id: BTTEventId.nativeAppCrash.rawValue,
+        defaultPageName: BTTEventDefaultPageName.nativeAppCrash.rawValue
     )
     
     static let appInstall = BTTEvent(
@@ -41,6 +41,26 @@ internal struct BTTEvents {
         id: BTTEventId.forceRestart.rawValue,
         defaultPageName: BTTEventDefaultPageName.forceRestart.rawValue
     )
+
+    static let excessCPUUsage = BTTEvent(
+        id: BTTEventId.excessCPUUsage.rawValue,
+        defaultPageName: BTTEventDefaultPageName.excessCPUUsage.rawValue
+    )
+
+    static let heavyDiskWrite = BTTEvent(
+        id: BTTEventId.heavyDiskWrite.rawValue,
+        defaultPageName: BTTEventDefaultPageName.heavyDiskWrite.rawValue
+    )
+
+    static let slowLaunch = BTTEvent(
+        id: BTTEventId.slowLaunch.rawValue,
+        defaultPageName: BTTEventDefaultPageName.slowLaunch.rawValue
+    )
+
+    static let networkError = BTTEvent(
+        id: BTTEventId.networkError.rawValue,
+        defaultPageName: BTTEventDefaultPageName.networkError.rawValue
+    )
 }
 
 internal struct BTTEvent {
@@ -49,13 +69,17 @@ internal struct BTTEvent {
 }
 
 internal enum BTTEventDefaultPageName : String {
-    case coldLaunchPage = "ColdLaunchTime"
-    case hotLaunchPage  = "HotLaunchTime"
-    case anrWarning     = "ANRWarning"
-    case memoryWarning  = "MemoryWarning"
-    case iOSCrash       = "iOS Crash"
-    case appInstall     = "AppInstall"
-    case forceRestart   = "ForceRestart"
+    case coldLaunchPage      = "ColdLaunchTime"
+    case hotLaunchPage       = "HotLaunchTime"
+    case anrWarning          = "ANRWarning"
+    case memoryWarning       = "MemoryWarning"
+    case nativeAppCrash      = "NativeAppCrash"
+    case appInstall          = "AppInstall"
+    case forceRestart        = "ForceRestart"
+    case excessCPUUsage      = "ExcessCPUUsage"
+    case heavyDiskWrite      = "HeavyDiskWrite"
+    case slowLaunch          = "SlowLaunch"
+    case networkError        = "NetworkError"
 }
 
 internal enum BTTEventId: String {
@@ -63,7 +87,11 @@ internal enum BTTEventId: String {
     case hotLaunch     = "3"
     case anrWarning    = "4"
     case memoryWarning = "5"
-    case iOSCrash      = "6"
+    case nativeAppCrash = "6"
     case appInstall    = "8"
-    case forceRestart  = "9"
+    case forceRestart  = "15"
+    case excessCPUUsage = "16"
+    case heavyDiskWrite = "17"
+    case slowLaunch     = "18"
+    case networkError   = "22"
 }

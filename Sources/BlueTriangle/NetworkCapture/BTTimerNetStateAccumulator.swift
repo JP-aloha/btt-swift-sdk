@@ -67,9 +67,8 @@ class BTTimerNetStateAccumulator  : BTTimerNetStateAccumulatorProtocol {
             self.sourceCancellable = nil
         }
     }
-    
+
     func makeReport() -> NetworkReport{
-        
         self.stop()
         
         let netSource = networkSource.joined(separator: "|")

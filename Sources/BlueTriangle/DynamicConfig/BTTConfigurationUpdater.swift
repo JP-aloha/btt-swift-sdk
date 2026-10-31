@@ -27,7 +27,12 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
     }
     
     func update(_ isForcedUpdate : Bool, completion: @escaping () -> Void) {
-                
+
+        func finish() {
+            BlueTriangle.logTrackingSummary()
+            completion()
+        }
+
         do {
             let config = try configRepo.get()
            
@@ -40,7 +45,7 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                 if timeIntervalSinceLastUpdate < updatePeriod &&  !isForcedUpdate {
                    
                     self.logger?.info("BlueTriangle:BTTConfigurationUpdater - The update period has not yet elapsed.")
-                    completion()
+                    finish()
                     return
                 }
             }
@@ -74,8 +79,8 @@ class BTTConfigurationUpdater : ConfigurationUpdater {
                     self.logger?.error("BlueTriangle:BTTConfigurationUpdater - Failed to fetch remote config: \(error.localizedDescription)")
                 }
             }
-            
-            completion()
+
+            finish()
         }
     }
 }

@@ -60,9 +60,10 @@ enum Device {
         "\(Bundle.main.releaseVersionNumber ?? "0.0")"
     }
     
-    /// Native app version
+    /// The SDK version reported everywhere in the codebase - delegates to `BlueTriangle.sdkVersion` so a
+    /// wrapper SDK's override (defaulting to `Version.number` when unset) reaches every reader uniformly.
     static var sdkVersion: String {
-        Version.number
+        BlueTriangle.sdkVersion
     }
 
     /// The User-Agent token.

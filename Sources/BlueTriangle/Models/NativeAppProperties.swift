@@ -15,6 +15,12 @@ public enum ScreenType : String, Encodable, Decodable {
     case ReactNative
 }
 
+enum GroupSource: String, Encodable, Decodable {
+    case NavigationTitle
+    case LastChildName
+    case Manual
+}
+
 enum NativeAppType : CustomStringConvertible, Encodable, Decodable{
     case Regular
     case NST
@@ -42,6 +48,8 @@ struct NativeAppProperties: Equatable {
     let cellular: Millisecond
     let ethernet: Millisecond
     let other: Millisecond
+    var responsivenessMeta: String?
+    var responsivenessGrade: Int?
     var confidenceRate: Int32?
     var autoCheckout: Bool = false
     var confidenceMsg: String?
@@ -50,16 +58,26 @@ struct NativeAppProperties: Equatable {
     var eventId: String?
     var installTime: Millisecond = 0
     var groupingCause: String?
+    var groupNameSource: GroupSource?
     var breadcrumbs: String?
     var configKey: String?
     var groupingCauseInterval: Millisecond?
     var sdkVersion: String = Device.sdkVersion
+    var sdkId: String = BlueTriangle.sdkId
     var appVersion: String = Device.appVersion
     var type : String = NativeAppType.Regular.description
     var netState: String = BlueTriangle.networkStateMonitor?.state.value?.description.lowercased() ?? ""
     var deviceModel : String = Device.model
     var netStateSource : String = BlueTriangle.networkStateMonitor?.networkSource.value?.description ?? ""
-    var childViews:[String] = [String]()
+    /// Set only for MetricKit crash diagnostics - see MetricKitWatchDog+DiagnosticProcessing.reportCrash().
+    var eMeta: String?
+    /// Set only for MetricKit crash diagnostics - see MetricKitWatchDog+DiagnosticProcessing.reportCrash().
+    var eIdentifier: String?
+    /// Set only for MetricKit diagnostics - the call stack, split off of the message's first two lines.
+    /// See MetricKitWatchDog+DiagnosticProcessing.crashStyleMessage().
+    var stackTrace: String?
+    var screenCount: Int32?
+    var httpMethod: String?
 }
 
 extension NativeAppProperties: Codable{
@@ -106,7 +124,15 @@ extension NativeAppProperties: Codable{
         if other > 0{
             try con.encode(other, forKey: .other)
         }
-        
+
+        if let responsivenessMeta = responsivenessMeta, !responsivenessMeta.isEmpty {
+            try con.encode(responsivenessMeta, forKey: .responsivenessMeta)
+        }
+
+        if let responsivenessGrade = responsivenessGrade {
+            try con.encode(responsivenessGrade, forKey: .responsivenessGrade)
+        }
+
         if let err = err, err.count > 0{
             try con.encode(err, forKey: .err)
         }
@@ -119,10 +145,14 @@ extension NativeAppProperties: Codable{
             try con.encode(netStateSource, forKey: .netStateSource)
         }
         
-        if childViews.count > 0{
-            try con.encode(childViews, forKey: .childViews)
+        if let screenCount = screenCount {
+            try con.encode(screenCount, forKey: .screenCount)
         }
-        
+
+        if let httpMethod = httpMethod, !httpMethod.isEmpty {
+            try con.encode(httpMethod.uppercased(), forKey: .httpMethod)
+        }
+
         if let confidenceRate = confidenceRate {
             try con.encode(confidenceRate, forKey: .confidenceRate)
         }
@@ -138,7 +168,11 @@ extension NativeAppProperties: Codable{
         if let cause = groupingCause {
             try con.encode(cause, forKey: .groupingCause)
         }
-        
+
+        if let groupNameSource = groupNameSource {
+            try con.encode(groupNameSource, forKey: .groupNameSource)
+        }
+
         if let eventId = eventId, !eventId.isEmpty {
             try con.encode(eventId, forKey: .eventID)
         }
@@ -158,10 +192,23 @@ extension NativeAppProperties: Codable{
         if let configKey  = configKey {
             try con.encode(configKey, forKey: .configKey)
         }
-        
+
+        if let eMeta = eMeta, !eMeta.isEmpty {
+            try con.encode(eMeta, forKey: .eMeta)
+        }
+
+        if let eIdentifier = eIdentifier, !eIdentifier.isEmpty {
+            try con.encode(eIdentifier, forKey: .eIdentifier)
+        }
+
+        if let stackTrace = stackTrace, !stackTrace.isEmpty {
+            try con.encode(stackTrace, forKey: .stackTrace)
+        }
+
         try con.encode(deviceModel, forKey: .deviceModel)
         try con.encode(appVersion, forKey: .appVersion)
         try con.encode(sdkVersion, forKey: .sdkVersion)
+        try con.encode(sdkId, forKey: .sdkId)
     }
     
     init(from decoder: Decoder) throws {
@@ -177,22 +224,34 @@ extension NativeAppProperties: Codable{
         self.cellular = try container.decodeIfPresent(Millisecond.self, forKey: .cellular)  ?? 0
         self.ethernet = try container.decodeIfPresent(Millisecond.self, forKey: .ethernet)  ?? 0
         self.other = try container.decodeIfPresent(Millisecond.self, forKey: .other) ?? 0
+        self.responsivenessMeta = try container.decodeIfPresent(String.self, forKey: .responsivenessMeta)
+        self.responsivenessGrade = try container.decodeIfPresent(Int.self, forKey: .responsivenessGrade)
         self.netState = try container.decodeIfPresent(String.self, forKey: .netState) ?? ""
         self.type = try container.decodeIfPresent(String.self, forKey: .type) ?? NativeAppType.NST.description
         self.deviceModel = try container.decodeIfPresent(String.self, forKey: .deviceModel) ?? Device.model
         self.appVersion = try container.decodeIfPresent(String.self, forKey: .appVersion) ?? Device.appVersion
         self.sdkVersion = try container.decodeIfPresent(String.self, forKey: .sdkVersion) ?? Device.sdkVersion
+        self.sdkId = try container.decodeIfPresent(String.self, forKey: .sdkId) ?? BlueTriangle.sdkId
         self.netStateSource = try container.decodeIfPresent(String.self, forKey: .netStateSource) ?? ""
-        self.childViews = try container.decodeIfPresent([String].self, forKey: .childViews) ?? []
+        self.confidenceRate = try container.decodeIfPresent(Int32.self, forKey: .confidenceRate).flatMap { $0 > 0 ? $0 : nil }
+        self.confidenceMsg = try container.decodeIfPresent(String.self, forKey: .confidenceMsg).flatMap { $0.isEmpty ? nil : $0 }
+        self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause).flatMap { $0.isEmpty ? nil : $0 }
+        self.groupingCauseInterval = try container.decodeIfPresent(Millisecond.self, forKey: .groupingCauseInterval).flatMap { $0 > 0 ? $0 : nil }
+        self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID).flatMap { $0.isEmpty ? nil : $0 }
+        self.screenCount = try container.decodeIfPresent(Int32.self, forKey: .screenCount)
+        self.httpMethod = try container.decodeIfPresent(String.self, forKey: .httpMethod)
         self.confidenceRate = try container.decodeIfPresent(Int32.self, forKey: .confidenceRate) ?? 0
         self.confidenceMsg = try container.decodeIfPresent(String.self, forKey: .confidenceMsg) ?? ""
         self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause) ?? ""
+        self.groupNameSource = try container.decodeIfPresent(GroupSource.self, forKey: .groupNameSource)
         self.groupingCauseInterval = try container.decodeIfPresent(Millisecond.self, forKey: .groupingCauseInterval) ?? 0
-        self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID) ?? ""
         self.autoCheckout = try container.decodeIfPresent(Bool.self, forKey: .autoCheckout) ?? false
-        self.breadcrumbs = try container.decodeIfPresent(String.self, forKey: .breadcrumbs) ?? ""
+        self.breadcrumbs = try container.decodeIfPresent(String.self, forKey: .breadcrumbs).flatMap { $0.isEmpty ? nil : $0 }
         self.installTime = try container.decodeIfPresent(Millisecond.self, forKey: .installTime)  ?? 0
-        self.configKey = try container.decodeIfPresent(String.self, forKey: .configKey) ?? ""
+        self.configKey = try container.decodeIfPresent(String.self, forKey: .configKey).flatMap { $0.isEmpty ? nil : $0 }
+        self.eMeta = try container.decodeIfPresent(String.self, forKey: .eMeta)
+        self.eIdentifier = try container.decodeIfPresent(String.self, forKey: .eIdentifier)
+        self.stackTrace = try container.decodeIfPresent(String.self, forKey: .stackTrace)
     }
     
     enum CodingKeys: String, CodingKey {
@@ -209,23 +268,31 @@ extension NativeAppProperties: Codable{
         case ethernet
         case netState
         case other
+        case responsivenessMeta
+        case responsivenessGrade
         case type
         case err
         case deviceModel
         case netStateSource
-        case childViews
+        case screenCount
+        case httpMethod
         case appVersion
         case grouped
         case sdkVersion
+        case sdkId
         case confidenceRate
         case confidenceMsg
         case groupingCause
+        case groupNameSource
         case groupingCauseInterval
         case eventID
         case autoCheckout
         case breadcrumbs
         case installTime
         case configKey
+        case eMeta
+        case eIdentifier
+        case stackTrace
     }
 }
 

@@ -113,6 +113,14 @@ final class BreadcrumbCollector {
     ]
 
     private func captures(event: any BreadcrumbEvent, data: Data, key: String) {
+        if event.type == .userEvent,
+           let last = entries.last,
+           last.event.type == .userEvent,
+           last.event.data[.targetClass] == event.data[.targetClass] {
+            entries[entries.count - 1] = Entry(event: event, data: data, key: key, count: 1, firstTimestamp: event.timestamp, lastTimestamp: event.timestamp, isMergeCandidate: false)
+            return
+        }
+
         guard event.type == .uiLifecycle,
               let method = event.data[.event],
               Self.swiftUILifecycleMethods.contains(method) else {

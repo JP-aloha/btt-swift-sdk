@@ -16,6 +16,15 @@
 #include <dlfcn.h>
 #include <pthread.h>
 #include <mach/mach.h>
+#include <TargetConditionals.h>
+
+#if __has_include(<MetricKit/MetricKit.h>) && !TARGET_OS_TV && !TARGET_OS_WATCH
+#define BTT_HAS_METRICKIT 1
+#import <MetricKit/MetricKit.h>
+#import <os/signpost.h>
+#else
+#define BTT_HAS_METRICKIT 0
+#endif
 
 void register_btt_tracker(void);
 void reset_sig_handlers(void);
@@ -52,6 +61,10 @@ static int __max_cache_files = 5;
 static bool __is_register = false;
 
 static pthread_mutex_t page_context_lock   = PTHREAD_MUTEX_INITIALIZER;
+
+#if BTT_HAS_METRICKIT
+static os_log_t __crash_signpost_log = NULL;
+#endif
 
 void register_btt_tracker(void){
     
@@ -173,11 +186,21 @@ void btt_signal_handler(int signo, siginfo_t *sinfo, void *context)
     }
     
     time_t crash_time = time(NULL);
+
     char* crash_report = make_report(name, sinfo, crash_time);
     char* file_name = calloc(51, sizeof(char));
     snprintf(file_name, 50, "%ld.bttcrash", crash_time);
-    
+
     [SignalHandler writeCrashReport:crash_report toReportFolderPath:__report_folder_path withfileName:file_name];
+
+#if BTT_HAS_METRICKIT
+    if (@available(iOS 13.0, macOS 12.0, *)) {
+        if (__crash_signpost_log) {
+            MXSignpostIntervalBegin(__crash_signpost_log, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
+            MXSignpostIntervalEnd(__crash_signpost_log, OS_SIGNPOST_ID_EXCLUSIVE, "MatricKitCrash");
+        }
+    }
+#endif
     
     [SignalHandler debug_log:[NSString stringWithFormat:@"Written btt crash %s\n%s", file_name, crash_report]];
     
@@ -429,6 +452,12 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
        return;
     }
     
+#if BTT_HAS_METRICKIT
+    if (@available(iOS 13.0, macOS 12.0, *)) {
+        __crash_signpost_log = [MXMetricManager makeLogHandleWithCategory:@"MatricKitCrash"];
+    }
+#endif
+
     //Register all Signal handlers
     register_btt_tracker();
     
@@ -449,6 +478,12 @@ char* make_report(char* sig_name, siginfo_t* sinfo, time_t crash_time){
 }
 
 + (NSString*) reportsFolderPath{
+    if (__report_folder_path == NULL) {
+        [self initReportFolderPath];
+    }
+    if (__report_folder_path == NULL) {
+        return @"";
+    }
     return [NSString stringWithCString:__report_folder_path encoding:NSASCIIStringEncoding];
 }
 

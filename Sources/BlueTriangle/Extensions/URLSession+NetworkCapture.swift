@@ -46,7 +46,7 @@ public extension URLSession {
                 if let error = error{
                     BlueTriangle.captureRequest(timer: timer, request: request, error: error)
                 }else{
-                    BlueTriangle.captureRequest(timer: timer, response: response)
+                    BlueTriangle.captureRequest(timer: timer, response: response, method: request.httpMethod)
                 }
             }
             
@@ -73,7 +73,7 @@ public extension URLSession {
             let asyncTuple = try await data(for: request, delegate: delegate)
             if var timer = timer {
                 timer.end()
-                BlueTriangle.captureRequest(timer: timer, tuple: asyncTuple)
+                BlueTriangle.captureRequest(timer: timer, tuple: asyncTuple, method: request.httpMethod)
             }
             return asyncTuple
             
@@ -111,7 +111,7 @@ public extension URLSession {
                 receiveOutput: { data, response in
                     if var timer = timer {
                         timer.end()
-                        BlueTriangle.captureRequest(timer: timer, tuple: (data, response))
+                        BlueTriangle.captureRequest(timer: timer, tuple: (data, response), method: request.httpMethod)
                     }
                 }
                 ,receiveCompletion: { completion in

@@ -46,13 +46,16 @@ class MemoryWarningWatchDog {
         let message = formatedMemoryWarningMessage()
 
         if let timer = BlueTriangle.recentTimer() {
+            timer.setEvent(BTTEvents.memoryWarning)
+            let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             Task {
-                await self.errorMetricStore.addMemoryWarning(id: timer.uuid, message: message)
+                await self.errorMetricStore.addMemoryWarning(id: timer.uuid, message: message, breadcrumbs: breadcrumbs)
             }
         } else {
             let event = BTTEvents.memoryWarning
             var nativeApp = NativeAppProperties.nstEmpty
             nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
+            nativeApp.eMeta = EMetaBuilder.build(source: .memoryWarning, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
             let report = CrashReport(sessionID: BlueTriangle.sessionID,
                                      memoryWarningMessage: message, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, nativeApp: nativeApp)
             uploadReports(session: session, report: report, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
@@ -112,7 +115,7 @@ extension MemoryWarningWatchDog {
         }
     }
     
-    internal func uploadMemoryWarningReport(pageName: String, uuid: UUID, segment : String, pageType : String) {
+    internal func uploadMemoryWarningReport(pageName: String, uuid: UUID, segment : String, pageType : String, startTime: TimeInterval) {
         Task {
             do {
                 guard let session = self.session(), let errorMetric = await self.errorMetricStore.flushMemoryWarning(id: uuid) else {
@@ -120,8 +123,9 @@ extension MemoryWarningWatchDog {
                 }
                 let event = BTTEvents.memoryWarning
                 var nativeApp = NativeAppProperties.nstEmpty
-                nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
-                let report = CrashReport(sessionID: BlueTriangle.sessionID, memoryWarningMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: errorMetric.time)
+                nativeApp.breadcrumbs = errorMetric.breadcrumbs
+                nativeApp.eMeta = EMetaBuilder.build(source: .memoryWarning, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
+                let report = CrashReport(sessionID: BlueTriangle.sessionID, memoryWarningMessage: errorMetric.message, eCount: errorMetric.eCount, pageName: pageName, segment: segment, pageType: pageType, nativeApp: nativeApp, intervalProvider: startTime)
                 let reportRequest = try self.makeCrashReportRequest(session: session,
                                                                     report: report.report, pageName: report.pageName, segment: segment, pageType: pageType, event: event)
                 self.uploader.send(request: reportRequest)
@@ -167,6 +171,7 @@ extension MemoryWarningWatchDog {
             "sessionID": String(session.sessionID),
             "pgTm": String(Constants.minPgTm),
             "pageType": pageType,
+            "wcd": String(session.wcd),
             "AB": session.abTestID,
             "DCTR": session.dataCenter,
             "CmpN": session.campaignName,
