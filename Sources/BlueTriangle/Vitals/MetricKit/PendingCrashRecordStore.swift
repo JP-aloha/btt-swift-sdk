@@ -61,7 +61,7 @@ enum PendingCrashRecordStore {
         if let crashTime {
             index = records.firstIndex { isSameCrashTime($0.crashTime, crashTime) }
         } else {
-            index = records.count == 1 ? 0 : nil
+            index = records.indices.max { (records[$0].crashTime ?? 0) < (records[$1].crashTime ?? 0) }
         }
         guard let index else { return nil }
         let record = records.remove(at: index)
