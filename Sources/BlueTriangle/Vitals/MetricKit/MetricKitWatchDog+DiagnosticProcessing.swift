@@ -16,7 +16,6 @@ extension MetricKitWatchDog {
         }
 
         for payload in payloads {
- 
             let isLive = isLive && (observingSince.map { payload.timeStampBegin >= $0 } ?? false)
 
             var hangCount = 0
@@ -34,7 +33,10 @@ extension MetricKitWatchDog {
                         "diskWriteException: \(payload.diskWriteExceptionDiagnostics?.count ?? 0), " +
                         "appLaunch: \(appLaunchCount)")
 
-            payload.crashDiagnostics?.forEach {
+            // Crashes with a signpost first, so a crash without one cannot take their record.
+            let crashes = payload.crashDiagnostics ?? []
+            let signpostCrashes = crashes.filter { crashSignpostTime(from: $0) != nil }
+            (signpostCrashes + crashes.filter { crashSignpostTime(from: $0) == nil }).forEach {
                 logger.info("MetricKit Watch Dog: crash title = \(self.crashTitle(for: $0))")
                 reportCrash($0, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
             }
@@ -43,22 +45,22 @@ extension MetricKitWatchDog {
                     "totalCPUTime: \"\(measurementFormatter.string(from: $0.totalCPUTime))\"",
                     "totalSampledTime: \"\(measurementFormatter.string(from: $0.totalSampledTime))\""
                 ]
-                reportOrDefer($0, kind: .excessCPUUsage, summary: cpuExceptionSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
+                reportOrDefer($0, kind: .excessCPUUsage, summary: cpuExceptionSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin)
             }
             payload.diskWriteExceptionDiagnostics?.forEach {
                 let extraPairs = ["writesCaused: \"\(measurementFormatter.string(from: $0.totalWritesCaused))\""]
-                reportOrDefer($0, kind: .heavyDiskWrite, summary: diskWriteSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
+                reportOrDefer($0, kind: .heavyDiskWrite, summary: diskWriteSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin)
             }
             if #available(iOS 15.0, *) {
                 payload.hangDiagnostics?.forEach {
                     let extraPairs = ["hangDuration: \"\(measurementFormatter.string(from: $0.hangDuration))\""]
-                    reportOrDefer($0, kind: .hang, summary: hangSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
+                    reportOrDefer($0, kind: .hang, summary: hangSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin)
                 }
             }
             if #available(iOS 16.0, *) {
                 payload.appLaunchDiagnostics?.forEach {
                     let extraPairs = ["launchDuration: \"\(measurementFormatter.string(from: $0.launchDuration))\""]
-                    reportOrDefer($0, kind: .slowLaunch, summary: appLaunchSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
+                    reportOrDefer($0, kind: .slowLaunch, summary: appLaunchSummary(for: $0), extraMetadataPairs: extraPairs, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin)
                 }
             }
         }
@@ -75,8 +77,6 @@ extension MetricKitWatchDog {
     func diskWriteSummary(for diagnostic: MXDiskWriteExceptionDiagnostic) -> String {
         "App encountered an excessive disk write exception."
     }
-
-    private static let hangThresholdMilliseconds = 750
 
     @available(iOS 15.0, *)
     func hangSummary(for diagnostic: MXHangDiagnostic) -> String {
@@ -120,7 +120,7 @@ extension MetricKitWatchDog {
 extension MetricKitWatchDog {
     func reportCrash(_ diagnostic: MXCrashDiagnostic, isLive: Bool, session: Session, timeStampBegin: Date, timeStampEnd: Date) {
         guard !hasFatalErrorSignpost(diagnostic) else {
-            print("MetricKitWatchDog has FatalErrorSignpost, skipping")
+            logger.debug("MetricKit Watch Dog: crash has a fatal-error signpost, skipping.")
             return
         }
 
@@ -135,12 +135,11 @@ extension MetricKitWatchDog {
         // crashTime is whole seconds, so widen the window by the same tolerance on both ends.
         let tolerance = PendingCrashRecordStore.crashTimeTolerance
         let window = (timeStampBegin.timeIntervalSince1970.milliseconds - tolerance)...(timeStampEnd.timeIntervalSince1970.milliseconds + tolerance)
-        let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic), within: window)
+        let pendingCrash = PendingCrashRecordStore.consume(matchingCrashTime: crashSignpostTime(from: diagnostic),
+                                                           signal: diagnostic.signal?.intValue,
+                                                           within: window)
 
         if let pendingCrash {
-            // nStart is the crash's own time, not the payload's - otherwise every crash delivered in one
-            // payload would share the same nStart. crashTime is whole seconds in ms, so the round trip
-            // through TimeInterval is exact.
             let crashDate = pendingCrash.crashTime.map { Date(timeIntervalSince1970: TimeInterval($0) / 1000) } ?? timeStampBegin
             uploadCrashReport(kind: .crash, sessionID: pendingCrash.sessionID, message: message, stackTrace: stackTrace,
                               pageName: pendingCrash.pageName, trafficSegment: pendingCrash.trafficSegment,
@@ -211,8 +210,7 @@ extension MetricKitWatchDog {
         extraMetadataPairs: [String] = [],
         isLive: Bool,
         session: Session,
-        timeStampBegin: Date,
-        timeStampEnd: Date
+        timeStampBegin: Date
     ) {
         guard BlueTriangle.shouldReportNonFatalErrors else { return }
 

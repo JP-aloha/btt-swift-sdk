@@ -312,15 +312,12 @@ final public class BlueTriangle: NSObject {
         sessionData()?.shouldNetworkCapture ?? false
     }()
 
-    /// Decided once per session (see `SessionData.shouldReportFatalErrors`/`shouldReportNonFatalErrors`) -
-    /// refreshed via `updateFatalErrorReportingFlags()`/`updateNonFatalErrorReportingFlags()`, never
-    /// re-rolled per occurrence.
     internal static var shouldReportFatalErrors: Bool = {
-        sessionData()?.shouldReportFatalErrors ?? false
+        sessionManager?.savedSessionData()?.shouldReportFatalErrors ?? false
     }()
 
     internal static var shouldReportNonFatalErrors: Bool = {
-        sessionData()?.shouldReportNonFatalErrors ?? false
+        sessionManager?.savedSessionData()?.shouldReportNonFatalErrors ?? false
     }()
 
     /// A Boolean value indicating  whether the SDK has been successfully configured and initialized.

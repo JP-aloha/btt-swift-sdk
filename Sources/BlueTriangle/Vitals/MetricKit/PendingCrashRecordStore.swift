@@ -13,6 +13,8 @@ struct PendingCrashRecord: Codable {
     let pageType: String?
     let breadcrumbs: String?
     let crashTime: Millisecond?
+    /// POSIX signal of a signal crash; nil for an NSException crash.
+    var signal: Int? = nil
 }
 
 enum PendingCrashRecordStore {
@@ -33,12 +35,6 @@ enum PendingCrashRecordStore {
         UserDefaultsUtility.removeData(key: key)
     }
 
-    static func consume<T: Codable>(_ type: T.Type, key: UserDefaultsUtility.UserDefaultKeys) -> T? {
-        guard let record = UserDefaultsUtility.loadCodable(type, key: key) else { return nil }
-        UserDefaultsUtility.removeData(key: key)
-        return record
-    }
-
     // MARK: - Crash records
     static func append(_ record: PendingCrashRecord) {
         lock.lock()
@@ -53,24 +49,37 @@ enum PendingCrashRecordStore {
     }
 
     /// Removes and returns the record belonging to one MetricKit crash diagnostic.
-    /// Without a crash time (no signpost, iOS < 17), a single record is always used; with several,
-    /// the latest one whose crashTime falls inside `window` - the payload's time range - is used,
-    /// else the latest one overall (e.g. the app was not opened again until after the window).
-    static func consume(matchingCrashTime crashTime: Millisecond?, within window: ClosedRange<Millisecond>? = nil) -> PendingCrashRecord? {
+    /// With a crash time (signpost), the record at that time is used, else the closest one in time.
+    /// Without a crash time (no signpost), records with the diagnostic's `signal` are preferred (an
+    /// NSException crash ends in SIGABRT), else any record (e.g. a crash the SDK did not catch).
+    /// Of those, the ones whose crashTime falls inside `window` - the payload's time range - are
+    /// preferred, else all of them (e.g. the app was not opened again until after the window), and
+    /// the latest one is used.
+    static func consume(
+        matchingCrashTime crashTime: Millisecond?,
+        signal: Int? = nil,
+        within window: ClosedRange<Millisecond>? = nil
+    ) -> PendingCrashRecord? {
         lock.lock()
         defer { lock.unlock() }
         var records = loadCrashRecords()
         let index: Int?
         if let crashTime {
+            // No exact match: the record closest in time, NSException records first.
+            let exceptionRecords = records.indices.filter { records[$0].signal == nil }
+            let nearby = exceptionRecords.isEmpty ? Array(records.indices) : exceptionRecords
             index = records.firstIndex { isSameCrashTime($0.crashTime, crashTime) }
-        } else if records.count == 1 {
-            index = 0
+                ?? nearby.min { abs((records[$0].crashTime ?? 0) - crashTime) < abs((records[$1].crashTime ?? 0) - crashTime) }
         } else {
-            let inWindow = window.map { window in
-                records.indices.filter { records[$0].crashTime.map { window.contains($0) } ?? false }
+            let sameSignal = signal.map { signal in
+                records.indices.filter { (records[$0].signal ?? Int(SIGABRT)) == signal }
             } ?? []
-            let candidates = inWindow.isEmpty ? Array(records.indices) : inWindow
-            index = candidates.max { (records[$0].crashTime ?? 0) < (records[$1].crashTime ?? 0) }
+            let candidates = sameSignal.isEmpty ? Array(records.indices) : sameSignal
+            let inWindow = window.map { window in
+                candidates.filter { records[$0].crashTime.map { window.contains($0) } ?? false }
+            } ?? []
+            let matches = inWindow.isEmpty ? candidates : inWindow
+            index = matches.max { (records[$0].crashTime ?? 0) < (records[$1].crashTime ?? 0) }
         }
         guard let index else { return nil }
         let record = records.remove(at: index)

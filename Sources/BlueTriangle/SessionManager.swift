@@ -18,7 +18,13 @@ import SwiftUI
 protocol SessionManagerProtocol  {
     func start(with expiry : Millisecond)
     func getSessionData() -> SessionData?
+    /// The saved session, read without taking the session lock.
+    func savedSessionData() -> SessionData?
     func stop()
+}
+
+extension SessionManagerProtocol {
+    func savedSessionData() -> SessionData? { nil }
 }
 
 
@@ -147,6 +153,10 @@ class SessionManager : SessionManagerProtocol{
         }
     }
     
+    func savedSessionData() -> SessionData? {
+        sessionStore.retrieveSessionData()
+    }
+
     private func updateSession(){
         let seesion = self.invalidateSession()
         BlueTriangle.updateSession(seesion)

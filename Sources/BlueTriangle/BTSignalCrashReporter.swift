@@ -61,7 +61,8 @@ class BTSignalCrashReporter {
                                                                trafficSegment: trafficSegment,
                                                                pageType: pageType,
                                                                breadcrumbs: crash.breadcrumbs,
-                                                               crashTime: Millisecond(crash.crash_time) * 1000))
+                                                               crashTime: Millisecond(crash.crash_time) * 1000,
+                                                               signal: crash.signo))
             try? removeFile(crash)
         }
     }
