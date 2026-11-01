@@ -15,8 +15,22 @@ extension MetricKitWatchDog {
             return
         }
 
+        func isLivePayload(_ payload: MXDiagnosticPayload) -> Bool {
+            isLive && (observingSince.map { payload.timeStampBegin >= $0 } ?? false)
+        }
+
+        // Crashes with a signpost first, across all payloads, so a crash without one cannot take their record.
+        let crashes = payloads.flatMap { payload in
+            (payload.crashDiagnostics ?? []).map { (payload: payload, diagnostic: $0, hasSignpost: crashSignpostTime(from: $0) != nil) }
+        }
+        for crash in crashes.filter({ $0.hasSignpost }) + crashes.filter({ !$0.hasSignpost }) {
+            logger.info("MetricKit Watch Dog: crash title = \(self.crashTitle(for: crash.diagnostic))")
+            reportCrash(crash.diagnostic, isLive: isLivePayload(crash.payload), session: session,
+                        timeStampBegin: crash.payload.timeStampBegin, timeStampEnd: crash.payload.timeStampEnd)
+        }
+
         for payload in payloads {
-            let isLive = isLive && (observingSince.map { payload.timeStampBegin >= $0 } ?? false)
+            let isLive = isLivePayload(payload)
 
             var hangCount = 0
             if #available(iOS 15.0, *) {
@@ -33,13 +47,6 @@ extension MetricKitWatchDog {
                         "diskWriteException: \(payload.diskWriteExceptionDiagnostics?.count ?? 0), " +
                         "appLaunch: \(appLaunchCount)")
 
-            // Crashes with a signpost first, so a crash without one cannot take their record.
-            let crashes = payload.crashDiagnostics ?? []
-            let signpostCrashes = crashes.filter { crashSignpostTime(from: $0) != nil }
-            (signpostCrashes + crashes.filter { crashSignpostTime(from: $0) == nil }).forEach {
-                logger.info("MetricKit Watch Dog: crash title = \(self.crashTitle(for: $0))")
-                reportCrash($0, isLive: isLive, session: session, timeStampBegin: payload.timeStampBegin, timeStampEnd: payload.timeStampEnd)
-            }
             payload.cpuExceptionDiagnostics?.forEach {
                 let extraPairs = [
                     "totalCPUTime: \"\(measurementFormatter.string(from: $0.totalCPUTime))\"",

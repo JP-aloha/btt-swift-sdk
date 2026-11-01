@@ -82,7 +82,6 @@ extension BTSignalCrashReporter{
         let file = File.init(directory: url, name: fileName)
         let persistence = Persistence.init(file: file)
         let data : Data
-        print(file.url.absoluteString)
 
         if let fileData = try persistence.readData(){
             data = fileData
@@ -99,8 +98,16 @@ extension BTSignalCrashReporter{
         let files = try self.getAllFiles()
 
         for file in files {
-            guard let crashData = try self.readFile(file) else { return crashes}
-            crashes.append(crashData)
+            do {
+                if let crashData = try self.readFile(file) {
+                    crashes.append(crashData)
+                }
+            } catch is DecodingError {
+                logger.error("BlueTriangle:SignalCrashReporter: removing unreadable crash file \(file)")
+                try? Persistence(file: File(directory: URL(fileURLWithPath: self.directory), name: file)).clear()
+            } catch {
+                logger.error("BlueTriangle:SignalCrashReporter: \(error.localizedDescription)")
+            }
         }
 
         return crashes

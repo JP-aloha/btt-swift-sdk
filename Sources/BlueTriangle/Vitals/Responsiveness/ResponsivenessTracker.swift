@@ -101,6 +101,8 @@ final class ResponsivenessTracker: ResponsivenessTracking {
 
     func end() {
         flushPendingGapIfNeeded()
+        // Nothing is measured after end, so a later makeReport() must not count the time since as a hang.
+        lastTimestamp = 0
         displayLink?.invalidate()
         displayLink = nil
         state = .ended
@@ -133,6 +135,12 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     }
 
     fileprivate func tick(_ link: CADisplayLink) {
+        // Frames stop while the app is not active - that time is not a hang, so measuring
+        // restarts from the first frame once the app is active again.
+        guard UIApplication.shared.applicationState == .active else {
+            lastTimestamp = 0
+            return
+        }
         defer { lastTimestamp = link.timestamp }
         guard lastTimestamp != 0 else { return }
         processFrame(expected: link.targetTimestamp - link.timestamp, actual: link.timestamp - lastTimestamp)

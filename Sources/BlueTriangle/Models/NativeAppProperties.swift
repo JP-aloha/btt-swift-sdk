@@ -240,11 +240,7 @@ extension NativeAppProperties: Codable{
         self.eventId = try container.decodeIfPresent(String.self, forKey: .eventID).flatMap { $0.isEmpty ? nil : $0 }
         self.screenCount = try container.decodeIfPresent(Int32.self, forKey: .screenCount)
         self.httpMethod = try container.decodeIfPresent(String.self, forKey: .httpMethod)
-        self.confidenceRate = try container.decodeIfPresent(Int32.self, forKey: .confidenceRate) ?? 0
-        self.confidenceMsg = try container.decodeIfPresent(String.self, forKey: .confidenceMsg) ?? ""
-        self.groupingCause = try container.decodeIfPresent(String.self, forKey: .groupingCause) ?? ""
         self.groupNameSource = try container.decodeIfPresent(GroupSource.self, forKey: .groupNameSource)
-        self.groupingCauseInterval = try container.decodeIfPresent(Millisecond.self, forKey: .groupingCauseInterval) ?? 0
         self.autoCheckout = try container.decodeIfPresent(Bool.self, forKey: .autoCheckout) ?? false
         self.breadcrumbs = try container.decodeIfPresent(String.self, forKey: .breadcrumbs).flatMap { $0.isEmpty ? nil : $0 }
         self.installTime = try container.decodeIfPresent(Millisecond.self, forKey: .installTime)  ?? 0
