@@ -22,8 +22,12 @@ The Blue Triangle SDK for iOS enables application owners to track their users’
  - Hot/Cold Launch
  - AppInstall
  - ForceRestart
-Coming Soon
-- Network Type
+ - Screen Responsiveness
+ - SlowLaunch
+ - HeavyDiskWrite
+ - ExcessCPUUsage
+ - Network Error
+ - Network Type
  
 
 ## Mandatory Installation Steps
@@ -612,7 +616,7 @@ BlueTriangle.configure { config in
    }
 ```
 
-### Responsiveness Detection
+### Screen Responsiveness
 
 Responsiveness Detection tracks short slowdowns and longer freezes in the UI during the Timer interval. There are two kinds of UI slowdown. A Hitch is a moment where the UI lags but quickly recovers, and a Hang is a much longer freeze (by default, more than 750 ms) where the UI stops responding altogether.
 
@@ -628,6 +632,39 @@ BlueTriangle.configure { config in
        config.isPerformanceMonitorEnabled = false
    }
 ```
+
+### Slow Launch
+
+Blue Triangle reports slow app launches detected by Apple's MetricKit. A launch is reported as "SlowLaunch" when iOS records that the app took longer than expected to launch, along with the launch duration and a stack trace.
+
+Slow Launch requires iOS 16 or later and crash tracking to be enabled (`crashTracking = .nsException`, the default).
+
+### Heavy Disk Write
+
+Blue Triangle reports excessive disk writes detected by Apple's MetricKit. A "HeavyDiskWrite" is reported when iOS records that the app wrote more data to disk than expected, along with the amount written and a stack trace.
+
+Heavy Disk Write requires iOS 14 or later and crash tracking to be enabled (`crashTracking = .nsException`, the default).
+
+### Excess CPU Usage
+
+Blue Triangle reports excessive CPU usage detected by Apple's MetricKit. An "ExcessCPUUsage" is reported when iOS records that the app used more CPU than expected over a period of time, along with the total CPU time, the sampled time and a stack trace.
+
+Excess CPU Usage requires iOS 14 or later and crash tracking to be enabled (`crashTracking = .nsException`, the default).
+
+MetricKit delivers Slow Launch, Heavy Disk Write and Excess CPU Usage reports when iOS makes them available, which can be right away or on a later launch. A report that arrives while a screen is active is attached to that screen; otherwise it is reported on its own. To stop these MetricKit reports, disable crash tracking (this also stops crash reporting):
+
+```swift
+BlueTriangle.configure { config in
+       ...
+       config.crashTracking = .none
+   }
+```
+
+### Network Error
+
+Blue Triangle tracks network requests that fail with an error before a response is received, for example a timeout, no internet connection, or a host that could not be found. Each failure is reported as a "Network Error" with the request method, URL and error description, and is attached to the screen that was active when it happened.
+
+Network errors are captured through the same integrations as [Network Capture](#network-capture--mandatory) (`NetworkCaptureSessionDelegate`, the `bt` URLSession methods or manual capture), so one of them must be set up.
 
 ### Offline Caching
 
