@@ -1,4 +1,17 @@
-# Blue Triangle 3.15.14, Latest
+# Blue Triangle 3.16.0, Latest
+New Features & Improvements
+- Added MetricKit integration to capture and report crash, hang, CPU, disk write, and slow launch diagnostics.
+- Improved crash reporting with structured stack traces and session/page attribution for MetricKit crashes.
+- Added UI responsiveness monitoring with screen-level hitch and hang tracking.
+- Added NetworkErrorWatchDog to capture and report network errors with detailed metadata.
+- Added fatal and non-fatal error sample rates, decided per session and configurable from remote config.
+- Improved SwiftUI screen grouping with automatic screen group name updates during view navigation.
+- Added screenCount, httpMeVersion, and sdkId inNative App
+- Fixed nst issue for errors
+- Fixed host and domain issue for network capture and CustomNetworkTracker
+- Fixed screen grouping and
+
+# Blue Triangle 3.15.14, July 27 2026
 ### Improvements
 - Combined repetitive SwiftUI view entries in breadcrumbs for cases like list and for each. Multiple view appear in a list will be shown as a single entry with a count.
 
