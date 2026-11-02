@@ -22,8 +22,12 @@ The Blue Triangle SDK for iOS enables application owners to track their users’
  - Hot/Cold Launch
  - AppInstall
  - ForceRestart
-Coming Soon
-- Network Type
+ - Screen Responsiveness
+ - SlowLaunch
+ - HeavyDiskWrite
+ - ExcessCPUUsage
+ - Network Error
+ - Network Type
  
 
 ## Mandatory Installation Steps
@@ -611,6 +615,42 @@ BlueTriangle.configure { config in
        config.isPerformanceMonitorEnabled = false
    }
 ```
+
+### Screen Responsiveness
+
+Responsiveness tracks short slowdowns and longer freezes in the UI during the Timer interval. There are two kinds of UI slowdown. A Hitch is a moment where the UI lags but quickly recovers, and a Hang is a much longer freeze (by default, more than 750 ms) where the UI stops responding altogether.
+
+For each screen, Blue Triangle calculates a single responsiveness grade between 0 (best) and 100 (worst), based on the Hitches and Hangs observed during that screen.
+
+
+### MatricKit Crash
+
+Blue Triangle reports app crashes detected by Apple's MetricKit. A crash is reported as "NativeAppCrash" on the next app launch, along with the signal, exception type, crash location and a stack trace, and is linked to the session and screen where the crash happened.
+
+Crash requires iOS 14 or later.
+
+### Slow Launch
+
+Blue Triangle reports slow app launches detected by Apple's MetricKit. A launch is reported as "SlowLaunch" when iOS records that the app took longer than expected to launch, along with the launch duration and a stack trace.
+
+Slow Launch requires iOS 16 or later.
+
+### Heavy Disk Write
+
+Blue Triangle reports excessive disk writes detected by Apple's MetricKit. A "HeavyDiskWrite" is reported when iOS records that the app wrote more data to disk than expected, along with the amount written and a stack trace.
+
+Heavy Disk Write requires iOS 14 or later.
+
+### Excess CPU Usage
+
+Blue Triangle reports excessive CPU usage detected by Apple's MetricKit. An "ExcessCPUUsage" is reported when iOS records that the app used more CPU than expected over a period of time, along with the total CPU time, the sampled time and a stack trace.
+
+Excess CPU Usage requires iOS 14 or later.
+
+
+### Network Error
+
+Blue Triangle tracks network requests that fail with an error before a response is received, for example a timeout, no internet connection, or a host that could not be found. Each failure is reported as a "Network Error" with the request method, URL and error description, and is attached to the screen that was active when it happened.
 
 
 ### Offline Caching

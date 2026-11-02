@@ -65,7 +65,8 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                      enableBreadcrumbs: true,
                                      enableAppInstall: true,
                                      enableForceRestart: true,
-                                     forceRestartDuration: 10)
+                                     forceRestartDuration: 10,
+                                     enableScreenResponsiveness: true)
         
         mockFetcher.configToReturn = config
         
@@ -109,7 +110,8 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                      enableBreadcrumbs: true,
                                      enableAppInstall: true,
                                      enableForceRestart: true,
-                                     forceRestartDuration: 10)
+                                     forceRestartDuration: 10,
+                                     enableScreenResponsiveness: true)
         
         mockRepo.save(config)
         
@@ -150,7 +152,8 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                         enableBreadcrumbs: true,
                                         enableAppInstall: true,
                                         enableForceRestart: true,
-                                        forceRestartDuration: 10)
+                                        forceRestartDuration: 10,
+                                        enableScreenResponsiveness: true)
         mockFetcher.configToReturn = apiConfig
         
         
@@ -182,6 +185,7 @@ final class BTTConfigurationUpdaterTests: XCTestCase {
                                                enableAppInstall: true,
                                                enableForceRestart: true,
                                                forceRestartDuration: 10,
+                                               enableScreenResponsiveness: true,
                                                dateSaved: currentTime - Millisecond.hour * 2)
         mockRepo.store[key] = storeConfig
         

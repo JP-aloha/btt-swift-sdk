@@ -136,9 +136,40 @@ extension CrashReport {
 
 //ForceRestart
 extension CrashReport {
+    /// Takes `time` as a raw `Millisecond` rather than a `TimeInterval` + `.milliseconds` conversion -
+    /// this value comes from `BTTActivityStore`'s persisted page start time, already stored as
+    /// milliseconds; round-tripping it through `TimeInterval` (seconds, as a `Double`) and back would
+    /// risk a 1ms drift from floating-point rounding, and it would then no longer match the parent
+    /// page's own `nStart`.
     init(
         sessionID: Identifier,
         forceRestartMessage: String,
+        eCount: Int = 1,
+        pageName:String?,
+        segment:String?,
+        pageType:String?,
+        nativeApp : NativeAppProperties = .nstEmpty,
+        time: Millisecond
+    ) {
+        self.sessionID = sessionID
+        self.pageName = pageName
+        self.segment = segment
+        self.pageType = pageType
+        self.report = ErrorReport(eCnt: eCount,
+                                  nativeApp: nativeApp,
+                                  eTp: BT_ErrorType.ForceRestart.rawValue,
+                                  message: forceRestartMessage,
+                                  line: 1,
+                                  column: 1,
+                                  time: time)
+    }
+}
+
+//NetworkError
+extension CrashReport {
+    init(
+        sessionID: Identifier,
+        networkErrorMessage: String,
         eCount: Int = 1,
         pageName:String?,
         segment:String?,
@@ -152,8 +183,8 @@ extension CrashReport {
         self.pageType = pageType
         self.report = ErrorReport(eCnt: eCount,
                                   nativeApp: nativeApp,
-                                  eTp: BT_ErrorType.ForceRestart.rawValue,
-                                  message: forceRestartMessage,
+                                  eTp: BT_ErrorType.NetworkError.rawValue,
+                                  message: networkErrorMessage,
                                   line: 1,
                                   column: 1,
                                   time: intervalProvider.milliseconds)
@@ -165,4 +196,34 @@ enum BT_ErrorType : String{
     case ANRWarning
     case MemoryWarning
     case ForceRestart
+    case ExcessCPUUsage
+    case HeavyDiskWrite
+    case SlowLaunch
+    case NetworkError
+}
+
+//MetricKit diagnostics
+extension CrashReport {
+    init(
+        errorType: BT_ErrorType,
+        sessionID: Identifier,
+        message: String,
+        eCount: Int = 1,
+        pageName: String?,
+        segment: String?,
+        pageType: String?,
+        nativeApp: NativeAppProperties = .nstEmpty,
+        intervalProvider: TimeInterval = Date().timeIntervalSince1970
+    ) {
+        self.sessionID = sessionID
+        self.pageName = pageName
+        self.segment = segment
+        self.pageType = pageType
+        self.report = ErrorReport(eCnt: eCount,
+                                  nativeApp: nativeApp,
+                                  eTp: errorType.rawValue, message: message.bttReportMessage,
+                                  line: 1,
+                                  column: 1,
+                                  time: intervalProvider.milliseconds)
+    }
 }

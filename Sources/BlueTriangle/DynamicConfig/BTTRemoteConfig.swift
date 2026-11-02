@@ -36,7 +36,10 @@ class BTTRemoteConfig: Codable, Equatable {
     var enableAppInstall: Bool?
     var enableForceRestart: Bool?
     var forceRestartDuration: Double?
-    
+    var enableScreenResponsiveness: Bool?
+    var fatalErrorSampleRate: Double?
+    var nonFatalErrorSampleRate: Double?
+
     init(networkSampleRateSDK: Double?,
          configKey : String?,
          enableAllTracking : Bool?,
@@ -63,7 +66,10 @@ class BTTRemoteConfig: Codable, Equatable {
          enableBreadcrumbs : Bool?,
          enableAppInstall: Bool?,
          enableForceRestart: Bool?,
-         forceRestartDuration: Double?) {
+         forceRestartDuration: Double?,
+         enableScreenResponsiveness: Bool?,
+         fatalErrorSampleRate: Double? = nil,
+         nonFatalErrorSampleRate: Double? = nil) {
         self.networkSampleRateSDK = networkSampleRateSDK
         self.configKey = configKey
         self.ignoreScreens = ignoreScreens
@@ -94,8 +100,11 @@ class BTTRemoteConfig: Codable, Equatable {
         self.enableAppInstall = enableAppInstall
         self.enableForceRestart = enableForceRestart
         self.forceRestartDuration = forceRestartDuration
+        self.enableScreenResponsiveness = enableScreenResponsiveness
+        self.fatalErrorSampleRate = fatalErrorSampleRate
+        self.nonFatalErrorSampleRate = nonFatalErrorSampleRate
     }
-    
+
     static func == (lhs: BTTRemoteConfig, rhs: BTTRemoteConfig) -> Bool {
         return lhs.networkSampleRateSDK == rhs.networkSampleRateSDK &&
         lhs.configKey == rhs.configKey  &&
@@ -125,7 +134,10 @@ class BTTRemoteConfig: Codable, Equatable {
         
         lhs.enableAppInstall == rhs.enableAppInstall &&
         lhs.enableForceRestart == rhs.enableForceRestart &&
-        lhs.forceRestartDuration == rhs.forceRestartDuration
+        lhs.forceRestartDuration == rhs.forceRestartDuration &&
+        lhs.enableScreenResponsiveness == rhs.enableScreenResponsiveness &&
+        lhs.fatalErrorSampleRate == rhs.fatalErrorSampleRate &&
+        lhs.nonFatalErrorSampleRate == rhs.nonFatalErrorSampleRate
     }
     
     internal static var defaultConfig: BTTSavedRemoteConfig {
@@ -156,6 +168,9 @@ class BTTRemoteConfig: Codable, Equatable {
                              enableAppInstall: BlueTriangle.configuration.enableAppInstall,
                              enableForceRestart: BlueTriangle.configuration.enableForceRestart,
                              forceRestartDuration: BlueTriangle.configuration.forceRestartDuration,
+                             enableScreenResponsiveness: BlueTriangle.configuration.enableScreenResponsiveness,
+                             fatalErrorSampleRate: BlueTriangle.configuration.fatalErrorSampleRate * 100,
+                             nonFatalErrorSampleRate: BlueTriangle.configuration.nonFatalErrorSampleRate * 100,
                              dateSaved: Date().timeIntervalSince1970.milliseconds)
     }
 }

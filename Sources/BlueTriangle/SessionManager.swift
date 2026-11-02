@@ -18,7 +18,13 @@ import SwiftUI
 protocol SessionManagerProtocol  {
     func start(with expiry : Millisecond)
     func getSessionData() -> SessionData?
+    /// The saved session, read without taking the session lock.
+    func savedSessionData() -> SessionData?
     func stop()
+}
+
+extension SessionManagerProtocol {
+    func savedSessionData() -> SessionData? { nil }
 }
 
 
@@ -56,6 +62,7 @@ class SessionManager : SessionManagerProtocol{
     private var foregroundObserver: NSObjectProtocol?
     private var backgroundObserver: NSObjectProtocol?
     private var orientationObserver: NSObjectProtocol?
+    private var lastOrientation: String?
     private var keyboardShowObserver: NSObjectProtocol?
     private var keyboardHideObserver: NSObjectProtocol?
     
@@ -146,6 +153,10 @@ class SessionManager : SessionManagerProtocol{
         }
     }
     
+    func savedSessionData() -> SessionData? {
+        sessionStore.retrieveSessionData()
+    }
+
     private func updateSession(){
         let seesion = self.invalidateSession()
         BlueTriangle.updateSession(seesion)
@@ -178,6 +189,8 @@ extension SessionManager {
     private func updateConfigurationOnChange(){
         self.syncStoredConfigToSessionAndApply()
         BlueTriangle.updateCaptureRequests()
+        BlueTriangle.updateFatalErrorReportingFlags()
+        BlueTriangle.updateNonFatalErrorReportingFlags()
         configSyncer.updateAndApplySDKState()
     }
     
@@ -186,6 +199,10 @@ extension SessionManager {
             if session.isNewSession {
                 configSyncer.syncConfigurationFromStorage()
                 session.networkSampleRate = BlueTriangle.configuration.networkSampleRate
+                session.fatalErrorSampleRate = BlueTriangle.configuration.fatalErrorSampleRate
+                session.nonFatalErrorSampleRate = BlueTriangle.configuration.nonFatalErrorSampleRate
+                session.shouldReportFatalErrors = .random(probability: BlueTriangle.configuration.fatalErrorSampleRate)
+                session.shouldReportNonFatalErrors = .random(probability: BlueTriangle.configuration.nonFatalErrorSampleRate)
                 session.enableScreenTracking = BlueTriangle.configuration.enableScreenTracking
                 session.enableGrouping = BlueTriangle.configuration.enableGrouping
                 session.groupingIdleTime = BlueTriangle.configuration.groupingIdleTime
@@ -194,6 +211,7 @@ extension SessionManager {
                 session.enableCrashTracking = BlueTriangle.configuration.crashTracking == .nsException
                 session.enableANRTracking = BlueTriangle.configuration.ANRMonitoring
                 session.enableMemoryWarning = BlueTriangle.configuration.enableMemoryWarning
+                session.enableScreenResponsiveness = BlueTriangle.configuration.enableScreenResponsiveness
                 session.enableLaunchTime = BlueTriangle.configuration.enableLaunchTime
                 session.enableWebViewStitching = BlueTriangle.configuration.enableWebViewStitching
                 session.enableNetworkStateTracking = BlueTriangle.configuration.enableTrackingNetworkState
@@ -217,12 +235,15 @@ extension SessionManager {
                 BlueTriangle.updateGrouping(session.enableGrouping, idleTime: session.groupingIdleTime)
                 BlueTriangle.updateScreenTracking(session.enableScreenTracking)
                 BlueTriangle.updateNetworkSampleRate(session.networkSampleRate)
+                BlueTriangle.updateFatalErrorSampleRate(session.fatalErrorSampleRate)
+                BlueTriangle.updateNonFatalErrorSampleRate(session.nonFatalErrorSampleRate)
                 BlueTriangle.updateIgnoreVcs(session.ignoreViewControllers)
                 BlueTriangle.updateLaunchTime(session.enableLaunchTime)
                 BlueTriangle.updateTrackingNetworkState(session.enableNetworkStateTracking)
                 BlueTriangle.updateCrashTracking(session.enableCrashTracking)
                 BlueTriangle.updateAnrMonitoring(session.enableANRTracking)
                 BlueTriangle.updateMemoryWarning(session.enableMemoryWarning)
+                BlueTriangle.updateResponsiveness(session.enableScreenResponsiveness)
                 BlueTriangle.updateWebViewStitching(session.enableWebViewStitching)
                 BlueTriangle.updateGroupingTapDetection(session.enableGroupingTapDetection)
                 BlueTriangle.updateCheckoutTracking(session.checkoutTrackingEnabled)
@@ -279,16 +300,19 @@ extension SessionManager {
             queue: nil
         ) { _ in
             let orientation = UIDevice.current.orientation
-            var orientationString = Constants.Breadcrums.Orientation.unknown
+            let orientationString: String?
             switch orientation {
             case .portrait, .portraitUpsideDown:
                 orientationString = Constants.Breadcrums.Orientation.portrait
             case .landscapeLeft, .landscapeRight:
                 orientationString = Constants.Breadcrums.Orientation.landscape
             default:
-                break
+                orientationString = nil
             }
-            BlueTriangle.collectBreadcrumb(AppSystemEvent(event: orientationString, eventType: Constants.Breadcrums.Orientation.className))
+            if let orientationString = orientationString, orientationString != self.lastOrientation {
+                self.lastOrientation = orientationString
+                BlueTriangle.collectBreadcrumb(AppSystemEvent(event: orientationString, eventType: Constants.Breadcrums.Orientation.className))
+            }
         }
         
         keyboardShowObserver = NotificationCenter.default.addObserver(

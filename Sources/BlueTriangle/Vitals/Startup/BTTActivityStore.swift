@@ -16,6 +16,11 @@ final class BTTActivityStore {
     private var pageName = Constants.APP_INSTALL_PAGE_GROUP
     private var trafficSegment = Constants.defaultTraficSegment
     private var pageType = Constants.defaultPageType
+    /// The page's own nStart, as a raw `Millisecond` - kept as milliseconds end-to-end (captured,
+    /// persisted, and read back) rather than round-tripped through `TimeInterval` (seconds, as a
+    /// `Double`), since that round trip can drift by 1ms from floating-point rounding and then no
+    /// longer match the parent page's own `nStart`.
+    private var pageStartTime: Millisecond = 0
 
     // MARK: - Public
     func updatePageDetail() {
@@ -24,8 +29,13 @@ final class BTTActivityStore {
             let name = timer.getPageName()
             let segment = timer.getTrafficSegment()
             let type = timer.page.pageType
-            
-            if !name.isEmpty { self.pageName = name}
+
+            BTLogger.live.debug("BTTActivityStore.updatePageDetail: pageName=\(name) isGroupTimer=\(timer.isGroupTimer) type=\(timer.type) startTimeMs=\(timer.startTime.milliseconds)")
+
+            if !name.isEmpty {
+                self.pageName = name
+                self.pageStartTime = timer.startTime.milliseconds
+            }
             if !segment.isEmpty { self.trafficSegment = segment}
             if !type.isEmpty { self.pageType = type }
         }
@@ -35,9 +45,10 @@ final class BTTActivityStore {
         queue.sync {
             self.deleteExisting()
             let ts = Int64(Date().timeIntervalSince1970 * 1000)
-            let filename = "\(self.prefix)\(ts)\(self.separator)\(self.pageName)\(self.separator)\(self.trafficSegment)\(self.separator)\(self.pageType)"
+            let filename = "\(self.prefix)\(ts)\(self.separator)\(self.pageName)\(self.separator)\(self.trafficSegment)\(self.separator)\(self.pageType)\(self.separator)\(self.pageStartTime)"
             let url = self.dir.appendingPathComponent(filename)
             FileManager.default.createFile(atPath: url.path,contents: nil)
+            BTLogger.live.debug("BTTActivityStore.save: pageName=\(self.pageName) nst=\(self.pageStartTime)")
         }
     }
 
@@ -51,11 +62,15 @@ final class BTTActivityStore {
             let stripped = String(filename.dropFirst(self.prefix.count))
             let parts = stripped.components(separatedBy: self.separator)
             guard parts.count >= 4, let ts = TimeInterval(parts[0]) else { return nil}
+            // Falls back to the save timestamp for a record written before `pageStartTime` was
+            // tracked (older SDK version), rather than failing to parse the whole record.
+            let pageStartTime: Millisecond = parts.count >= 5 ? (Millisecond(parts[4]) ?? Millisecond(ts)) : Millisecond(ts)
             return ActivityRecord(
                 date: Date(timeIntervalSince1970: ts / 1000),
                 pageName: parts[1],
                 trafficSegment: parts[2],
-                pageType: parts[3]
+                pageType: parts[3],
+                pageStartTime: pageStartTime
             )
         }
     }
@@ -88,4 +103,5 @@ struct ActivityRecord {
     let pageName: String
     let trafficSegment: String
     let pageType: String
+    let pageStartTime: Millisecond
 }
