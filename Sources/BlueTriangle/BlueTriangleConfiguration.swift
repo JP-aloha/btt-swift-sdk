@@ -242,7 +242,7 @@ extension BlueTriangleConfiguration {
 
     func makeResponsivenessTrackerFactory() -> (() -> ResponsivenessTracking?)? {
         return { [weak self] in
-            guard let self = self, self.isPerformanceMonitorEnabled, self.enableScreenResponsiveness else { return nil }
+            guard let self = self, self.enableScreenResponsiveness else { return nil }
             return self.responsivenessTrackerBuilder.builder()
         }
     }
