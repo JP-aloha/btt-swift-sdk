@@ -51,7 +51,7 @@ extension TimerRequest: Codable {
         
         // Additional
         try con.encode(Constants.browser, forKey: .browser)
-        try con.encode(Version.number, forKey: .ver)
+        try con.encode(Device.sdkVersion, forKey: .ver)
         try con.encode(Constants.device, forKey: .device)
         try con.encodeIfPresent(excluded, forKey: .excluded)
         try con.encode(Constants.os, forKey: .os)

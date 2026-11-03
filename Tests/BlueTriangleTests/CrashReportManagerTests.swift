@@ -38,17 +38,28 @@ final class CrashReportManagerTests: XCTestCase {
         .init(sessionID: 100_000_000_000_000_001, pageName: "CrashReportManagerTests", report: crashErrorReport, segment: "Main Segment", pageType: "Main Group")
     }
 
+    private var shouldReportNonFatalErrors = false
+
     override func setUp() {
         super.setUp()
+        // uploadError() only uploads when non-fatal error reporting is sampled in for the session.
+        shouldReportNonFatalErrors = BlueTriangle.shouldReportNonFatalErrors
+        BlueTriangle.shouldReportNonFatalErrors = true
         CrashReportPersistenceMock.reset()
-    }
-    
-    override func tearDown() {
-        super.tearDown()
-        CrashReportPersistenceMock.reset()
+        _ = PendingCrashRecordStore.consume(matchingCrashTime: nil)
     }
 
-    func testReportClearedAfterUpload() {
+    override func tearDown() {
+        super.tearDown()
+        BlueTriangle.shouldReportNonFatalErrors = shouldReportNonFatalErrors
+        CrashReportPersistenceMock.reset()
+        _ = PendingCrashRecordStore.consume(matchingCrashTime: nil)
+    }
+
+    /// Reporting a persisted native crash is MetricKit's job now - init() should just stash its
+    /// session/page context in `PendingCrashRecordStore` for `MetricKitWatchDog` to pick up, then
+    /// clear the persisted report since nothing else will consume it.
+    func testReportStoredAsPendingRecordAndClearedOnInit() {
         let reportReadExpectation = expectation(description: "Crash report read")
         let reportClearedExpectation = expectation(description: "Crash report cleared")
         CrashReportPersistenceMock.configure(
@@ -58,79 +69,34 @@ final class CrashReportManagerTests: XCTestCase {
             },
             onClear: { reportClearedExpectation.fulfill() })
 
-        let sut = CrashReportManager(
+        _ = CrashReportManager(
             crashReportPersistence: CrashReportPersistenceMock.self,
             logger: LoggerMock(),
             uploader: UploaderMock(),
             session: Mock.sessionProvider)
 
-        sut.uploadCrashReport(session: Mock.session)
         wait(for: [reportReadExpectation, reportClearedExpectation], timeout: 1.0)
+
+        let pending = PendingCrashRecordStore.consume(matchingCrashTime: nil)
+        XCTAssertEqual(pending?.sessionID, crashReport.sessionID)
+        XCTAssertEqual(pending?.pageName, crashReport.pageName)
     }
 
-    func testCrashTimerUploaded() throws {
-        CrashReportPersistenceMock.configure(
-            onRead: { self.crashReport },
-            onClear: {})
+    func testNoPendingRecordSavedWhenNoReportPersisted() {
+        CrashReportPersistenceMock.configure(onRead: { nil }, onClear: {})
 
-        var timerRequest: Request!
-        let uploadExpectation = expectation(description: "Timer uploaded")
-        let uploader = UploaderMock { request in
-            if timerRequest == nil {
-                timerRequest = request
-                uploadExpectation.fulfill()
-            }
-        }
-
-        let sut = CrashReportManager(
+        _ = CrashReportManager(
             crashReportPersistence: CrashReportPersistenceMock.self,
             logger: LoggerMock(),
-            uploader: uploader,
+            uploader: UploaderMock(),
             session: Mock.sessionProvider)
 
-        sut.uploadCrashReport(session: Mock.session)
-        wait(for: [uploadExpectation], timeout: 1.0)
-
-        let actualTimer = try JSONDecoder().decode(TimerRequest.self, from: timerRequest.body!.base64DecodedData()!)
-        XCTAssertEqual(actualTimer.session.sessionID, crashReport.sessionID)
-        XCTAssertEqual(actualTimer.timer.startTime, crashErrorReport.time)
-    }
-
-    func testCrashReportUploaded() throws {
-        CrashReportPersistenceMock.configure(
-            onRead: { self.crashReport },
-            onClear: {})
-
-        var requestCount = 0
-        var errorRequest: Request!
-        let uploadExpectation = expectation(description: "Report uploaded")
-        let uploader = UploaderMock { request in
-            requestCount += 1
-            if requestCount > 1 {
-                errorRequest = request
-                uploadExpectation.fulfill()
-            }
-        }
-
-        let sut = CrashReportManager(
-            crashReportPersistence: CrashReportPersistenceMock.self,
-            logger: LoggerMock(),
-            uploader: uploader,
-            session: Mock.sessionProvider)
-
-        sut.uploadCrashReport(session: Mock.session)
-        wait(for: [uploadExpectation], timeout: 1.0)
-
-        let actualReport = try JSONDecoder().decode([ErrorReport].self,from: errorRequest.body!.base64DecodedData()!).first!
-        XCTAssertEqual(errorRequest.parameters!["nStart"], "\(crashErrorReport.time)")
-        XCTAssertEqual(errorRequest.parameters!["sessionID"], "\(crashReport.sessionID)")
-
-        XCTAssertEqual(actualReport.message, crashErrorReport.message)
-        XCTAssertEqual(actualReport.time, crashErrorReport.time)
+        XCTAssertNil(PendingCrashRecordStore.consume(matchingCrashTime: nil))
     }
 
     func testErrorTimerUploaded() throws {
         let expectedErrorStart: TimeInterval = 1000.0
+        CrashReportPersistenceMock.configure(onRead: { nil }, onClear: {})
 
         var timerRequest: Request!
         let uploadExpectation = expectation(description: "Timer uploaded")
@@ -149,7 +115,7 @@ final class CrashReportManagerTests: XCTestCase {
             intervalProvider: { expectedErrorStart }
         )
 
-        sut.uploadError(TestError(), file: #file, function: #function, line: #line)
+        sut.uploadError(TestError(), stackTrace: nil, file: #file, function: #function, line: #line)
         wait(for: [uploadExpectation], timeout: 1.0)
 
         let actualTimer = try JSONDecoder().decode(TimerRequest.self, from: timerRequest.body!.base64DecodedData()!)
@@ -160,6 +126,7 @@ final class CrashReportManagerTests: XCTestCase {
     func testErrorReportUploaded() throws {
         let expectedErrorStart: TimeInterval = 1000.0
         let expectedMessage = TestError().localizedDescription
+        CrashReportPersistenceMock.configure(onRead: { nil }, onClear: {})
 
         var requestCount = 0
         var errorRequest: Request!
@@ -180,7 +147,7 @@ final class CrashReportManagerTests: XCTestCase {
             intervalProvider: { expectedErrorStart }
         )
 
-        sut.uploadError(TestError(), file: #file, function: #function, line: #line)
+        sut.uploadError(TestError(), stackTrace: nil, file: #file, function: #function, line: #line)
         wait(for: [uploadExpectation], timeout: 1.0)
 
         let actualReport = try JSONDecoder().decode([ErrorReport].self,from: errorRequest.body!.base64DecodedData()!).first!

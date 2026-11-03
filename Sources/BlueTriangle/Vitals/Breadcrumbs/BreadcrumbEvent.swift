@@ -44,6 +44,7 @@ enum BreadcrumbKeys: String, CodingKey, Codable {
     case event
     case className
     case url
+    case method
     case statusCode
     case state
     case from

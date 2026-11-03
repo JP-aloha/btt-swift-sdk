@@ -478,7 +478,7 @@ extension BlueTriangleTests {
             XCTAssertEqual(performanceReport.decodedBodySize, -1)
             XCTAssertEqual(performanceReport.entryType, "resource")
             XCTAssertEqual(performanceReport.encodedBodySize, 0)
-            XCTAssertEqual(performanceReport.host, "example")
+            XCTAssertEqual(performanceReport.host, "example.com")
             XCTAssertEqual(performanceReport.initiatorType, .other)
             XCTAssertEqual(performanceReport.statusCode, "200")
             XCTAssertEqual(performanceReport.endTime, 3000)

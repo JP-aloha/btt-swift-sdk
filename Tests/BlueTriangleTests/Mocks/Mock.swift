@@ -258,7 +258,7 @@ extension Mock {
     ) -> CapturedRequest {
         CapturedRequest(
             domain: "cloudfront.net",
-            host: "d33wubrfki0l68",
+            host: "d33wubrfki0l68.cloudfront.net",
             url: capturedRequestURLString,
             file: "logo-cw.f6eaf6dc.png",
             statusCode: "200",

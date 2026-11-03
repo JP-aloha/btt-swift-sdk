@@ -30,7 +30,6 @@ enum Constants {
             static let className = "orientation"
             static let portrait = "portrait"
             static let landscape = "landscape"
-            static let unknown = "unknown"
         }
         
         enum Keyboard {
@@ -66,7 +65,13 @@ enum Constants {
     static let sessionTimeoutInMinutes = 30
     static let userSessionTimeoutInDays = 365
     static let maxPayloadAttempts = 3
-    
+
+    enum Responsiveness {
+        static let relativeTolerance: Double = 1.5
+        static let absoluteFloorMs: Millisecond = 3
+        static let hangFloorMs: Millisecond = 750
+    }
+
     // Endpoints
     static let capturedRequestEndpoint: URL = "https://d.btttag.com/wcdv02.rcv"
     static let errorEndpoint: URL = "https://d.btttag.com/err.rcv"
@@ -88,8 +93,11 @@ enum Constants {
     static let excludedValue = "20"
     static let startupDelay: TimeInterval = 10
     static let minPgTm : Millisecond = 15
-
-    // Custom Metrics
+    
+    static let crashSignpostName: StaticString = "MatricKitCrash"
+    static let externalFatalErrorSignpostName: StaticString = "ExteralFatalError"
+    
+    static let pendingCrashRecordExpiry: TimeInterval = 60 * 60 * 24 * 3
     static let metricsCharacterLimit = 1024
     static let metricsSizeLimit = 3_000_000
 

@@ -18,7 +18,7 @@ final class CaptureRateProbabilityTest: XCTestCase {
             (25, 15, 35)  // 15% - 35%
         ]
         
-        let totalSamples = 100
+        let totalSamples = 10_000
         let iterations = 5
         
         for iteration in 1...iterations{
@@ -35,7 +35,7 @@ final class CaptureRateProbabilityTest: XCTestCase {
                     }
                 }
                 
-                let actualTrueRatio = Double(trueCount)
+                let actualTrueRatio = Double(trueCount) * 100 / Double(totalSamples)
                 
                 print("Test with given probability \(testCase.givenProbability)% with the actual result observed was  \(actualTrueRatio)% from a sample of \(totalSamples). Expected between \(testCase.expectedMinProbability)% and \(testCase.expectedMaxProbability)%")
                 

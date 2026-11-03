@@ -27,13 +27,16 @@ final class NetworkRequestFeature: BreadcrumbFeatrure {
 struct NetworkRequestEvent: BreadcrumbEvent {
     var timestamp: Millisecond = Date().timeIntervalSince1970.milliseconds
     let url: String
+    let method: String
     let statusCode: String
+    
     
     var type: BreadcrumbType { .networkRequest }
     
     var data: [BreadcrumbKeys : String] {
         [
             .url: url,
+            .method:method.uppercased(),
             .statusCode: statusCode
         ]
     }

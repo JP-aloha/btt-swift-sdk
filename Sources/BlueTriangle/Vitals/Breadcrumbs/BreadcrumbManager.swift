@@ -77,7 +77,7 @@ final class BreadcrumbManager {
             collector.breadcrumbsString()
         }
     }
-    
+
     func saveBreadcrumbsToDisk() {
         queue.sync {
             collector.saveBreadcrumbsToDisk()

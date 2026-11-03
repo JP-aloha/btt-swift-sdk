@@ -76,7 +76,7 @@ public class NetworkCaptureTracker {
     public func submit(_ response : URLResponse){
         lock.sync {
             self.timer.end()
-            BlueTriangle.captureRequest(timer: timer, response: response)
+            BlueTriangle.captureRequest(timer: timer, response: response, method: self.method)
         }
     }
     

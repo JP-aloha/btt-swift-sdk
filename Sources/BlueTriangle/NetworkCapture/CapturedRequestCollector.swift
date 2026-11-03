@@ -61,8 +61,8 @@ actor CapturedRequestCollector: CapturedRequestCollecting {
         requestCollection?.insert(timer: timer, response: response)
     }
     
-    func collect(timer: InternalTimer, response: URLResponse?){
-        requestCollection?.insert(timer: timer, response: response)
+    func collect(timer: InternalTimer, response: URLResponse?, method: String? = nil){
+        requestCollection?.insert(timer: timer, response: response, method: method)
     }
     
     func collect(timer: InternalTimer, request : URLRequest, error: Error?){

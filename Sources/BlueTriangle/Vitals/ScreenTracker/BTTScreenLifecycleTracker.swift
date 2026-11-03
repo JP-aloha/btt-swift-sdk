@@ -78,6 +78,9 @@ public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     func manageTimer(_ pageName : String, id : String, type : TimerMapType, title : String = ""){
         lock.sync {
             guard self.enableLifecycleTracker else { return }
+
+            if type == .disappear && btTimeActivityrMap[id] == nil { return }
+
             let timerActivity = getTimerActivity(pageName, id: id, pageTitle: title)
             btTimeActivityrMap[id] = timerActivity
             timerActivity.manageTimeFor(type: type)
@@ -362,6 +365,8 @@ class TimerMapActivity {
             cellular: networkReport?.cellular ?? 0,
             ethernet: networkReport?.ethernet ?? 0,
             other: networkReport?.other ?? 0,
+            responsivenessMeta: timer.responsivenessReport?.metaJSON,
+            responsivenessGrade: timer.responsivenessReport?.grade,
             confidenceRate: self.confidenceRate,
             confidenceMsg: self.confidenceMsg,
             netState: networkReport?.netState ?? "",
