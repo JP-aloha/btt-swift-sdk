@@ -84,6 +84,17 @@ class RootViewController: UIViewController {
         return control
     }()
     
+    private lazy var purchaseConfirmationButton: UIButton = {
+        let action = UIAction(title: "Purchase Confirmation") { [weak self] _ in
+            self?.sendPurchaseConfirmation()
+        }
+        let control = UIButton(configuration: .filled(), primaryAction: action)
+        control.accessibilityIdentifier = "purchaseConfirmationButton"
+        control.tintColor = .systemGreen
+        control.translatesAutoresizingMaskIntoConstraints = false
+        return control
+    }()
+
     private lazy var screenTrackingButton: UIButton = {
         let action = UIAction(title: "Auto Screen Tracking   ->") { [weak self] _ in
             self?.showScreenTrackingHomeVC()
@@ -108,7 +119,7 @@ class RootViewController: UIViewController {
     }
     
     private lazy var buttonStackView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [networkButton, errorButton, crashButton, ANRtestButton, memoryWarningButton, cpuTestsButton, customTimerButton, screenTrackingButton])
+        let view = UIStackView(arrangedSubviews: [networkButton, errorButton, crashButton, ANRtestButton, memoryWarningButton, cpuTestsButton, customTimerButton, purchaseConfirmationButton, screenTrackingButton])
         view.axis = .vertical
         view.alignment = .fill
         view.distribution = .fillEqually
@@ -158,6 +169,25 @@ class RootViewController: UIViewController {
        // print("CRASHED: \(crash!)")
         let error = AppError(reason: "There was an error fooing", underlyingError: nil)
         BlueTriangle.logError(error)
+    }
+
+    /// Sends a purchase confirmation with hard-coded values. The order number is fixed, so tapping
+    /// again within one hour in the same session is de-duplicated (cart value sent as page value).
+    private func sendPurchaseConfirmation() {
+        guard BlueTriangle.initialized else { return }
+        let timer = BlueTriangle.startTimer(page: Page(pageName: "Confirmation"))
+
+        let cartValue: Decimal = 49.99
+        let cartCount = 3
+        let orderNumber = "TEST-ORDER-1001"
+
+        BlueTriangle.endTimer(
+            timer,
+            purchaseConfirmation: PurchaseConfirmation(
+                cartValue: cartValue,
+                cartCount: cartCount,
+                cartCountCheckout: cartCount,
+                orderNumber: orderNumber))
     }
 
     func causeNSException() {

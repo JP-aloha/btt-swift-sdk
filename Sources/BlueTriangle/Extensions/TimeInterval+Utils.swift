@@ -16,6 +16,10 @@ extension TimeInterval {
         UInt64(self * 1_000_000_000)
     }
 
+    static var hour: TimeInterval {
+        3_600.0
+    }
+
     static var day: TimeInterval {
         86_400.0
     }

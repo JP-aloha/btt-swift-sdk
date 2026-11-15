@@ -1165,6 +1165,9 @@ public extension BlueTriangle {
         
         if let session = session(), timer.enableAllTracking {
             purchaseConfirmation?.orderTime = timer.endTime
+            if let purchaseConfirmation {
+                sessionManager?.deduplicatePurchase(purchaseConfirmation)
+            }
             if let event = timer.getEvent() {
                 timer.nativeAppProperties.eventId = event.id
             }

@@ -92,9 +92,10 @@ final public class PurchaseConfirmation: NSObject, @unchecked Sendable {
 
     // MARK: - Equality + dedup using snapshots
 
-    private func snapshot() -> (pageValue: Decimal, cartValue: Decimal, orderNumber: String, orderTime: TimeInterval) {
+    private func snapshot() -> (pageValue: Decimal, cartValue: Decimal, orderNumber: String,
+                                cartCount: Int, cartCountCheckout: Int, orderTime: TimeInterval) {
         lock.sync {
-            (_pageValue, _cartValue, _orderNumber, _orderTime)
+            (_pageValue, _cartValue, _orderNumber, _cartCount, _cartCountCheckout, _orderTime)
         }
     }
 }
@@ -103,18 +104,57 @@ public extension PurchaseConfirmation {
     static func == (lhs: PurchaseConfirmation, rhs: PurchaseConfirmation) -> Bool {
           let a = lhs.snapshot()
           let b = rhs.snapshot()
-
-          return a.cartValue == b.cartValue && (a.orderNumber == b.orderNumber || ( b.orderTime <= a.orderTime + TimeInterval.day && b.orderTime >= a.orderTime - TimeInterval.day))
+          return a.orderNumber == b.orderNumber && abs(a.orderTime - b.orderTime) <= TimeInterval.hour
       }
 }
 
+// MARK: - Codable (stored in the session as the last purchase confirmation)
+extension PurchaseConfirmation: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case pageValue, cartValue, orderNumber, cartCount, cartCountCheckout, orderTime
+    }
+
+    public convenience init(from decoder: Decoder) throws {
+        let con = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            pageValue: try con.decode(Decimal.self, forKey: .pageValue),
+            cartValue: try con.decode(Decimal.self, forKey: .cartValue),
+            cartCount: try con.decode(Int.self, forKey: .cartCount),
+            cartCountCheckout: try con.decode(Int.self, forKey: .cartCountCheckout),
+            orderNumber: try con.decode(String.self, forKey: .orderNumber),
+            orderTime: try con.decode(TimeInterval.self, forKey: .orderTime))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        let s = snapshot()
+        var con = encoder.container(keyedBy: CodingKeys.self)
+        try con.encode(s.pageValue, forKey: .pageValue)
+        try con.encode(s.cartValue, forKey: .cartValue)
+        try con.encode(s.orderNumber, forKey: .orderNumber)
+        try con.encode(s.cartCount, forKey: .cartCount)
+        try con.encode(s.cartCountCheckout, forKey: .cartCountCheckout)
+        try con.encode(s.orderTime, forKey: .orderTime)
+    }
+}
+
 extension PurchaseConfirmation {
-    func deduplicate(from previous: PurchaseConfirmation) {
-        if self == previous {
-            lock.sync {
-                _pageValue = _cartValue
-                _cartValue = 0.0
-            }
+    /// A copy with the same values, so the stored last purchase is not affected by later changes to the caller's object.
+    func makeCopy() -> PurchaseConfirmation {
+        let s = snapshot()
+        return PurchaseConfirmation(
+            pageValue: s.pageValue,
+            cartValue: s.cartValue,
+            cartCount: s.cartCount,
+            cartCountCheckout: s.cartCountCheckout,
+            orderNumber: s.orderNumber,
+            orderTime: s.orderTime)
+    }
+
+    /// Marks this purchase as a duplicate: the cart value is sent as page value and no revenue is counted.
+    func deduplicate() {
+        lock.sync {
+            _pageValue = _cartValue
+            _cartValue = 0.0
         }
     }
 }

@@ -21,10 +21,12 @@ protocol SessionManagerProtocol  {
     /// The saved session, read without taking the session lock.
     func savedSessionData() -> SessionData?
     func stop()
+    func deduplicatePurchase(_ purchase: PurchaseConfirmation)
 }
 
 extension SessionManagerProtocol {
     func savedSessionData() -> SessionData? { nil }
+    func deduplicatePurchase(_ purchase: PurchaseConfirmation) {}
 }
 
 
@@ -155,6 +157,21 @@ class SessionManager : SessionManagerProtocol{
     
     func savedSessionData() -> SessionData? {
         sessionStore.retrieveSessionData()
+    }
+
+    func deduplicatePurchase(_ purchase: PurchaseConfirmation) {
+        let orderNumber = purchase.orderNumber
+        guard !orderNumber.isEmpty else { return }
+        lock.sync {
+            let session = currentSession ?? invalidateSession()
+            if let lastPurchase = session.lastPurchaseConfirmation, purchase == lastPurchase {
+                purchase.deduplicate()
+                logger.info("BlueTriangle:SessionManager: Duplicate purchase for order \(orderNumber); cart value sent as page value")
+            } else {
+                session.lastPurchaseConfirmation = purchase.makeCopy()
+                sessionStore.saveSession(session)
+            }
+        }
     }
 
     private func updateSession(){

@@ -95,6 +95,7 @@ class SessionData: Codable {
     var enableBreadcrumbs : Bool
     var ignoreBreadcrumbs: Set<String>
     var configKey : String
+    var lastPurchaseConfirmation: PurchaseConfirmation?
     
     init(expiration: Millisecond) {
         self.expiration = expiration
