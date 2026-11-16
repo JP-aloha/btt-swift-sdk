@@ -279,6 +279,7 @@ extension SessionManager {
                 BlueTriangle.updateConfigKey(session.configKey)
                 sessionStore.saveSession(session)
             }
+            BlueTriangle.notifyConfigurationChanged(SdkConfiguration(session: session, enableAllTracking: BlueTriangle.enableAllTracking))
         }
     }
 }

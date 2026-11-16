@@ -1790,7 +1790,36 @@ extension BlueTriangle {
 
 // MARK: - Remote config
 extension BlueTriangle {
-   
+
+    private static var _onConfigurationChanged: ((SdkConfiguration) -> Void)?
+    private static var _lastConfiguration: SdkConfiguration?
+
+    /// Called on the main queue with the configuration applied to the SDK for the current session
+    /// (new session and every app launch). Exposes the config to the React Native SDK, like the
+    /// Android SDK's `IConfigListener.onConfigurationChanged`. If a configuration was already
+    /// applied, setting this calls it at once with the latest one.
+    @objc public static var onConfigurationChanged: ((SdkConfiguration) -> Void)? {
+        get { trackingLock.sync { _onConfigurationChanged } }
+        set {
+            let lastConfig: SdkConfiguration? = trackingLock.sync {
+                _onConfigurationChanged = newValue
+                return _lastConfiguration
+            }
+            if let newValue, let lastConfig {
+                newValue(lastConfig)
+            }
+        }
+    }
+
+    internal static func notifyConfigurationChanged(_ config: SdkConfiguration) {
+        let callback: ((SdkConfiguration) -> Void)? = trackingLock.sync {
+            _lastConfiguration = config
+            return _onConfigurationChanged
+        }
+        guard let callback else { return }
+        DispatchQueue.main.async { callback(config) }
+    }
+
     internal static func updateNetworkSampleRate(_ rate : Double) {
         configuration.networkSampleRate = rate
     }
