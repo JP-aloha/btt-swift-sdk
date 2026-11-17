@@ -106,10 +106,7 @@ class ANRWatchDog{
         
         logger.debug("ANR Watch Dog : Warning potential ANR detected...  ")
         
-        let message = """
-Potential ANR Detected
-An task blocking main thread since \(self.errorTriggerInterval) seconds
-"""
+        let message = "Potential ANR Detected. A task blocked the main thread for \(self.errorTriggerInterval) seconds"
         if let timer = BlueTriangle.recentTimer() {
             timer.setEvent(BTTEvents.anrWarning)
             let breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
