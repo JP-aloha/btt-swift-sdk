@@ -16,6 +16,9 @@ struct ResponsivenessReport: Codable, Equatable {
     let totalFrameCount: Int64
     let hitchHistograms: [HitchHistogramBucket]
     let hitchesSeverity: Double
+    /// JS-thread hangs reported by React Native via `BTTScreenTracker.reportJSHang(durationMs:)`. `0` for non-RN screens.
+    var jsHangCount: Int64 = 0
+    var jsLongestHang: Millisecond = 0
 }
 
 extension ResponsivenessReport {
@@ -32,7 +35,10 @@ extension ResponsivenessReport {
 
     /// The single 0-100 badness score for this report, via `ResponsivenessGradeCalculator`.
     var grade: Int {
-        ResponsivenessGradeCalculator.grade(hitchesSeverity: hitchesSeverity, hangCount: hangCount, longestHang: longestHang)
+        ResponsivenessGradeCalculator.grade(
+            hitchesSeverity: hitchesSeverity,
+            hangCount: hangCount + jsHangCount,
+            longestHang: max(longestHang, jsLongestHang))
     }
 
     /// JSON-encoded snapshot of every raw responsiveness field, sent as `NativeAppProperties.responsivenessMeta`.
@@ -48,9 +54,12 @@ extension ResponsivenessReport {
             let totalFrameCount: Int64
             let hitchHistograms: String
             let hitchesSeverity: Double
+            let jsHangCount: Int64
+            let jsLongestHang: Millisecond
 
             enum CodingKeys: String, CodingKey {
                 case hitchCount, totalHitchDuration, longestHitch, hangCount, totalHangDuration, longestHang, totalFrameCount, hitchHistograms, hitchesSeverity
+                case jsHangCount, jsLongestHang
             }
 
             func encode(to encoder: Encoder) throws {
@@ -80,6 +89,12 @@ extension ResponsivenessReport {
                     try con.encode(hitchHistograms, forKey: .hitchHistograms)
                     try con.encode(hitchesSeverity, forKey: .hitchesSeverity)
                 }
+                if jsHangCount > 0 {
+                    try con.encode(jsHangCount, forKey: .jsHangCount)
+                }
+                if jsLongestHang > 0 {
+                    try con.encode(jsLongestHang, forKey: .jsLongestHang)
+                }
             }
         }
         let meta = Meta(
@@ -91,7 +106,9 @@ extension ResponsivenessReport {
             longestHang: longestHang,
             totalFrameCount: totalFrameCount,
             hitchHistograms: HitchHistogramBucket.encodeCompact(hitchHistograms),
-            hitchesSeverity: hitchesSeverity)
+            hitchesSeverity: hitchesSeverity,
+            jsHangCount: jsHangCount,
+            jsLongestHang: jsLongestHang)
         guard let data = try? JSONEncoder().encode(meta) else { return nil }
         return String(data: data, encoding: .utf8)
     }

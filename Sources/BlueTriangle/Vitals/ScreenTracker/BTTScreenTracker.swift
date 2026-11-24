@@ -70,7 +70,16 @@ public final class BTTScreenTracker {
             reportDisappearBreadcrumb()
         }
     }
-    
+
+    /// Records one JS-thread hang on this screen, reported live by the React Native SDK s
+    public func reportJSHang(durationMs: Int64) {
+        guard durationMs > 0 else { return }
+        lock.sync {
+            guard hasViewing else { return }
+            tracker?.reportJSHang(id: id, durationMs: Millisecond(durationMs))
+        }
+    }
+
     private func reportAppearBreadcrumb(){
         if type == ScreenType.ReactNative {
             BlueTriangle.collectBreadcrumb(UILifecycleEvent(event: Constants.Breadcrums.UILifeCycle.onAppear, className: pageName))

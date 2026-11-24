@@ -97,6 +97,15 @@ public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
         }
     }
     
+    /// Records a JS-thread hang on the screen's running timer. Ignored if the screen isn't being
+    /// tracked right now (e.g. while the app is in the background).
+    func reportJSHang(id: String, durationMs: Millisecond) {
+        lock.sync {
+            guard enableLifecycleTracker, let timerActivity = btTimeActivityrMap[id] else { return }
+            timerActivity.addJSHang(durationMs: durationMs)
+        }
+    }
+
     private func getTimerActivity(_ pageName : String, id : String, pageTitle : String = "") -> TimerMapActivity{
         if let btTimerActivity = btTimeActivityrMap[id] {
             btTimerActivity.setPageName(pageName,title: pageTitle)
@@ -290,6 +299,15 @@ class TimerMapActivity {
         default:
             confidenceRate = 0
             confidenceMsg = "Lifecycle tracking information are missing"
+        }
+    }
+
+    /// Records a JS-thread hang on this screen's timer and, when grouped, on its group timer
+    /// (whose report is the one sent for grouped screens).
+    func addJSHang(durationMs: Millisecond) {
+        timer.addJSHang(durationMs: durationMs)
+        if timer.isGroupTimer {
+            BlueTriangle.groupTimer.addJSHang(durationMs: durationMs, for: timer)
         }
     }
 

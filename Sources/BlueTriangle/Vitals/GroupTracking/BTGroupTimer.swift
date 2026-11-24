@@ -95,6 +95,14 @@ final class BTTimerGroup {
         }
     }
 
+    func contains(_ timer: BTTimer) -> Bool {
+        lock.sync { !hasSubmitted && timers.contains(timer) }
+    }
+
+    func addJSHang(durationMs: Millisecond) {
+        groupTimer.addJSHang(durationMs: durationMs)
+    }
+
     func setGroupCause(_ cause: GroupingCause) {
         lock.sync { self.groupingCause = cause }
     }

@@ -61,6 +61,9 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     private var totalHangDuration: Double = 0
     private var longestHang: Double = 0
     private var hitchHistograms: [HitchHistogramBucket] = HitchHistogramBucket.makeDefaultBuckets()
+    private var jsHangCount: Int64 = 0
+    private var jsLongestHang: Millisecond = 0
+    private let jsLock = NSLock()
     private let now: () -> CFTimeInterval
 
     init(
@@ -91,6 +94,10 @@ final class ResponsivenessTracker: ResponsivenessTracking {
         totalHangDuration = 0
         longestHang = 0
         hitchHistograms = HitchHistogramBucket.makeDefaultBuckets()
+        jsLock.sync {
+            jsHangCount = 0
+            jsLongestHang = 0
+        }
 
         displayLink?.invalidate()
         let link = CADisplayLink(target: DisplayLinkProxy(self), selector: #selector(DisplayLinkProxy.tick))
@@ -101,7 +108,6 @@ final class ResponsivenessTracker: ResponsivenessTracking {
 
     func end() {
         flushPendingGapIfNeeded()
-        // Nothing is measured after end, so a later makeReport() must not count the time since as a hang.
         lastTimestamp = 0
         displayLink?.invalidate()
         displayLink = nil
@@ -120,8 +126,20 @@ final class ResponsivenessTracker: ResponsivenessTracking {
         lastTimestamp = currentTime
     }
 
+    // MARK: - JS-thread hangs (React Native)
+
+    func addJSHang(durationMs: Millisecond) {
+        jsLock.sync {
+            jsHangCount += 1
+            jsLongestHang = max(jsLongestHang, durationMs)
+        }
+    }
+
+    // MARK: - Report
+
     func makeReport() -> ResponsivenessReport {
         flushPendingGapIfNeeded()
+        let js = jsLock.sync { (hangCount: jsHangCount, longestHang: jsLongestHang) }
         return ResponsivenessReport(
             hitchCount: hitchCount,
             totalHitchDuration: Millisecond(totalHitchDuration.rounded()),
@@ -131,12 +149,12 @@ final class ResponsivenessTracker: ResponsivenessTracking {
             longestHang: Millisecond(longestHang.rounded()),
             totalFrameCount: totalFrameCount,
             hitchHistograms: hitchHistograms,
-            hitchesSeverity: HitchHistogramBucket.weightedMean(hitchHistograms))
+            hitchesSeverity: HitchHistogramBucket.weightedMean(hitchHistograms),
+            jsHangCount: js.hangCount,
+            jsLongestHang: js.longestHang)
     }
 
     fileprivate func tick(_ link: CADisplayLink) {
-        // Frames stop while the app is not active - that time is not a hang, so measuring
-        // restarts from the first frame once the app is active again.
         guard UIApplication.shared.applicationState == .active else {
             lastTimestamp = 0
             return

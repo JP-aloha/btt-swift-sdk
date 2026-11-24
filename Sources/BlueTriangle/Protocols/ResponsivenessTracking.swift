@@ -10,4 +10,5 @@ protocol ResponsivenessTracking {
     func start()
     func end()
     func makeReport() -> ResponsivenessReport
+    func addJSHang(durationMs: Millisecond)
 }

@@ -149,6 +149,11 @@ final public class BTTimer: NSObject, @unchecked Sendable {
         responsivenessTracker?.makeReport()
     }
 
+    /// Records one JS-thread hang reported by React Native.
+    func addJSHang(durationMs: Millisecond) {
+        responsivenessTracker?.addJSHang(durationMs: durationMs)
+    }
+
     var networkReport: NetworkReport? {
         return networkAccumulator?.makeReport()
     }

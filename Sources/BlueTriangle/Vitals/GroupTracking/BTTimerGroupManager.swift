@@ -128,6 +128,17 @@ final class BTTimerGroupManager {
         open?.refreshGroupName()
     }
 
+    /// Records a grouped screen's JS-thread hang on the group holding that screen's timer,
+    /// since for grouped screens only the group timer's report is sent.
+    func addJSHang(durationMs: Millisecond, for timer: BTTimer) {
+        let groups = lock.sync { activeGroups }
+        guard let group = groups.first(where: { $0.contains(timer) }) else {
+            logger.debug("No unsubmitted group found for JS hang on \(timer.getPageName())")
+            return
+        }
+        group.addJSHang(durationMs: durationMs)
+    }
+
     func setLastAction(_ time: Date) {
         if BlueTriangle.configuration.enableGroupingTapDetection {
             lock.sync { self.lastActionTime = time.timeIntervalSince1970.milliseconds }
