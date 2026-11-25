@@ -82,7 +82,7 @@ final class BTLogger: Logging {
         line: UInt
     ) {
         if enableDebug {
-            logger.log(level: .debug, message: message, file: file, function: function, line: line)
+            log(level: .debug, listenerLevel: .debug, message: message, file: file, function: function, line: line)
         }
     }
 
@@ -92,7 +92,7 @@ final class BTLogger: Logging {
         function: StaticString,
         line: UInt
     ) {
-        logger.log(level: .info, message: message, file: file, function: function, line: line)
+        log(level: .info, listenerLevel: .info, message: message, file: file, function: function, line: line)
     }
 
     func logDefault(
@@ -101,7 +101,7 @@ final class BTLogger: Logging {
         function: StaticString,
         line: UInt
     ) {
-        logger.log(level: .default, message: message, file: file, function: function, line: line)
+        log(level: .default, listenerLevel: .default, message: message, file: file, function: function, line: line)
     }
 
     func logError(
@@ -110,7 +110,24 @@ final class BTLogger: Logging {
         function: StaticString,
         line: UInt
     ) {
-        logger.log(level: .error, message: message, file: file, function: function, line: line)
+        log(level: .error, listenerLevel: .error, message: message, file: file, function: function, line: line)
+    }
+
+    private func log(
+        level: OSLogType,
+        listenerLevel: BTTLogLevel,
+        message: @escaping () -> String,
+        file: StaticString,
+        function: StaticString,
+        line: UInt
+    ) {
+        guard let listener = BlueTriangle.logListener else {
+            logger.log(level: level, message: message, file: file, function: function, line: line)
+            return
+        }
+        let text = message()
+        logger.log(level: level, message: { text }, file: file, function: function, line: line)
+        listener(listenerLevel, "\(function):\(line) - \(text)")
     }
 }
 
