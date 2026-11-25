@@ -17,7 +17,7 @@ struct ResponsivenessReport: Codable, Equatable {
     let hitchHistograms: [HitchHistogramBucket]
     let hitchesSeverity: Double
     var jsHangCount: Int64 = 0
-    var totalJsHangDuration: Millisecond = 0
+    var jsTotalHangDuration: Millisecond = 0
     var jsLongestHang: Millisecond = 0
 }
 
@@ -55,12 +55,12 @@ extension ResponsivenessReport {
             let hitchHistograms: String
             let hitchesSeverity: Double
             let jsHangCount: Int64
-            let totalJsHangDuration: Millisecond
+            let jsTotalHangDuration: Millisecond
             let jsLongestHang: Millisecond
 
             enum CodingKeys: String, CodingKey {
                 case hitchCount, totalHitchDuration, longestHitch, hangCount, totalHangDuration, longestHang, totalFrameCount, hitchHistograms, hitchesSeverity
-                case jsHangCount, totalJsHangDuration, jsLongestHang
+                case jsHangCount, jsTotalHangDuration, jsLongestHang
             }
 
             func encode(to encoder: Encoder) throws {
@@ -93,8 +93,8 @@ extension ResponsivenessReport {
                 if jsHangCount > 0 {
                     try con.encode(jsHangCount, forKey: .jsHangCount)
                 }
-                if totalJsHangDuration > 0 {
-                    try con.encode(totalJsHangDuration, forKey: .totalJsHangDuration)
+                if jsTotalHangDuration > 0 {
+                    try con.encode(jsTotalHangDuration, forKey: .jsTotalHangDuration)
                 }
                 if jsLongestHang > 0 {
                     try con.encode(jsLongestHang, forKey: .jsLongestHang)
@@ -112,7 +112,7 @@ extension ResponsivenessReport {
             hitchHistograms: HitchHistogramBucket.encodeCompact(hitchHistograms),
             hitchesSeverity: hitchesSeverity,
             jsHangCount: jsHangCount,
-            totalJsHangDuration: totalJsHangDuration,
+            jsTotalHangDuration: jsTotalHangDuration,
             jsLongestHang: jsLongestHang)
         guard let data = try? JSONEncoder().encode(meta) else { return nil }
         return String(data: data, encoding: .utf8)

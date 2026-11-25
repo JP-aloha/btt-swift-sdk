@@ -62,7 +62,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     private var longestHang: Double = 0
     private var hitchHistograms: [HitchHistogramBucket] = HitchHistogramBucket.makeDefaultBuckets()
     private var jsHangCount: Int64 = 0
-    private var totalJsHangDuration: Millisecond = 0
+    private var jsTotalHangDuration: Millisecond = 0
     private var jsLongestHang: Millisecond = 0
     private let jsLock = NSLock()
     private let now: () -> CFTimeInterval
@@ -97,7 +97,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
         hitchHistograms = HitchHistogramBucket.makeDefaultBuckets()
         jsLock.sync {
             jsHangCount = 0
-            totalJsHangDuration = 0
+            jsTotalHangDuration = 0
             jsLongestHang = 0
         }
 
@@ -133,7 +133,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
     func addJSHang(durationMs: Millisecond) {
         jsLock.sync {
             jsHangCount += 1
-            totalJsHangDuration += durationMs
+            jsTotalHangDuration += durationMs
             jsLongestHang = max(jsLongestHang, durationMs)
         }
     }
@@ -142,7 +142,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
 
     func makeReport() -> ResponsivenessReport {
         flushPendingGapIfNeeded()
-        let js = jsLock.sync { (hangCount: jsHangCount, totalHangDuration: totalJsHangDuration, longestHang: jsLongestHang) }
+        let js = jsLock.sync { (hangCount: jsHangCount, totalHangDuration: jsTotalHangDuration, longestHang: jsLongestHang) }
         return ResponsivenessReport(
             hitchCount: hitchCount,
             totalHitchDuration: Millisecond(totalHitchDuration.rounded()),
@@ -154,7 +154,7 @@ final class ResponsivenessTracker: ResponsivenessTracking {
             hitchHistograms: hitchHistograms,
             hitchesSeverity: HitchHistogramBucket.weightedMean(hitchHistograms),
             jsHangCount: js.hangCount,
-            totalJsHangDuration: js.totalHangDuration,
+            jsTotalHangDuration: js.totalHangDuration,
             jsLongestHang: js.longestHang)
     }
 
