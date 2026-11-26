@@ -1594,9 +1594,10 @@ extension BlueTriangle {
 
     public static func storeException(exception: NSException) {
         if let session = session() {
-            let pageName = BlueTriangle.recentTimer()?.getPageName()
-            let segment = BlueTriangle.recentTimer()?.getTrafficSegment() ?? session.trafficSegmentName
-            let pageType = BlueTriangle.recentTimer()?.page.pageType ?? session.pageType
+            let lastPage = BTTScreenLifecycleTracker.lastPage
+            let pageName = BlueTriangle.recentTimer()?.getPageName() ?? lastPage?.name
+            let segment = BlueTriangle.recentTimer()?.getTrafficSegment() ?? lastPage?.segment ?? session.trafficSegmentName
+            let pageType = BlueTriangle.recentTimer()?.page.pageType ?? lastPage?.pageType ?? session.pageType
             var nativeApp = NativeAppProperties.nstEmpty
             nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             nativeApp.eMeta = EMetaBuilder.build(source: .nsException, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)

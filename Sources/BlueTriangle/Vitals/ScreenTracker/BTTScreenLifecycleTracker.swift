@@ -36,7 +36,17 @@ public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     private(set) var logger : Logging?
     private var startTimerPages = [String : (name: String, title: String)]()
     private let lock = NSLock()
-    
+
+    /// Last screen that loaded/appeared, used for errors raised while no timer is running.
+    private static let lastPageLock = NSLock()
+    typealias LastPage = (name: String, segment: String, pageType: String)
+    private static var _lastPage: LastPage?
+    static var lastPage: LastPage? { lastPageLock.sync { _lastPage } }
+
+    /// Last screen saved by the previous run (on background), for next-launch MetricKit reports.
+    static let previousRunLastPage: LastPage? = UserDefaultsUtility.getData(type: [String].self, forKey: .lastScreenPage)
+        .flatMap { $0.count == 3 ? ($0[0], $0[1], $0[2]) : nil }
+
     internal init() {
         registerAppForegroundAndBackgroundNotification()
     }
@@ -93,6 +103,7 @@ public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
                 let pageType = BlueTriangle.pageType == Constants.defaultPageType ? Constants.SCREEN_TRACKING_PAGE_TYPE : BlueTriangle.pageType
                 SignalHandler.setTraficSegment(traficSegment)
                 SignalHandler.setPageType(pageType)
+                Self.lastPageLock.sync { Self._lastPage = (pageName, traficSegment, pageType) }
             }
         }
     }
@@ -164,6 +175,8 @@ public class BTTScreenLifecycleTracker : BTScreenLifecycleTracker{
     }
     
     @objc private func appMovedToBackground() {
+        _ = Self.previousRunLastPage // read the previous run's page before overwriting it
+        if let page = Self.lastPage { UserDefaultsUtility.setData(value: [page.name, page.segment, page.pageType], key: .lastScreenPage) }
         BlueTriangle.screenTracker?.stopActiveTimersWhenAppWentToBackground()
     }
     

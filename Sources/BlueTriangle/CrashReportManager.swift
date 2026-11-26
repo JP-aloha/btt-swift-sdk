@@ -103,9 +103,9 @@ final class CrashReportManager: CrashReportManaging {
         nativeApp.eMeta = EMetaBuilder.build(source: .externalError, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
         let crashReport = CrashReport(sessionID: BlueTriangle.sessionID,
                                       message: String(describing: error),
-                                      pageName: timer?.getPageName(),
-                                      segment: timer?.getTrafficSegment(),
-                                      pageType: timer?.page.pageType,
+                                      pageName: timer?.getPageName() ?? BTTScreenLifecycleTracker.lastPage?.name,
+                                      segment: timer?.getTrafficSegment() ?? BTTScreenLifecycleTracker.lastPage?.segment,
+                                      pageType: timer?.page.pageType ?? BTTScreenLifecycleTracker.lastPage?.pageType,
                                       nativeApp: nativeApp,
                                       intervalProvider: intervalProvider())
         PendingCrashRecordStore.save(crashReport, key: .pendingFatalErrorRecord)
@@ -140,7 +140,8 @@ final class CrashReportManager: CrashReportManaging {
                 nativeApp.eMeta = eMeta
                 let report = ErrorReport(nativeApp: nativeApp, eTp: BT_ErrorType.NativeAppCrash.rawValue, error: error, line: line, time: intervalProvider().milliseconds)
                 let event = BTTEvents.nativeAppCrash
-                try upload(session:session , report: report, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
+                let lastPage = BTTScreenLifecycleTracker.lastPage
+                try upload(session:session , report: report, pageName: lastPage?.name ?? event.defaultPageName, segment: lastPage?.segment ?? session.trafficSegmentName, pageType: lastPage?.pageType ?? session.pageType, event: event)
             }
 
         } catch {

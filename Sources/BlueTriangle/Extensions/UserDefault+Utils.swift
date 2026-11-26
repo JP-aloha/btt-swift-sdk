@@ -57,5 +57,6 @@ final class UserDefaultsUtility {
         case currentTimerDetail
         case pendingCrashRecord
         case pendingFatalErrorRecord
+        case lastScreenPage
     }
 }

@@ -56,9 +56,12 @@ class MemoryWarningWatchDog {
             var nativeApp = NativeAppProperties.nstEmpty
             nativeApp.breadcrumbs = BlueTriangle.breadcrumbManager?.breadcrumbs()
             nativeApp.eMeta = EMetaBuilder.build(source: .memoryWarning, build: EMetaBuilder.currentBuild, arch: EMetaBuilder.currentArch)
+            let lastPage = BTTScreenLifecycleTracker.lastPage
+            let segment = lastPage?.segment ?? session.trafficSegmentName
+            let pageType = lastPage?.pageType ?? session.pageType
             let report = CrashReport(sessionID: BlueTriangle.sessionID,
-                                     memoryWarningMessage: message, pageName: event.defaultPageName, segment: session.trafficSegmentName, pageType: session.pageType, nativeApp: nativeApp)
-            uploadReports(session: session, report: report, segment: session.trafficSegmentName, pageType: session.pageType, event: event)
+                                     memoryWarningMessage: message, pageName: lastPage?.name ?? event.defaultPageName, segment: segment, pageType: pageType, nativeApp: nativeApp)
+            uploadReports(session: session, report: report, segment: segment, pageType: pageType, event: event)
         }
         logger.debug(message)
     }

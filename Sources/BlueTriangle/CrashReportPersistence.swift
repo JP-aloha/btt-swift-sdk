@@ -57,9 +57,9 @@ struct CrashReportPersistence: CrashReportPersisting {
         Self.save(
             CrashReport(sessionID: BlueTriangle.sessionID,
                         exception: exception,
-                        pageName: BlueTriangle.recentTimer()?.getPageName(),
-                        segment: BlueTriangle.recentTimer()?.getTrafficSegment(),
-                        pageType: BlueTriangle.recentTimer()?.page.pageType,
+                        pageName: BlueTriangle.recentTimer()?.getPageName() ?? BTTScreenLifecycleTracker.lastPage?.name,
+                        segment: BlueTriangle.recentTimer()?.getTrafficSegment() ?? BTTScreenLifecycleTracker.lastPage?.segment,
+                        pageType: BlueTriangle.recentTimer()?.page.pageType ?? BTTScreenLifecycleTracker.lastPage?.pageType,
                         nativeApp: CrashReportPersistence.nativeAppProperties(),
                         intervalProvider: TimeInterval(crashTimeSeconds)))
     }

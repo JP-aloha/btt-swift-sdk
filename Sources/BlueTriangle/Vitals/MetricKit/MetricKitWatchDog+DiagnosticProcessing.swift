@@ -164,8 +164,10 @@ extension MetricKitWatchDog {
                 await errorMetricStore.addCrash(id: timer.uuid, message: message, stackTrace: stackTrace, eMeta: eMeta, eIdentifier: crashLocation, breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs())
             }
         } else {
+            // A non-live diagnostic is from the previous run, so use the page that run saved.
+            let lastPage = isLive ? BTTScreenLifecycleTracker.lastPage : BTTScreenLifecycleTracker.previousRunLastPage
             uploadCrashReport(kind: .crash, sessionID: BlueTriangle.sessionID, message: message, stackTrace: stackTrace,
-                              pageName: nil, trafficSegment: nil, pageType: nil,
+                              pageName: lastPage?.name, trafficSegment: lastPage?.segment, pageType: lastPage?.pageType,
                               breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs(),
                               eMeta: eMeta, eIdentifier: crashLocation,
                               session: session, timeStampBegin: timeStampBegin)
@@ -225,8 +227,10 @@ extension MetricKitWatchDog {
         let eMeta = eMetaString(diagnostic, extraPairs: extraMetadataPairs)
 
         guard isLive, let timer = BlueTriangle.recentTimer() else {
+            // A non-live diagnostic is from the previous run, so use the page that run saved.
+            let lastPage = isLive ? BTTScreenLifecycleTracker.lastPage : BTTScreenLifecycleTracker.previousRunLastPage
             uploadCrashReport(kind: kind, sessionID: BlueTriangle.sessionID, message: message, stackTrace: stackTrace,
-                              pageName: nil, trafficSegment: nil, pageType: nil,
+                              pageName: lastPage?.name, trafficSegment: lastPage?.segment, pageType: lastPage?.pageType,
                               breadcrumbs: BlueTriangle.breadcrumbManager?.breadcrumbs(),
                               eMeta: eMeta, eIdentifier: location,
                               session: session, timeStampBegin: timeStampBegin)
