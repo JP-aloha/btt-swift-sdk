@@ -113,6 +113,13 @@ private extension String {
 struct CrashStackTraceReport: Encodable {
     struct Meta: Encodable {
         let fVersion: String
+        let symbolType: SymbolType
+    }
+
+    /// Which platform's frames the stack holds, so the server applies the matching symbolication.
+    /// Values are shared with the Android and React Native SDKs.
+    enum SymbolType: String, Encodable {
+        case iosNative = "ios-native"
     }
 
     struct Frame: Encodable {
@@ -158,7 +165,9 @@ extension MXCallStackTreeJSON {
                 stack: stack)
         }
 
-        let report = CrashStackTraceReport(meta: .init(fVersion: stackTraceFormatVersion), threads: threads)
+        let report = CrashStackTraceReport(
+            meta: .init(fVersion: stackTraceFormatVersion, symbolType: .iosNative),
+            threads: threads)
         guard let data = try? JSONEncoder().encode(report),
               let json = String(data: data, encoding: .utf8) else { return nil }
         return json
